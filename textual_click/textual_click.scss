@@ -16,6 +16,13 @@
   border-right: thick $boost;
 }
 
+#home-sidebar-description {
+  padding: 1 2;
+  color: $text;
+  background: $primary;
+  dock: bottom;
+}
+
 CommandTree {
   min-width: 12;
   background: $background-lighten-1;

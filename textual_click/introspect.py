@@ -51,6 +51,7 @@ def introspect_click_app(app: click.Group) -> Dict[str, Any]:
 
     def process_command(cmd_name: str, cmd_obj: click.Command) -> Dict[str, Any]:
         cmd_data: Dict[str, Any] = {
+            'docstring': cmd_obj.help,
             'options': [],
             'arguments': [],
             'subcommands': {}
