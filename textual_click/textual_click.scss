@@ -2,6 +2,13 @@
   height: 1fr;
 }
 
+#home-exec-preview {
+  background: $panel;
+  dock: bottom;
+  height: 3;
+  padding: 1 2;
+}
+
 #home-commands-label {
   color: $text;
   background: $background;

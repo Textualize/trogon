@@ -70,11 +70,16 @@ class CommandBuilder(Screen):
             id="home-sidebar"
         )
 
-        body = VerticalScroll(
+        scrollable_body = VerticalScroll(
             Pretty(self.cli_metadata),
+            id="home-body-scroll",
+        )
+        body = Vertical(
+            scrollable_body,
+            Static("abc", id="home-exec-preview"),
             id="home-body",
         )
-        body.can_focus = True
+        scrollable_body.can_focus = True
         yield body
 
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted):
@@ -86,9 +91,11 @@ class CommandBuilder(Screen):
 
         # TODO: Add an ID check
 
-        self.command_string = self._build_command_from_node(event.node)
+        command_string = self._build_command_from_node(event.node)
         self._update_command_description(event.node)
-        print(f"Command string updated: {self.command_string}")
+        self._update_execution_string_preview(command_string.plain)
+        # self._update_form_body(event.node)
+        print(f"Command string updated: {command_string}")
 
         # Now for the selected node, look at the data
         print(event.node.data)
@@ -113,6 +120,9 @@ class CommandBuilder(Screen):
         description_text = f"[b]{node.label}[/]\n{description_text}"
         description_box.update(description_text)
 
+    def _update_execution_string_preview(self, command_string: str) -> None:
+        """Update the preview box showing the command string to be executed"""
+        self.query_one("#home-exec-preview", Static).update(command_string)
 
 class TextualClick(App):
     CSS_PATH = Path(__file__).parent / "textual_click.scss"
