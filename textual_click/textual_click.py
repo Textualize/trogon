@@ -7,9 +7,9 @@ import click
 from rich.style import Style
 from rich.text import TextType, Text
 from textual.app import ComposeResult, App
-from textual.containers import VerticalScroll, Vertical
+from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
-from textual.widgets import Pretty, Tree, Label, Static
+from textual.widgets import Pretty, Tree, Label, Static, Button
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
@@ -76,7 +76,14 @@ class CommandBuilder(Screen):
         )
         body = Vertical(
             scrollable_body,
-            Static("abc", id="home-exec-preview"),
+            Horizontal(
+                Static("", id="home-exec-preview-static"),
+                Vertical(
+                    Button.success("Execute"),
+                    id="home-exec-preview-buttons",
+                ),
+                id="home-exec-preview",
+            ),
             id="home-body",
         )
         scrollable_body.can_focus = True
@@ -95,10 +102,6 @@ class CommandBuilder(Screen):
         self._update_command_description(event.node)
         self._update_execution_string_preview(command_string.plain)
         self._update_form_body(event.node)
-        print(f"Command string updated: {command_string}")
-
-        # Now for the selected node, look at the data
-        print(event.node.data)
 
     def _build_command_from_node(self, node: TreeNode) -> Text:
         """Given a TreeNode, look up the ancestors and build the Text required
@@ -122,7 +125,7 @@ class CommandBuilder(Screen):
 
     def _update_execution_string_preview(self, command_string: str) -> None:
         """Update the preview box showing the command string to be executed"""
-        self.query_one("#home-exec-preview", Static).update(command_string)
+        self.query_one("#home-exec-preview-static", Static).update(command_string)
 
     def _update_form_body(self, node: TreeNode) -> None:
         # TODO - this is temporary

@@ -6,7 +6,17 @@
   background: $panel;
   dock: bottom;
   height: 3;
+}
+
+#home-exec-preview-static {
+  dock: left;
+  width: 80%;
   padding: 1 2;
+}
+
+#home-exec-preview-buttons {
+  dock: right;
+  width: auto;
 }
 
 #home-commands-label {
