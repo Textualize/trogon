@@ -4,10 +4,12 @@ from pathlib import Path
 from typing import Any
 
 import click
-from rich.text import TextType
+from rich.style import Style
+from rich.text import TextType, Text
 from textual.app import ComposeResult, App
 from textual.containers import VerticalScroll, Vertical
 from textual.widgets import Pretty, Tree, Label
+from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
 from textual_click.introspect import introspect_click_app
@@ -17,8 +19,15 @@ class CommandTree(Tree):
     def __init__(self, label: TextType, cli_metadata: dict[str, Any]):
         super().__init__(label)
         self.show_root = False
-        self.guide_depth = 2
+        self.guide_depth = 3
         self.cli_metadata = cli_metadata
+
+    def render_label(
+        self, node: TreeNode[TreeDataType], base_style: Style, style: Style
+    ) -> Text:
+        label = node._label.copy()
+        label.stylize(style)
+        return label
 
     def on_mount(self):
         def build_tree(data: dict[str, Any], node: TreeNode) -> TreeNode:
@@ -38,9 +47,10 @@ class CommandTree(Tree):
 class TextualClick(App):
     CSS_PATH = Path(__file__).parent / "textual_click.scss"
 
-    def __init__(self, cli: click.Group) -> None:
+    def __init__(self, cli: click.Group, app_name: str = None) -> None:
         super().__init__()
         self.cli = cli
+        self.app_name = app_name
         self.cli_metadata = introspect_click_app(cli)
 
     def compose(self) -> ComposeResult:
