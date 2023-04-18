@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "textual-click"
+version = "0.1.0"
+description = ""
+authors = ["Darren Burns <darrenb900@gmail.com>"]
+readme = "README.md"
+packages = [{include = "textual_click"}]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+textual = {extras = ["dev"], version = "^0.19.1"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
