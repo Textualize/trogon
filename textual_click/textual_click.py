@@ -49,9 +49,12 @@ class CommandTree(Tree):
 
 class CommandForm(Widget):
     DEFAULT_CSS = """
-    .command-form-label {
-        padding: 1 2;
+    .command-form-heading {
+        padding: 1 0 0 2;
         text-style: bold;
+    }
+    .command-form-label {
+        padding: 1 0 0 2;
     }
     """
 
@@ -71,19 +74,21 @@ class CommandForm(Widget):
         arguments = self.command_metadata.get("arguments", [])
 
         if options:
-            yield Label("Options", classes="command-form-label")
+            yield Label("Options", classes="command-form-heading")
             for option in options:
                 name = option.get("name", "")
                 type = option.get("type", "")
                 default = option.get("default", "")
+                yield Label(f"{name} ({type})", classes="command-form-label")
                 yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({type})")
 
         if arguments:
-            yield Label("Arguments", classes="command-form-label")
+            yield Label("Arguments", classes="command-form-heading")
             for argument in arguments:
                 name = argument.get("name", "")
                 type = argument.get("type", "")
                 default = argument.get("default", "")
+                yield Label(f"{name} ({type})", classes="command-form-label")
                 yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({type})")
 
         if not options and not arguments:
