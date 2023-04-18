@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Text
+from typing import Any
 
 import click
 from rich.text import TextType
@@ -51,7 +51,10 @@ class TextualClick(App):
             tree,
             id="home-sidebar"
         )
-        yield VerticalScroll(
+
+        body = VerticalScroll(
             Pretty(self.cli_metadata),
             id="home-body",
         )
+        body.can_focus = True
+        yield body
