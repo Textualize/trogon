@@ -9,6 +9,7 @@ packages = [{include = "textual_click"}]
 [tool.poetry.dependencies]
 python = "^3.7"
 textual = {extras = ["dev"], version = "^0.19.1"}
+click = ">=8.0.0"
 
 
 [build-system]
