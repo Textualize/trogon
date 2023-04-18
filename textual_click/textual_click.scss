@@ -23,6 +23,21 @@ CommandTree {
   width: auto;
 }
 
+CommandTree > .tree--cursor {
+  background: $primary-lighten-1;
+
+}
+
+CommandTree > .tree--guides {
+  color: slategray;
+}
+CommandTree > .tree--guides-selected {
+  color: $primary-lighten-2;
+}
+CommandTree > .tree--guides-hover {
+  color: $primary-lighten-2;
+}
+
 Pretty {
   height: auto;
 }

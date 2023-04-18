@@ -16,6 +16,7 @@ from textual_click.introspect import introspect_click_app
 
 
 class CommandTree(Tree):
+
     def __init__(self, label: TextType, cli_metadata: dict[str, Any]):
         super().__init__(label)
         self.show_root = False
@@ -68,3 +69,7 @@ class TextualClick(App):
         )
         body.can_focus = True
         yield body
+
+    def on_tree_node_highlighted(self):
+        """When we highlight a node in the CommandTree, the main body of the home page updates
+        to display a form specific to the highlighted command."""
