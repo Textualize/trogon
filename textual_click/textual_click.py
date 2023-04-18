@@ -94,7 +94,7 @@ class CommandBuilder(Screen):
         command_string = self._build_command_from_node(event.node)
         self._update_command_description(event.node)
         self._update_execution_string_preview(command_string.plain)
-        # self._update_form_body(event.node)
+        self._update_form_body(event.node)
         print(f"Command string updated: {command_string}")
 
         # Now for the selected node, look at the data
@@ -123,6 +123,11 @@ class CommandBuilder(Screen):
     def _update_execution_string_preview(self, command_string: str) -> None:
         """Update the preview box showing the command string to be executed"""
         self.query_one("#home-exec-preview", Static).update(command_string)
+
+    def _update_form_body(self, node: TreeNode) -> None:
+        # TODO - this is temporary
+        self.query_one(Pretty).update(node.data)
+
 
 class TextualClick(App):
     CSS_PATH = Path(__file__).parent / "textual_click.scss"

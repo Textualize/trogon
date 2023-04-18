@@ -58,19 +58,17 @@ def introspect_click_app(app: click.Group) -> Dict[str, Any]:
         }
 
         for param in cmd_obj.params:
+            param_data = {
+                'name': param.name,
+                'type': param.type.name,
+                'default': param.default,
+            }
             if isinstance(param, click.Option):
-                cmd_data['options'].append({
-                    'name': param.name,
-                    'type': param.type.name,
-                    'default': param.default,
-                    'help': param.help
-                })
+                cmd_data['options'].append(param_data)
             elif isinstance(param, click.Argument):
-                cmd_data['arguments'].append({
-                    'name': param.name,
-                    'type': param.type.name,
-                    'required': param.required
-                })
+                if isinstance(param.type, click.Choice):
+                    param_data['choices'] = param.type.choices
+                cmd_data['arguments'].append(param_data)
 
         if isinstance(cmd_obj, click.core.Group):
             for subcmd_name, subcmd_obj in cmd_obj.commands.items():
