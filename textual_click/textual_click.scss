@@ -1,12 +1,27 @@
 #home-body {
   height: 1fr;
+  padding: 1 2;
+}
+
+#home-commands-label {
+  color: $text;
+  background: $background;
+  text-style: bold;
+  width: 100%;
+  padding: 1 2;
+}
+
+#home-sidebar {
+  dock: left;
+  width: auto;
+  border-right: thick $boost;
 }
 
 CommandTree {
-  dock: left;
   min-width: 12;
-  width: auto;
+  background: $background-lighten-1;
   padding: 1 2;
+  width: auto;
 }
 
 Pretty {

@@ -6,8 +6,8 @@ from typing import Any, Text
 import click
 from rich.text import TextType
 from textual.app import ComposeResult, App
-from textual.containers import VerticalScroll
-from textual.widgets import Pretty, Tree
+from textual.containers import VerticalScroll, Vertical
+from textual.widgets import Pretty, Tree, Label
 from textual.widgets.tree import TreeNode
 
 from textual_click.introspect import introspect_click_app
@@ -44,9 +44,13 @@ class TextualClick(App):
         self.cli_metadata = introspect_click_app(cli)
 
     def compose(self) -> ComposeResult:
-        tree = CommandTree("--", self.cli_metadata)
+        tree = CommandTree("", self.cli_metadata)
         tree.focus()
-        yield tree
+        yield Vertical(
+            Label("Commands", id="home-commands-label"),
+            tree,
+            id="home-sidebar"
+        )
         yield VerticalScroll(
             Pretty(self.cli_metadata),
             id="home-body",
