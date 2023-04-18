@@ -33,11 +33,11 @@
   border-right: thick $boost;
 }
 
-#home-sidebar-description {
+#home-command-description {
   padding: 1 2;
   color: $text;
   background: $primary;
-  dock: bottom;
+  dock: top;
 }
 
 CommandTree {

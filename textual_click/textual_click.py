@@ -9,7 +9,8 @@ from rich.text import TextType, Text
 from textual.app import ComposeResult, App
 from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
-from textual.widgets import Pretty, Tree, Label, Static, Button
+from textual.widget import Widget
+from textual.widgets import Pretty, Tree, Label, Static, Button, Input
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
@@ -46,6 +47,50 @@ class CommandTree(Tree):
         self.select_node(self.root)
 
 
+class CommandForm(Widget):
+    DEFAULT_CSS = """
+    .command-form-label {
+        padding: 1 2;
+        text-style: bold;
+    }
+    """
+
+    def __init__(
+        self,
+        command_metadata: dict[str, Any] | None = None,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ):
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.command_metadata = command_metadata if command_metadata is not None else {}
+
+    def compose(self) -> ComposeResult:
+        options = self.command_metadata.get("options", [])
+        arguments = self.command_metadata.get("arguments", [])
+
+        if options:
+            yield Label("Options", classes="command-form-label")
+            for option in options:
+                name = option.get("name", "")
+                type = option.get("type", "")
+                default = option.get("default", "")
+                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({type})")
+
+        if arguments:
+            yield Label("Arguments", classes="command-form-label")
+            for argument in arguments:
+                name = argument.get("name", "")
+                type = argument.get("type", "")
+                default = argument.get("default", "")
+                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({type})")
+
+        if not options and not arguments:
+            # TODO - improve this...
+            yield Label("Choose a command from the sidebar", classes="command-form-label")
+
+
 class CommandBuilder(Screen):
 
     def __init__(
@@ -66,7 +111,6 @@ class CommandBuilder(Screen):
         yield Vertical(
             Label("Command Builder", id="home-commands-label"),
             tree,
-            Static("", id="home-sidebar-description"),
             id="home-sidebar"
         )
 
@@ -75,6 +119,7 @@ class CommandBuilder(Screen):
             id="home-body-scroll",
         )
         body = Vertical(
+            Static("", id="home-command-description"),
             scrollable_body,
             Horizontal(
                 Static("", id="home-exec-preview-static"),
@@ -92,9 +137,6 @@ class CommandBuilder(Screen):
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted):
         """When we highlight a node in the CommandTree, the main body of the home page updates
         to display a form specific to the highlighted command."""
-
-        # Look from the highlighted node up to the root node to build up the string
-        # containing the commands and subcommands...
 
         # TODO: Add an ID check
 
@@ -118,7 +160,7 @@ class CommandBuilder(Screen):
     def _update_command_description(self, node: TreeNode) -> None:
         """Update the description of the command at the bottom of the sidebar
         based on the currently selected node in the command tree."""
-        description_box = self.query_one("#home-sidebar-description", Static)
+        description_box = self.query_one("#home-command-description", Static)
         description_text = node.data.get("docstring") or ""
         description_text = f"[b]{node.label}[/]\n{description_text}"
         description_box.update(description_text)
@@ -128,8 +170,15 @@ class CommandBuilder(Screen):
         self.query_one("#home-exec-preview-static", Static).update(command_string)
 
     def _update_form_body(self, node: TreeNode) -> None:
-        # TODO - this is temporary
-        self.query_one(Pretty).update(node.data)
+        # self.query_one(Pretty).update(node.data)
+        parent = self.query_one("#home-body-scroll", VerticalScroll)
+        for child in parent.children:
+            child.remove()
+
+        # Process the metadata for this command and mount corresponding widgets
+        command_metadata = node.data
+        print(command_metadata)
+        parent.mount(CommandForm(command_metadata=command_metadata))
 
 
 class TextualClick(App):
