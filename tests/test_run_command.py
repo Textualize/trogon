@@ -1,7 +1,3 @@
-import pytest
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
 from textual_click.introspect import CommandSchema, OptionSchema, ArgumentSchema, CommandName
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
 
@@ -9,11 +5,11 @@ from textual_click.run_command import UserCommandData, UserOptionData, UserArgum
 test_command_schema = CommandSchema(
     name=CommandName("test"),
     options=[
-        OptionSchema(name="option1", type=str, required=False, default="default1"),
-        OptionSchema(name="option2", type=int, required=False, default=42),
+        OptionSchema(name="option1", type="text", required=False, default="default1"),
+        OptionSchema(name="option2", type="int", required=False, default=42),
     ],
     arguments=[
-        ArgumentSchema(name="arg1", type=str, required=False, default="arg_default1"),
+        ArgumentSchema(name="arg1", type="text", required=False, default="arg_default1"),
     ],
     subcommands={},
     function=lambda: 1,
@@ -26,6 +22,8 @@ def test_prefill_defaults_no_subcommand():
     user_command_data.prefill_defaults(test_command_schema)
 
     assert len(user_command_data.options) == 2
+
+    # We've prefilled the default arguments inside the UserOptionData with defaults.
     assert user_command_data.options[0] == UserOptionData(name="option1", value="default1")
     assert user_command_data.options[1] == UserOptionData(name="option2", value=42)
     assert len(user_command_data.arguments) == 1
@@ -35,7 +33,7 @@ def test_prefill_defaults_no_subcommand():
 
 def test_prefill_defaults_with_subcommand():
     test_subcommand_schema = CommandSchema(
-        name="sub",
+        name=CommandName("sub"),
         options=[
             OptionSchema(name="sub_option", type=bool, required=False, default=True),
         ],
