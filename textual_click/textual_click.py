@@ -12,13 +12,14 @@ from rich.text import TextType, Text
 from textual import log
 from textual.app import ComposeResult, App, AutopilotCallbackType, ReturnType
 from textual.containers import VerticalScroll, Vertical, Horizontal
+from textual.message import Message
 from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets import Pretty, Tree, Label, Static, Button, Input, Checkbox, RadioSet, RadioButton
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
-from textual_click.introspect import introspect_click_app, CommandName, CommandSchema, ArgumentData, OptionData
+from textual_click.introspect import introspect_click_app, CommandName, CommandSchema, ArgumentSchema, OptionSchema
 
 
 class CommandTree(Tree[CommandSchema]):
@@ -69,6 +70,9 @@ class CommandForm(Widget):
     }
     """
 
+    class FormUpdated(Message):
+        pass
+
     def __init__(
         self,
         command_schema: CommandSchema | None = None,
@@ -98,12 +102,12 @@ class CommandForm(Widget):
                 "Choose a command from the sidebar", classes="command-form-label"
             )
 
-    def _make_command_form(self, arguments: Sequence[ArgumentData | OptionData]):
+    def _make_command_form(self, arguments: Sequence[ArgumentSchema | OptionSchema]):
         for argument in arguments:
             name = argument.name
             argument_type = argument.type
             default = argument.default
-            help = argument.help if isinstance(argument, OptionData) else ""
+            help = argument.help if isinstance(argument, OptionSchema) else ""
             label = self._make_command_form_control_label(name, argument_type)
             if argument_type in {"text", "float", "integer", "Path"}:
                 yield Label(label, classes="command-form-label")
@@ -112,7 +116,8 @@ class CommandForm(Widget):
                     placeholder=help if help else label.plain,
                 )
             elif argument_type in {"boolean"}:
-                yield Checkbox(f"{name} ({argument_type})", button_first=False, value=default, classes="command-form-checkbox")
+                yield Checkbox(f"{name} ({argument_type})", button_first=False, value=default,
+                               classes="command-form-checkbox")
             elif argument_type in {"choice"}:
                 choices = argument.choices
                 with RadioSet(classes="command-form-radioset"):
@@ -121,7 +126,7 @@ class CommandForm(Widget):
 
     @staticmethod
     def _make_command_form_control_label(name: str, type: str) -> Text:
-        return Text.from_markup(f"{name}  [i]({type})[/]")
+        return Text.from_markup(f"{name} [dim]{type}[/]")
 
 
 class CommandBuilder(Screen):

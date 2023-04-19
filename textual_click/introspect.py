@@ -7,15 +7,16 @@ import click
 
 
 @dataclass
-class OptionData:
+class OptionSchema:
     name: str
     type: str
     default: Any
     help: str | None
+    choices: Sequence[str] | None = None
 
 
 @dataclass
-class ArgumentData:
+class ArgumentSchema:
     name: str
     type: str
     required: bool
@@ -27,8 +28,8 @@ class ArgumentData:
 class CommandSchema:
     docstring: str
     function: Callable[..., Any | None]
-    options: list[OptionData] = field(default_factory=list)
-    arguments: list[ArgumentData] = field(default_factory=list)
+    options: list[OptionSchema] = field(default_factory=list)
+    arguments: list[ArgumentSchema] = field(default_factory=list)
     subcommands: dict["CommandName", "CommandSchema"] = field(default_factory=dict)
 
 
@@ -63,7 +64,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
 
         for param in cmd_obj.params:
             if isinstance(param, click.Option):
-                option_data = OptionData(
+                option_data = OptionSchema(
                     name=param.name,
                     type=param.type.name,
                     default=param.default,
@@ -71,7 +72,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
                 )
                 cmd_data.options.append(option_data)
             elif isinstance(param, click.Argument):
-                argument_data = ArgumentData(
+                argument_data = ArgumentSchema(
                     name=param.name, type=param.type.name, required=param.required
                 )
                 if isinstance(param.type, click.Choice):

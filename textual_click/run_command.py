@@ -1,92 +1,132 @@
 from __future__ import annotations
 
-from typing import Any, List, Dict, Optional
+import shlex
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 from textual_click.introspect import CommandSchema, CommandName
 
 
-def validate_and_run_command(
-    introspection_data: dict[CommandName, CommandSchema],
-    command_path: list[str],
-    options_and_arguments: dict[str, Any],
+@dataclass
+class UserOptionData:
+    """
+    A dataclass to store user input for a specific option.
+
+    Attributes:
+        name: The name of the option.
+        value: The user-provided value for the option.
+    """
+    name: str
+    value: Any
+
+
+@dataclass
+class UserArgumentData:
+    """
+    A dataclass to store user input for a specific argument.
+
+    Attributes:
+        name: The name of the argument.
+        value: The user-provided value for the argument.
+    """
+    name: str
+    value: Any
+
+
+@dataclass
+class UserCommandData:
+    """
+    A dataclass to store user input for a command, its options, and arguments.
+
+    Attributes:
+        name: The name of the command.
+        options: A list of UserOptionData instances representing the user input for the command's options.
+        arguments: A list of UserArgumentData instances representing the user input for the command's arguments.
+        subcommand: An optional UserCommandData instance representing a subcommand of the current command.
+            Since commands can be nested (i.e. subcommands), this may be processed recursively.
+    """
+    name: str
+    options: List[UserOptionData]
+    arguments: List[UserArgumentData]
+    subcommand: Optional['UserCommandData'] = None
+
+    def to_cli_args(self) -> List[str]:
+        """
+        Generates a list of strings representing the CLI invocation based on the user input data.
+
+        Returns:
+            A list of strings that can be passed to subprocess.run to execute the command.
+        """
+        args = [self.name]
+
+        for option in self.options:
+            args.append(f'--{option.name}')
+            args.append(str(option.value))
+
+        for argument in self.arguments:
+            args.append(str(argument.value))
+
+        if self.subcommand:
+            args.extend(self.subcommand.to_cli_args())
+
+        return args
+
+    def to_cli_string(self) -> str:
+        """
+        Generates a string representing the CLI invocation as if typed directly into the command line.
+
+        Returns:
+            A string representing the command invocation.
+        """
+        args = self.to_cli_args()
+        return shlex.join(args)
+
+
+def validate_user_command_data(
+    introspection_data: Dict[CommandName, CommandSchema],
+    user_command_data: UserCommandData,
 ) -> None:
     """
-    Validate and run a user command based on the provided introspection data.
-
-    This function checks if the given command, options, and arguments are valid
-    according to the introspection data, and if so, runs the corresponding command
-    function with the validated options and arguments.
-
-    The command_path parameter should be a list of command and subcommand names,
-    representing the command hierarchy. The options_and_arguments parameter should
-    be a dictionary where the keys are option or argument names, and the values are
-    the provided user input for those options or arguments.
-
-    If any validation errors are encountered, such as unknown commands, invalid option
-    values, or missing required arguments, an error message is printed, and the command
-    function is not executed.
+    Validates the user input against the provided command schema.
 
     Args:
-        introspection_data: A dictionary containing the introspection
-            data for a Click application, as returned by the introspect_click_app function.
-        command_path: A list of command and subcommand names, representing the
-            command hierarchy to be executed.
-        options_and_arguments: A dictionary containing the user-provided
-            options and arguments for the command. Keys are the option or argument names,
-            and values are the corresponding user input.
+        introspection_data: A dictionary mapping command names to CommandSchema instances representing the schema
+            for the introspected CLI commands, options, and arguments.
+        user_command_data: A UserCommandData instance representing the user input for the command to validate,
+            its options, arguments, and any subcommands.
+
+    Raises:
+        ValueError: If the user input does not conform to the command schema, such as an unknown command, missing
+            required argument, or invalid option value.
     """
+    command_schema = introspection_data.get(CommandName(user_command_data.name))
+    if not command_schema:
+        raise ValueError(f"Unknown command: {user_command_data.name}")
 
-    def find_command_data(
-        cmd_path: List[str], cmd_data: Dict[CommandName, CommandSchema]
-    ) -> Optional[CommandSchema]:
-        if not cmd_path or not cmd_data:
-            return None
+    # Validate options
+    for user_option_data in user_command_data.options:
+        option_schema = next(
+            (opt for opt in command_schema.options if opt.name == user_option_data.name),
+            None,
+        )
+        if not option_schema:
+            raise ValueError(f"Unknown option: --{user_option_data.name}")
+        if option_schema.choices and user_option_data.value not in option_schema.choices:
+            raise ValueError(
+                f"Invalid value for option --{user_option_data.name}. "
+                f"Allowed values: {', '.join(map(str, option_schema.choices))}."
+            )
 
-        cmd_name = CommandName(cmd_path[0])
-        if cmd_name in cmd_data:
-            if len(cmd_path) == 1:
-                return cmd_data[cmd_name]
-            else:
-                return find_command_data(cmd_path[1:], cmd_data[cmd_name].subcommands)
+    # Validate arguments
+    if len(user_command_data.arguments) != len(command_schema.arguments):
+        raise ValueError(f"Invalid number of arguments for command {user_command_data.name}")
+    for user_arg_data, arg_schema in zip(user_command_data.arguments, command_schema.arguments):
+        if not isinstance(user_arg_data.value, arg_schema.type):
+            raise ValueError(
+                f"Invalid type for argument {user_arg_data.name}. "
+                f"Expected {arg_schema.type.__name__}, but got {type(user_arg_data.value).__name__}."
+            )
 
-        return None
-
-    command_data = find_command_data(command_path, introspection_data)
-
-    if not command_data:
-        print(f"Command {' '.join(command_path)} not found.")
-        return
-
-    options = {option.name: option for option in command_data.options}
-    arguments = {argument.name: argument for argument in command_data.arguments}
-
-    for key, value in options_and_arguments.items():
-        if key in options:
-            option_data = options[key]
-            try:
-                value = option_data.type(value)
-            except ValueError:
-                print(
-                    f"Invalid value '{value}' for option '{key}'. Expected type '{option_data.type}'."
-                )
-                return
-        elif key in arguments:
-            argument_data = arguments[key]
-            if argument_data.choices and value not in argument_data.choices:
-                print(
-                    f"Invalid value '{value}' for argument '{key}'. Must be one of {argument_data.choices}."
-                )
-                return
-            try:
-                value = argument_data.type(value)
-            except ValueError:
-                print(
-                    f"Invalid value '{value}' for argument '{key}'. Expected type '{argument_data.type}'."
-                )
-                return
-        else:
-            print(f"Unknown option or argument: {key}")
-            return
-
-    # Run the command with the validated options and arguments
-    command_data.function(**options_and_arguments)
+    # Validate subcommand
+    if user_command_data.subcommand:
+        validate_user_command_data(introspection_data, user_command_data.subcommand)
