@@ -2,9 +2,20 @@ from __future__ import annotations
 
 import shlex
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from textual_click.introspect import CommandSchema, CommandName
+
+CLICK_TYPE_TO_PYTHON_TYPE = {
+    "text": str,
+    "int": int,
+    "float": float,
+    "boolean": bool,
+    "uuid": (str, UUID),  # UUID type can be a string or uuid.UUID instance
+    "Path": Path,
+}
 
 
 @dataclass
@@ -82,7 +93,7 @@ class UserCommandData:
             A string representing the command invocation.
         """
         args = self.to_cli_args()
-        return shlex.join(args)
+        return ' '.join(shlex.quote(arg) for arg in args)
 
     def prefill_defaults(self, command_schema: CommandSchema) -> None:
         """
@@ -117,63 +128,29 @@ class UserCommandData:
             if subcommand_schema:
                 self.subcommand.prefill_defaults(subcommand_schema)
 
+    def copy_with(
+        self,
+        name: Optional[str] = None,
+        options: Optional[List[UserOptionData]] = None,
+        arguments: Optional[List[UserArgumentData]] = None,
+        subcommand: Optional['UserCommandData'] = None,
+    ) -> 'UserCommandData':
+        """
+        Creates a new instance of UserCommandData with the given values, falling back to the original values if
+        not provided.
 
-def validate_user_command_data(
-    introspection_data: Dict[CommandName, CommandSchema],
-    user_command_data: UserCommandData,
-) -> None:
-    """
-    Validates the user input against the provided command schema.
+        Args:
+            name: The name of the command.
+            options: A list of UserOptionData instances representing the options for the command.
+            arguments: A list of UserArgumentData instances representing the arguments for the command.
+            subcommand: A UserCommandData instance representing the subcommand for the command, if any.
 
-    Args:
-        introspection_data: A dictionary mapping command names to CommandSchema instances representing the schema
-            for the introspected CLI commands, options, and arguments.
-        user_command_data: A UserCommandData instance representing the user input for the command to validate,
-            its options, arguments, and any subcommands.
-
-    Raises:
-        ValueError: If the user input does not conform to the command schema, such as an unknown command, missing
-            required argument, or invalid option value.
-    """
-    command_schema = introspection_data.get(CommandName(user_command_data.name))
-    if not command_schema:
-        raise ValueError(f"Unknown command: {user_command_data.name}")
-
-    # Validate options
-    for user_option_data in user_command_data.options:
-        option_schema = next(
-            (
-                opt
-                for opt in command_schema.options
-                if opt.name == user_option_data.name
-            ),
-            None,
+        Returns:
+            A new UserCommandData instance with the updated values.
+        """
+        return UserCommandData(
+            name=name or self.name,
+            options=options or self.options,
+            arguments=arguments or self.arguments,
+            subcommand=subcommand or self.subcommand,
         )
-        if not option_schema:
-            raise ValueError(f"Unknown option: --{user_option_data.name}")
-        if (
-            option_schema.choices
-            and user_option_data.value not in option_schema.choices
-        ):
-            raise ValueError(
-                f"Invalid value for option --{user_option_data.name}. "
-                f"Allowed values: {', '.join(map(str, option_schema.choices))}."
-            )
-
-    # Validate arguments
-    if len(user_command_data.arguments) != len(command_schema.arguments):
-        raise ValueError(
-            f"Invalid number of arguments for command {user_command_data.name}"
-        )
-    for user_arg_data, arg_schema in zip(
-        user_command_data.arguments, command_schema.arguments
-    ):
-        if not isinstance(user_arg_data.value, arg_schema.type):
-            raise ValueError(
-                f"Invalid type for argument {user_arg_data.name}. "
-                f"Expected {arg_schema.type.__name__}, but got {type(user_arg_data.value).__name__}."
-            )
-
-    # Validate subcommand
-    if user_command_data.subcommand:
-        validate_user_command_data(introspection_data, user_command_data.subcommand)

@@ -36,7 +36,7 @@ from textual_click.introspect import (
     ArgumentSchema,
     OptionSchema,
 )
-from textual_click.run_command import UserCommandData, validate_user_command_data
+from textual_click.run_command import UserCommandData
 
 
 class CommandTree(Tree[CommandSchema]):
