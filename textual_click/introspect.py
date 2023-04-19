@@ -21,7 +21,7 @@ class ArgumentData(TypedDict):
 
 class CommandData(TypedDict):
     docstring: str | None
-    function: Callable[..., Any | None]
+    function: Callable[..., Any] | None
     options: list[OptionData]
     arguments: list[ArgumentData]
     subcommands: dict[str, 'CommandData']
@@ -29,48 +29,23 @@ class CommandData(TypedDict):
 
 def introspect_click_app(app: click.Group) -> dict[str, CommandData]:
     """
-        Introspect a Click application and build a data structure containing
-        information about all commands, options, arguments, and subcommands.
+    Introspect a Click application and build a data structure containing
+    information about all commands, options, arguments, and subcommands,
+    including the docstrings and command function references.
 
-        This function recursively processes each command and its subcommands
-        (if any), creating a nested dictionary that includes details about
-        options, arguments, and subcommands.
+    This function recursively processes each command and its subcommands
+    (if any), creating a nested dictionary that includes details about
+    options, arguments, and subcommands, as well as the docstrings and
+    command function references.
 
-        Args:
-            app (click.Group): The Click application's top-level group instance.
+    Args:
+        app (click.Group): The Click application's top-level group instance.
 
-        Returns:
-            dict[str, Any]: A nested dictionary containing the Click application's
-            structure, including information about commands, options, arguments,
-            and subcommands. The dictionary has the following structure:
-
-            {
-                'command_name': {
-                    'options': [
-                        {
-                            'name': str,
-                            'type': str,
-                            'default': Any,
-                            'help': Optional[str]
-                        },
-                        ...
-                    ],
-                    'arguments': [
-                        {
-                            'name': str,
-                            'type': str,
-                            'required': bool
-                        },
-                        ...
-                    ],
-                    'subcommands': {
-                        'subcommand_name': { ... },
-                        ...
-                    }
-                },
-                ...
-            }
-        """
+    Returns:
+        Dict[str, CommandData]: A nested dictionary containing the Click application's
+        structure. The structure is defined by the CommandData TypedDict and its related
+        TypedDicts (OptionData and ArgumentData).
+    """
 
     def process_command(cmd_name: str, cmd_obj: click.Command) -> CommandData:
         cmd_data: CommandData = {
