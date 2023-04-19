@@ -15,11 +15,28 @@ from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.message import Message
 from textual.screen import Screen
 from textual.widget import Widget
-from textual.widgets import Pretty, Tree, Label, Static, Button, Input, Checkbox, RadioSet, RadioButton
+from textual.widgets import (
+    Pretty,
+    Tree,
+    Label,
+    Static,
+    Button,
+    Input,
+    Checkbox,
+    RadioSet,
+    RadioButton,
+)
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
-from textual_click.introspect import introspect_click_app, CommandName, CommandSchema, ArgumentSchema, OptionSchema
+from textual_click.introspect import (
+    introspect_click_app,
+    CommandName,
+    CommandSchema,
+    ArgumentSchema,
+    OptionSchema,
+)
+from textual_click.run_command import UserCommandData, validate_user_command_data
 
 
 class CommandTree(Tree[CommandSchema]):
@@ -71,7 +88,10 @@ class CommandForm(Widget):
     """
 
     class FormUpdated(Message):
-        pass
+        def __init__(self, command_data: UserCommandData):
+            super().__init__()
+            self.command_data = command_data
+            """The new data taken from the form to be converted into a CLI invocation."""
 
     def __init__(
         self,
@@ -116,13 +136,24 @@ class CommandForm(Widget):
                     placeholder=help if help else label.plain,
                 )
             elif argument_type in {"boolean"}:
-                yield Checkbox(f"{name} ({argument_type})", button_first=False, value=default,
-                               classes="command-form-checkbox")
+                yield Checkbox(
+                    f"{name} ({argument_type})",
+                    button_first=False,
+                    value=default,
+                    classes="command-form-checkbox",
+                )
             elif argument_type in {"choice"}:
                 choices = argument.choices
                 with RadioSet(classes="command-form-radioset"):
                     for choice in choices:
                         yield RadioButton(choice)
+
+    def _build_command_data(self) -> UserCommandData:
+        """Takes the current state of this form and converts it into a UserCommandData,
+        ready to be executed."""
+
+    def _validate_command_data(self) -> None:
+        validate_user_command_data(self.command_schema)
 
     @staticmethod
     def _make_command_form_control_label(name: str, type: str) -> Text:
@@ -244,3 +275,4 @@ class TextualClick(App):
                 console = Console()
                 console.print(f"Running [b cyan]{shlex.join(self.post_run_command)}[/]")
                 subprocess.run(self.post_run_command)
+        return

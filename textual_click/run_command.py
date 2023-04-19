@@ -16,6 +16,7 @@ class UserOptionData:
         name: The name of the option.
         value: The user-provided value for the option.
     """
+
     name: str
     value: Any
 
@@ -29,6 +30,7 @@ class UserArgumentData:
         name: The name of the argument.
         value: The user-provided value for the argument.
     """
+
     name: str
     value: Any
 
@@ -45,10 +47,11 @@ class UserCommandData:
         subcommand: An optional UserCommandData instance representing a subcommand of the current command.
             Since commands can be nested (i.e. subcommands), this may be processed recursively.
     """
+
     name: str
     options: List[UserOptionData]
     arguments: List[UserArgumentData]
-    subcommand: Optional['UserCommandData'] = None
+    subcommand: Optional["UserCommandData"] = None
 
     def to_cli_args(self) -> List[str]:
         """
@@ -60,7 +63,7 @@ class UserCommandData:
         args = [self.name]
 
         for option in self.options:
-            args.append(f'--{option.name}')
+            args.append(f"--{option.name}")
             args.append(str(option.value))
 
         for argument in self.arguments:
@@ -83,14 +86,14 @@ class UserCommandData:
 
 
 def validate_user_command_data(
-    introspection_data: Dict[CommandName, CommandSchema],
+    command_schema: CommandSchema,
     user_command_data: UserCommandData,
 ) -> None:
     """
     Validates the user input against the provided command schema.
 
     Args:
-        introspection_data: A dictionary mapping command names to CommandSchema instances representing the schema
+        command_schema: CommandSchema instance representing the schema
             for the introspected CLI commands, options, and arguments.
         user_command_data: A UserCommandData instance representing the user input for the command to validate,
             its options, arguments, and any subcommands.
@@ -99,19 +102,25 @@ def validate_user_command_data(
         ValueError: If the user input does not conform to the command schema, such as an unknown command, missing
             required argument, or invalid option value.
     """
-    command_schema = introspection_data.get(CommandName(user_command_data.name))
     if not command_schema:
         raise ValueError(f"Unknown command: {user_command_data.name}")
 
     # Validate options
     for user_option_data in user_command_data.options:
         option_schema = next(
-            (opt for opt in command_schema.options if opt.name == user_option_data.name),
+            (
+                opt
+                for opt in command_schema.options
+                if opt.name == user_option_data.name
+            ),
             None,
         )
         if not option_schema:
             raise ValueError(f"Unknown option: --{user_option_data.name}")
-        if option_schema.choices and user_option_data.value not in option_schema.choices:
+        if (
+            option_schema.choices
+            and user_option_data.value not in option_schema.choices
+        ):
             raise ValueError(
                 f"Invalid value for option --{user_option_data.name}. "
                 f"Allowed values: {', '.join(map(str, option_schema.choices))}."
@@ -119,8 +128,12 @@ def validate_user_command_data(
 
     # Validate arguments
     if len(user_command_data.arguments) != len(command_schema.arguments):
-        raise ValueError(f"Invalid number of arguments for command {user_command_data.name}")
-    for user_arg_data, arg_schema in zip(user_command_data.arguments, command_schema.arguments):
+        raise ValueError(
+            f"Invalid number of arguments for command {user_command_data.name}"
+        )
+    for user_arg_data, arg_schema in zip(
+        user_command_data.arguments, command_schema.arguments
+    ):
         if not isinstance(user_arg_data.value, arg_schema.type):
             raise ValueError(
                 f"Invalid type for argument {user_arg_data.name}. "
