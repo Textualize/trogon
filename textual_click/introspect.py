@@ -1,33 +1,38 @@
 from __future__ import annotations
 
-from typing import Any, TypedDict, Callable, Sequence
+from dataclasses import dataclass, field
+from typing import Any, Callable, Sequence, NewType
 
 import click
 
 
-class OptionData(TypedDict):
+@dataclass
+class OptionData:
     name: str
     type: str
     default: Any
     help: str | None
 
 
-class ArgumentData(TypedDict):
+@dataclass
+class ArgumentData:
     name: str
     type: str
     required: bool
-    choices: Sequence[str]
+    default: Any | None = None
+    choices: Sequence[str] | None = None
 
 
-class CommandData(TypedDict):
-    docstring: str | None
-    function: Callable[..., Any] | None
-    options: list[OptionData]
-    arguments: list[ArgumentData]
-    subcommands: dict[str, 'CommandData']
+@dataclass
+class CommandSchema:
+    docstring: str
+    function: Callable[..., Any | None]
+    options: list[OptionData] = field(default_factory=list)
+    arguments: list[ArgumentData] = field(default_factory=list)
+    subcommands: dict['CommandName', 'CommandSchema'] = field(default_factory=dict)
 
 
-def introspect_click_app(app: click.Group) -> dict[str, CommandData]:
+def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
     """
     Introspect a Click application and build a data structure containing
     information about all commands, options, arguments, and subcommands,
@@ -47,43 +52,45 @@ def introspect_click_app(app: click.Group) -> dict[str, CommandData]:
         TypedDicts (OptionData and ArgumentData).
     """
 
-    def process_command(cmd_name: str, cmd_obj: click.Command) -> CommandData:
-        cmd_data: CommandData = {
-            'docstring': cmd_obj.help,
-            'function': cmd_obj.callback,
-            'options': [],
-            'arguments': [],
-            'subcommands': {}
-        }
+    def process_command(cmd_name: str, cmd_obj: click.Command) -> CommandSchema:
+        cmd_data = CommandSchema(
+            docstring=cmd_obj.help,
+            function=cmd_obj.callback,
+            options=[],
+            arguments=[],
+            subcommands={}
+        )
 
         for param in cmd_obj.params:
             if isinstance(param, click.Option):
-                option_data: OptionData = {
-                    'name': param.name,
-                    'type': param.type.name,
-                    'default': param.default,
-                    'help': param.help
-                }
-                cmd_data['options'].append(option_data)
+                option_data = OptionData(
+                    name=param.name,
+                    type=param.type.name,
+                    default=param.default,
+                    help=param.help
+                )
+                cmd_data.options.append(option_data)
             elif isinstance(param, click.Argument):
-                argument_data: ArgumentData = {
-                    'name': param.name,
-                    'type': param.type.name,
-                    'required': param.required,
-                    'choices': None
-                }
+                argument_data = ArgumentData(
+                    name=param.name,
+                    type=param.type.name,
+                    required=param.required
+                )
                 if isinstance(param.type, click.Choice):
-                    argument_data['choices'] = param.type.choices
-                cmd_data['arguments'].append(argument_data)
+                    argument_data.choices = param.type.choices
+                cmd_data.arguments.append(argument_data)
 
         if isinstance(cmd_obj, click.core.Group):
             for subcmd_name, subcmd_obj in cmd_obj.commands.items():
-                cmd_data['subcommands'][subcmd_name] = process_command(subcmd_name, subcmd_obj)
+                cmd_data.subcommands[CommandName(subcmd_name)] = process_command(subcmd_name, subcmd_obj)
 
         return cmd_data
 
-    data: dict[str, CommandData] = {}
+    data: dict[CommandName, CommandSchema] = {}
     for cmd_name, cmd_obj in app.commands.items():
-        data[cmd_name] = process_command(cmd_name, cmd_obj)
+        data[CommandName(cmd_name)] = process_command(cmd_name, cmd_obj)
 
     return data
+
+
+CommandName = NewType("CommandName", str)

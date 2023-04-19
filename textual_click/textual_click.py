@@ -14,12 +14,12 @@ from textual.widgets import Pretty, Tree, Label, Static, Button, Input
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
-from textual_click.introspect import introspect_click_app
+from textual_click.introspect import introspect_click_app, CommandName, CommandSchema
 
 
-class CommandTree(Tree):
+class CommandTree(Tree[CommandSchema]):
 
-    def __init__(self, label: TextType, cli_metadata: dict[str, Any]):
+    def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)
         self.show_root = False
         self.guide_depth = 3
@@ -33,11 +33,11 @@ class CommandTree(Tree):
         return label
 
     def on_mount(self):
-        def build_tree(data: dict[str, Any], node: TreeNode) -> TreeNode:
+        def build_tree(data: dict[CommandName, CommandSchema], node: TreeNode) -> TreeNode:
             for cmd_name, cmd_data in data.items():
-                if cmd_data["subcommands"]:
+                if cmd_data.subcommands:
                     child = node.add(cmd_name, allow_expand=False, data=cmd_data)
-                    build_tree(cmd_data["subcommands"], child)
+                    build_tree(cmd_data.subcommands, child)
                 else:
                     node.add_leaf(cmd_name, data=cmd_data)
             return node
@@ -60,36 +60,36 @@ class CommandForm(Widget):
 
     def __init__(
         self,
-        command_metadata: dict[str, Any] | None = None,
+        command_schema: CommandSchema | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
-        self.command_metadata = command_metadata if command_metadata is not None else {}
+        self.command_schema = command_schema if command_schema is not None else {}
 
     def compose(self) -> ComposeResult:
-        options = self.command_metadata.get("options", [])
-        arguments = self.command_metadata.get("arguments", [])
+        options = self.command_schema.options
+        arguments = self.command_schema.arguments
 
         if options:
             yield Label("Options", classes="command-form-heading")
             for option in options:
-                name = option.get("name", "")
-                type = option.get("type", "")
-                default = option.get("default", "")
-                yield Label(f"{name} ({type})", classes="command-form-label")
-                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({type})")
+                name = option.name
+                option_type = option.type
+                default = option.default
+                yield Label(f"{name} ({option_type})", classes="command-form-label")
+                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({option_type})")
 
         if arguments:
             yield Label("Arguments", classes="command-form-heading")
             for argument in arguments:
-                name = argument.get("name", "")
-                type = argument.get("type", "")
-                default = argument.get("default", "")
-                yield Label(f"{name} ({type})", classes="command-form-label")
-                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({type})")
+                name = argument.name
+                argument_type = argument.type
+                default = argument.default
+                yield Label(f"{name} ({argument_type})", classes="command-form-label")
+                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({argument_type})")
 
         if not options and not arguments:
             # TODO - improve this...
@@ -162,11 +162,11 @@ class CommandBuilder(Screen):
                 command_parts.append(node.label)
         return Text(" ").join(reversed(command_parts))
 
-    def _update_command_description(self, node: TreeNode) -> None:
+    def _update_command_description(self, node: TreeNode[CommandSchema]) -> None:
         """Update the description of the command at the bottom of the sidebar
         based on the currently selected node in the command tree."""
         description_box = self.query_one("#home-command-description", Static)
-        description_text = node.data.get("docstring") or ""
+        description_text = node.data.docstring or ""
         description_text = f"[b]{node.label}[/]\n{description_text}"
         description_box.update(description_text)
 
@@ -183,7 +183,7 @@ class CommandBuilder(Screen):
         # Process the metadata for this command and mount corresponding widgets
         command_metadata = node.data
         print(command_metadata)
-        parent.mount(CommandForm(command_metadata=command_metadata))
+        parent.mount(CommandForm(command_schema=command_metadata))
 
 
 class TextualClick(App):
