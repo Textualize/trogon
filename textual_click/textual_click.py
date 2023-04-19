@@ -3,7 +3,6 @@ from __future__ import annotations
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Sequence
 
 import click
 from rich.console import Console
@@ -12,31 +11,23 @@ from rich.text import TextType, Text
 from textual import log
 from textual.app import ComposeResult, App, AutopilotCallbackType, ReturnType
 from textual.containers import VerticalScroll, Vertical, Horizontal
-from textual.message import Message
 from textual.screen import Screen
-from textual.widget import Widget
 from textual.widgets import (
     Pretty,
     Tree,
     Label,
     Static,
     Button,
-    Input,
-    Checkbox,
-    RadioSet,
-    RadioButton,
 )
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
+from textual_click.form import CommandForm
 from textual_click.introspect import (
     introspect_click_app,
     CommandName,
     CommandSchema,
-    ArgumentSchema,
-    OptionSchema,
 )
-from textual_click.run_command import UserCommandData
 
 
 class CommandTree(Tree[CommandSchema]):
@@ -68,99 +59,6 @@ class CommandTree(Tree[CommandSchema]):
         build_tree(self.cli_metadata, self.root)
         self.root.expand_all()
         self.select_node(self.root)
-
-
-class CommandForm(Widget):
-    DEFAULT_CSS = """
-    .command-form-heading {
-        padding: 1 0 0 2;
-        text-style: bold;
-    }
-    .command-form-label {
-        padding: 1 0 0 2;
-    }
-    .command-form-radioset {
-        margin: 0 2;
-    }
-    .command-form-checkbox {
-        padding: 1 2;
-    }
-    """
-
-    class FormUpdated(Message):
-        def __init__(self, command_data: UserCommandData):
-            super().__init__()
-            self.command_data = command_data
-            """The new data taken from the form to be converted into a CLI invocation."""
-
-    def __init__(
-        self,
-        command_schema: CommandSchema | None = None,
-        command_schemas: dict[CommandName, CommandSchema] | None = None,
-        name: str | None = None,
-        id: str | None = None,
-        classes: str | None = None,
-        disabled: bool = False,
-    ):
-        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
-        self.command_schema = command_schema
-        self.command_schemas = command_schemas
-
-    def compose(self) -> ComposeResult:
-        options = self.command_schema.options
-        arguments = self.command_schema.arguments
-
-        if options:
-            yield Label("Options", classes="command-form-heading")
-            yield from self._make_command_form(options)
-
-        if arguments:
-            yield Label("Arguments", classes="command-form-heading")
-            yield from self._make_command_form(arguments)
-
-        if not options and not arguments:
-            # TODO - improve this...
-            yield Label(
-                "Choose a command from the sidebar", classes="command-form-label"
-            )
-
-    def _make_command_form(self, arguments: Sequence[ArgumentSchema | OptionSchema]):
-        for argument in arguments:
-            name = argument.name
-            argument_type = argument.type
-            default = argument.default
-            help = argument.help if isinstance(argument, OptionSchema) else ""
-            label = self._make_command_form_control_label(name, argument_type)
-            if argument_type in {"text", "float", "integer", "Path"}:
-                yield Label(label, classes="command-form-label")
-                yield Input(
-                    value=str(default) if default is not None else "",
-                    placeholder=help if help else label.plain,
-                )
-            elif argument_type in {"boolean"}:
-                yield Checkbox(
-                    f"{name} ({argument_type})",
-                    button_first=False,
-                    value=default,
-                    classes="command-form-checkbox",
-                )
-            elif argument_type in {"choice"}:
-                choices = argument.choices
-                with RadioSet(classes="command-form-radioset"):
-                    for choice in choices:
-                        yield RadioButton(choice)
-
-
-    # def _build_command_data(self) -> UserCommandData:
-    #     """Takes the current state of this form and converts it into a UserCommandData,
-    #     ready to be executed."""
-
-    # def _validate_command_data(self) -> None:
-    #     validate_user_command_data(self.command_schemas, self.)
-
-    @staticmethod
-    def _make_command_form_control_label(name: str, type: str) -> Text:
-        return Text.from_markup(f"{name} [dim]{type}[/]")
 
 
 class CommandBuilder(Screen):
