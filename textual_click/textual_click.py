@@ -103,12 +103,13 @@ class CommandForm(Widget):
             name = argument.name
             argument_type = argument.type
             default = argument.default
+            help = argument.help if isinstance(argument, OptionData) else ""
             label = self._make_command_form_control_label(name, argument_type)
             if argument_type in {"text", "float", "integer", "Path"}:
                 yield Label(label, classes="command-form-label")
                 yield Input(
                     value=str(default) if default is not None else "",
-                    placeholder=f"{name} ({argument_type})",
+                    placeholder=help if help else label.plain,
                 )
             elif argument_type in {"boolean"}:
                 yield Checkbox(f"{name} ({argument_type})", button_first=False, value=default, classes="command-form-checkbox")
