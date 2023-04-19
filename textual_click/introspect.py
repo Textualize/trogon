@@ -29,7 +29,7 @@ class CommandSchema:
     function: Callable[..., Any | None]
     options: list[OptionData] = field(default_factory=list)
     arguments: list[ArgumentData] = field(default_factory=list)
-    subcommands: dict['CommandName', 'CommandSchema'] = field(default_factory=dict)
+    subcommands: dict["CommandName", "CommandSchema"] = field(default_factory=dict)
 
 
 def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
@@ -58,7 +58,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
             function=cmd_obj.callback,
             options=[],
             arguments=[],
-            subcommands={}
+            subcommands={},
         )
 
         for param in cmd_obj.params:
@@ -67,14 +67,12 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
                     name=param.name,
                     type=param.type.name,
                     default=param.default,
-                    help=param.help
+                    help=param.help,
                 )
                 cmd_data.options.append(option_data)
             elif isinstance(param, click.Argument):
                 argument_data = ArgumentData(
-                    name=param.name,
-                    type=param.type.name,
-                    required=param.required
+                    name=param.name, type=param.type.name, required=param.required
                 )
                 if isinstance(param.type, click.Choice):
                     argument_data.choices = param.type.choices
@@ -82,7 +80,9 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
 
         if isinstance(cmd_obj, click.core.Group):
             for subcmd_name, subcmd_obj in cmd_obj.commands.items():
-                cmd_data.subcommands[CommandName(subcmd_name)] = process_command(subcmd_name, subcmd_obj)
+                cmd_data.subcommands[CommandName(subcmd_name)] = process_command(
+                    subcmd_name, subcmd_obj
+                )
 
         return cmd_data
 

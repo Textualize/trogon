@@ -8,7 +8,7 @@ from textual_click.introspect import CommandSchema, CommandName
 def validate_and_run_command(
     introspection_data: dict[CommandName, CommandSchema],
     command_path: list[str],
-    options_and_arguments: dict[str, Any]
+    options_and_arguments: dict[str, Any],
 ) -> None:
     """
     Validate and run a user command based on the provided introspection data.
@@ -36,11 +36,13 @@ def validate_and_run_command(
             and values are the corresponding user input.
     """
 
-    def find_command_data(cmd_path: List[str], cmd_data: Dict[str, CommandSchema]) -> Optional[CommandSchema]:
+    def find_command_data(
+        cmd_path: List[str], cmd_data: Dict[CommandName, CommandSchema]
+    ) -> Optional[CommandSchema]:
         if not cmd_path or not cmd_data:
             return None
 
-        cmd_name = cmd_path[0]
+        cmd_name = CommandName(cmd_path[0])
         if cmd_name in cmd_data:
             if len(cmd_path) == 1:
                 return cmd_data[cmd_name]
@@ -64,17 +66,23 @@ def validate_and_run_command(
             try:
                 value = option_data.type(value)
             except ValueError:
-                print(f"Invalid value '{value}' for option '{key}'. Expected type '{option_data.type}'.")
+                print(
+                    f"Invalid value '{value}' for option '{key}'. Expected type '{option_data.type}'."
+                )
                 return
         elif key in arguments:
             argument_data = arguments[key]
             if argument_data.choices and value not in argument_data.choices:
-                print(f"Invalid value '{value}' for argument '{key}'. Must be one of {argument_data.choices}.")
+                print(
+                    f"Invalid value '{value}' for argument '{key}'. Must be one of {argument_data.choices}."
+                )
                 return
             try:
                 value = argument_data.type(value)
             except ValueError:
-                print(f"Invalid value '{value}' for argument '{key}'. Expected type '{argument_data.type}'.")
+                print(
+                    f"Invalid value '{value}' for argument '{key}'. Expected type '{argument_data.type}'."
+                )
                 return
         else:
             print(f"Unknown option or argument: {key}")

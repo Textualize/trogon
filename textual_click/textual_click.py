@@ -3,7 +3,6 @@ from __future__ import annotations
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Any
 
 import click
 from rich.console import Console
@@ -22,7 +21,6 @@ from textual_click.introspect import introspect_click_app, CommandName, CommandS
 
 
 class CommandTree(Tree[CommandSchema]):
-
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)
         self.show_root = False
@@ -37,7 +35,9 @@ class CommandTree(Tree[CommandSchema]):
         return label
 
     def on_mount(self):
-        def build_tree(data: dict[CommandName, CommandSchema], node: TreeNode) -> TreeNode:
+        def build_tree(
+            data: dict[CommandName, CommandSchema], node: TreeNode
+        ) -> TreeNode:
             for cmd_name, cmd_data in data.items():
                 if cmd_data.subcommands:
                     child = node.add(cmd_name, allow_expand=False, data=cmd_data)
@@ -84,7 +84,10 @@ class CommandForm(Widget):
                 option_type = option.type
                 default = option.default
                 yield Label(f"{name} ({option_type})", classes="command-form-label")
-                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({option_type})")
+                yield Input(
+                    value=str(default) if default is not None else "",
+                    placeholder=f"{name} ({option_type})",
+                )
 
         if arguments:
             yield Label("Arguments", classes="command-form-heading")
@@ -93,15 +96,19 @@ class CommandForm(Widget):
                 argument_type = argument.type
                 default = argument.default
                 yield Label(f"{name} ({argument_type})", classes="command-form-label")
-                yield Input(value=str(default) if default is not None else "", placeholder=f"{name} ({argument_type})")
+                yield Input(
+                    value=str(default) if default is not None else "",
+                    placeholder=f"{name} ({argument_type})",
+                )
 
         if not options and not arguments:
             # TODO - improve this...
-            yield Label("Choose a command from the sidebar", classes="command-form-label")
+            yield Label(
+                "Choose a command from the sidebar", classes="command-form-label"
+            )
 
 
 class CommandBuilder(Screen):
-
     def __init__(
         self,
         cli: click.Group,
@@ -118,9 +125,7 @@ class CommandBuilder(Screen):
         tree = CommandTree("", self.cli_metadata)
         tree.focus()
         yield Vertical(
-            Label("Command Builder", id="home-commands-label"),
-            tree,
-            id="home-sidebar"
+            Label("Command Builder", id="home-commands-label"), tree, id="home-sidebar"
         )
 
         scrollable_body = VerticalScroll(

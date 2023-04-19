@@ -12,6 +12,10 @@ textual = {extras = ["dev"], version = "^0.19.1"}
 click = ">=8.0.0"
 
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.2.0"
+black = "^23.3.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
