@@ -26,6 +26,7 @@ class ArgumentSchema:
 
 @dataclass
 class CommandSchema:
+    name: CommandName
     docstring: str
     function: Callable[..., Any | None]
     options: list[OptionSchema] = field(default_factory=list)
@@ -53,8 +54,9 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
         TypedDicts (OptionData and ArgumentData).
     """
 
-    def process_command(cmd_name: str, cmd_obj: click.Command) -> CommandSchema:
+    def process_command(cmd_name: CommandName, cmd_obj: click.Command) -> CommandSchema:
         cmd_data = CommandSchema(
+            name=cmd_name,
             docstring=cmd_obj.help,
             function=cmd_obj.callback,
             options=[],
@@ -82,14 +84,14 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
         if isinstance(cmd_obj, click.core.Group):
             for subcmd_name, subcmd_obj in cmd_obj.commands.items():
                 cmd_data.subcommands[CommandName(subcmd_name)] = process_command(
-                    subcmd_name, subcmd_obj
+                    CommandName(subcmd_name), subcmd_obj
                 )
 
         return cmd_data
 
     data: dict[CommandName, CommandSchema] = {}
     for cmd_name, cmd_obj in app.commands.items():
-        data[CommandName(cmd_name)] = process_command(cmd_name, cmd_obj)
+        data[CommandName(cmd_name)] = process_command(CommandName(cmd_name), cmd_obj)
 
     return data
 

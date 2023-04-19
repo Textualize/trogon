@@ -86,14 +86,14 @@ class UserCommandData:
 
 
 def validate_user_command_data(
-    command_schema: CommandSchema,
+    introspection_data: Dict[CommandName, CommandSchema],
     user_command_data: UserCommandData,
 ) -> None:
     """
     Validates the user input against the provided command schema.
 
     Args:
-        command_schema: CommandSchema instance representing the schema
+        introspection_data: A dictionary mapping command names to CommandSchema instances representing the schema
             for the introspected CLI commands, options, and arguments.
         user_command_data: A UserCommandData instance representing the user input for the command to validate,
             its options, arguments, and any subcommands.
@@ -102,6 +102,7 @@ def validate_user_command_data(
         ValueError: If the user input does not conform to the command schema, such as an unknown command, missing
             required argument, or invalid option value.
     """
+    command_schema = introspection_data.get(CommandName(user_command_data.name))
     if not command_schema:
         raise ValueError(f"Unknown command: {user_command_data.name}")
 

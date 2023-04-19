@@ -96,13 +96,15 @@ class CommandForm(Widget):
     def __init__(
         self,
         command_schema: CommandSchema | None = None,
+        command_schemas: dict[CommandName, CommandSchema] | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
-        self.command_schema = command_schema if command_schema is not None else {}
+        self.command_schema = command_schema
+        self.command_schemas = command_schemas
 
     def compose(self) -> ComposeResult:
         options = self.command_schema.options
@@ -170,18 +172,18 @@ class CommandBuilder(Screen):
         classes: str | None = None,
     ):
         super().__init__(name, id, classes)
-        self.cli_metadata = introspect_click_app(cli)
+        self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
 
     def compose(self) -> ComposeResult:
-        tree = CommandTree("", self.cli_metadata)
+        tree = CommandTree("", self.command_schemas)
         tree.focus()
         yield Vertical(
             Label("Command Builder", id="home-commands-label"), tree, id="home-sidebar"
         )
 
         scrollable_body = VerticalScroll(
-            Pretty(self.cli_metadata),
+            Pretty(self.command_schemas),
             id="home-body-scroll",
         )
         body = Vertical(
@@ -235,16 +237,20 @@ class CommandBuilder(Screen):
         """Update the preview box showing the command string to be executed"""
         self.query_one("#home-exec-preview-static", Static).update(command_string)
 
-    def _update_form_body(self, node: TreeNode) -> None:
+    def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)
         parent = self.query_one("#home-body-scroll", VerticalScroll)
         for child in parent.children:
             child.remove()
 
         # Process the metadata for this command and mount corresponding widgets
-        command_metadata = node.data
-        log(command_metadata)
-        parent.mount(CommandForm(command_schema=command_metadata))
+        command_schema = node.data
+        log(command_schema)
+        parent.mount(
+            CommandForm(
+                command_schema=command_schema, command_schemas=self.command_schemas
+            )
+        )
 
 
 class TextualClick(App):
