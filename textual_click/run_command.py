@@ -84,6 +84,39 @@ class UserCommandData:
         args = self.to_cli_args()
         return shlex.join(args)
 
+    def prefill_defaults(self, command_schema: CommandSchema) -> None:
+        """
+        Prefills the UserCommandData instance with default values for options and arguments based on the provided
+        CommandSchema.
+
+        Args:
+            command_schema: A CommandSchema instance representing the schema for the command to prefill defaults.
+        """
+        # Prefill default option values
+        for option_schema in command_schema.options:
+            if (
+                option_schema.default is not None
+                and not any(opt.name == option_schema.name for opt in self.options)
+            ):
+                self.options.append(UserOptionData(name=option_schema.name, value=option_schema.default))
+
+        # Prefill default argument values
+        for arg_schema in command_schema.arguments:
+            if (
+                arg_schema.default is not None
+                and not any(arg.name == arg_schema.name for arg in self.arguments)
+            ):
+                self.arguments.append(UserArgumentData(name=arg_schema.name, value=arg_schema.default))
+
+        # Prefill defaults for subcommand if present
+        if self.subcommand:
+            subcommand_schema = next(
+                (cmd for cmd in command_schema.subcommands.values() if cmd.name == self.subcommand.name),
+                None,
+            )
+            if subcommand_schema:
+                self.subcommand.prefill_defaults(subcommand_schema)
+
 
 def validate_user_command_data(
     introspection_data: Dict[CommandName, CommandSchema],

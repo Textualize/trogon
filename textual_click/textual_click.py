@@ -150,12 +150,13 @@ class CommandForm(Widget):
                     for choice in choices:
                         yield RadioButton(choice)
 
-    def _build_command_data(self) -> UserCommandData:
-        """Takes the current state of this form and converts it into a UserCommandData,
-        ready to be executed."""
 
-    def _validate_command_data(self) -> None:
-        validate_user_command_data(self.command_schema)
+    # def _build_command_data(self) -> UserCommandData:
+    #     """Takes the current state of this form and converts it into a UserCommandData,
+    #     ready to be executed."""
+
+    # def _validate_command_data(self) -> None:
+    #     validate_user_command_data(self.command_schemas, self.)
 
     @staticmethod
     def _make_command_form_control_label(name: str, type: str) -> Text:

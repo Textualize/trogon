@@ -15,6 +15,7 @@ click = ">=8.0.0"
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
 black = "^23.3.0"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core"]

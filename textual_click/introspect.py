@@ -11,7 +11,8 @@ class OptionSchema:
     name: str
     type: str
     default: Any
-    help: str | None
+    required: bool
+    help: str | None = None
     choices: Sequence[str] | None = None
 
 
@@ -27,8 +28,8 @@ class ArgumentSchema:
 @dataclass
 class CommandSchema:
     name: CommandName
-    docstring: str
     function: Callable[..., Any | None]
+    docstring: str | None = None
     options: list[OptionSchema] = field(default_factory=list)
     arguments: list[ArgumentSchema] = field(default_factory=list)
     subcommands: dict["CommandName", "CommandSchema"] = field(default_factory=dict)
@@ -69,6 +70,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
                 option_data = OptionSchema(
                     name=param.name,
                     type=param.type.name,
+                    required=param.required,
                     default=param.default,
                     help=param.help,
                 )
