@@ -3,6 +3,7 @@ from __future__ import annotations
 import shlex
 import subprocess
 from pathlib import Path
+from typing import Sequence
 
 import click
 from rich.console import Console
@@ -13,11 +14,11 @@ from textual.app import ComposeResult, App, AutopilotCallbackType, ReturnType
 from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
 from textual.widget import Widget
-from textual.widgets import Pretty, Tree, Label, Static, Button, Input
+from textual.widgets import Pretty, Tree, Label, Static, Button, Input, Checkbox, RadioSet, RadioButton
 from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
-from textual_click.introspect import introspect_click_app, CommandName, CommandSchema
+from textual_click.introspect import introspect_click_app, CommandName, CommandSchema, ArgumentData, OptionData
 
 
 class CommandTree(Tree[CommandSchema]):
@@ -60,6 +61,12 @@ class CommandForm(Widget):
     .command-form-label {
         padding: 1 0 0 2;
     }
+    .command-form-radioset {
+        margin: 0 2;
+    }
+    .command-form-checkbox {
+        padding: 1 2;
+    }
     """
 
     def __init__(
@@ -79,33 +86,41 @@ class CommandForm(Widget):
 
         if options:
             yield Label("Options", classes="command-form-heading")
-            for option in options:
-                name = option.name
-                option_type = option.type
-                default = option.default
-                yield Label(f"{name} ({option_type})", classes="command-form-label")
-                yield Input(
-                    value=str(default) if default is not None else "",
-                    placeholder=f"{name} ({option_type})",
-                )
+            yield from self._make_command_form(options)
 
         if arguments:
             yield Label("Arguments", classes="command-form-heading")
-            for argument in arguments:
-                name = argument.name
-                argument_type = argument.type
-                default = argument.default
-                yield Label(f"{name} ({argument_type})", classes="command-form-label")
-                yield Input(
-                    value=str(default) if default is not None else "",
-                    placeholder=f"{name} ({argument_type})",
-                )
+            yield from self._make_command_form(arguments)
 
         if not options and not arguments:
             # TODO - improve this...
             yield Label(
                 "Choose a command from the sidebar", classes="command-form-label"
             )
+
+    def _make_command_form(self, arguments: Sequence[ArgumentData | OptionData]):
+        for argument in arguments:
+            name = argument.name
+            argument_type = argument.type
+            default = argument.default
+            label = self._make_command_form_control_label(name, argument_type)
+            if argument_type in {"text", "float", "integer", "Path"}:
+                yield Label(label, classes="command-form-label")
+                yield Input(
+                    value=str(default) if default is not None else "",
+                    placeholder=f"{name} ({argument_type})",
+                )
+            elif argument_type in {"boolean"}:
+                yield Checkbox(f"{name} ({argument_type})", button_first=False, value=default, classes="command-form-checkbox")
+            elif argument_type in {"choice"}:
+                choices = argument.choices
+                with RadioSet(classes="command-form-radioset"):
+                    for choice in choices:
+                        yield RadioButton(choice)
+
+    @staticmethod
+    def _make_command_form_control_label(name: str, type: str) -> Text:
+        return Text.from_markup(f"{name}  [i]({type})[/]")
 
 
 class CommandBuilder(Screen):
