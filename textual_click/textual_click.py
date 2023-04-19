@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import shlex
+import subprocess
 from pathlib import Path
 from typing import Any
 
 import click
+from rich.console import Console
 from rich.style import Style
 from rich.text import TextType, Text
-from textual.app import ComposeResult, App
+from textual import log
+from textual.app import ComposeResult, App, AutopilotCallbackType, ReturnType
 from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
 from textual.widget import Widget
@@ -182,7 +186,7 @@ class CommandBuilder(Screen):
 
         # Process the metadata for this command and mount corresponding widgets
         command_metadata = node.data
-        print(command_metadata)
+        log(command_metadata)
         parent.mount(CommandForm(command_schema=command_metadata))
 
 
@@ -193,6 +197,24 @@ class TextualClick(App):
         super().__init__()
         self.cli = cli
         self.app_name = app_name
+        # TODO: Don't hardcode ls
+        self.post_run_command: list[str] = ["ls"]
 
     def on_mount(self):
         self.push_screen(CommandBuilder(self.cli, self.app_name))
+
+    def run(
+        self,
+        *,
+        headless: bool = False,
+        size: tuple[int, int] | None = None,
+        auto_pilot: AutopilotCallbackType | None = None,
+    ) -> ReturnType | None:
+        try:
+            super().run(headless=headless, size=size, auto_pilot=auto_pilot)
+        finally:
+            # TODO: Make this happen only when you Execute/Save+Execute
+            if self.post_run_command:
+                console = Console()
+                console.print(f"Running [b cyan]{shlex.join(self.post_run_command)}[/]")
+                subprocess.run(self.post_run_command)
