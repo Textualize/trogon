@@ -2,20 +2,9 @@ from __future__ import annotations
 
 import shlex
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional
-from uuid import UUID
+from typing import Any, List, Optional
 
 from textual_click.introspect import CommandSchema, CommandName
-
-CLICK_TYPE_TO_PYTHON_TYPE = {
-    "text": str,
-    "int": int,
-    "float": float,
-    "boolean": bool,
-    "uuid": (str, UUID),  # UUID type can be a string or uuid.UUID instance
-    "Path": Path,
-}
 
 
 @dataclass
@@ -59,7 +48,7 @@ class UserCommandData:
             Since commands can be nested (i.e. subcommands), this may be processed recursively.
     """
 
-    name: str
+    name: CommandName
     options: List[UserOptionData]
     arguments: List[UserArgumentData]
     subcommand: Optional["UserCommandData"] = None
@@ -95,7 +84,7 @@ class UserCommandData:
         args = self.to_cli_args()
         return ' '.join(shlex.quote(arg) for arg in args)
 
-    def prefill_defaults(self, command_schema: CommandSchema) -> None:
+    def fill_defaults(self, command_schema: CommandSchema) -> None:
         """
         Prefills the UserCommandData instance with default values for options and arguments based on the provided
         CommandSchema.
@@ -126,7 +115,7 @@ class UserCommandData:
                 None,
             )
             if subcommand_schema:
-                self.subcommand.prefill_defaults(subcommand_schema)
+                self.subcommand.fill_defaults(subcommand_schema)
 
     def copy_with(
         self,

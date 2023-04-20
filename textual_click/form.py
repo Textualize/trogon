@@ -2,20 +2,22 @@ from __future__ import annotations
 
 import dataclasses
 import uuid
-from typing import Sequence, NamedTuple
+from typing import Sequence, Any
 
 from rich.text import Text
+from textual import log
 from textual.app import ComposeResult
+from textual.containers import VerticalScroll
 from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Label, Input, Checkbox, RadioSet, RadioButton
 
 from textual_click.introspect import CommandSchema, CommandName, ArgumentSchema, OptionSchema
-from textual_click.run_command import UserCommandData
+from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
 
 
 def generate_unique_id():
-    return str(uuid.uuid4())[:8]
+    return f"id_{str(uuid.uuid4())[:8]}"
 
 
 @dataclasses.dataclass
@@ -41,7 +43,7 @@ class CommandForm(Widget):
     }
     """
 
-    class FormChanged(Message):
+    class Changed(Message):
         def __init__(self, command_data: UserCommandData):
             super().__init__()
             self.command_data = command_data
@@ -59,51 +61,90 @@ class CommandForm(Widget):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.command_schema = command_schema
         self.command_schemas = command_schemas
-        self.id_widget_map: dict[str,] = {}
+        self.id_to_metadata: dict[str, ArgumentSchema | OptionSchema] = {}
 
     def compose(self) -> ComposeResult:
-        options = self.command_schema.options
-        arguments = self.command_schema.arguments
+        path_from_root = iter(self.command_schema.path_from_root)
+        command_node = next(path_from_root)
+        with VerticalScroll():
+            while command_node is not None:
+                options = command_node.options
+                arguments = command_node.arguments
+                if options:
+                    yield Label("Options", classes="command-form-heading")
+                    yield from self._make_command_form(options)
 
-        # TODO
-        #  We should generate a unique ID for each form widget and store that in a mapping,
-        #  alongside the corresponding schema. Then when an event arrives, we can lookup the
-        #  ID in the mapping to retrieve the schema to go alongside the new value. Using this
-        #  data, we can construct a UserCommandData and post it up the DOM.
+                if arguments:
+                    yield Label("Arguments", classes="command-form-heading")
+                    yield from self._make_command_form(arguments)
 
-        if options:
-            yield Label("Options", classes="command-form-heading")
-            yield from self._make_command_form(options)
+                command_node = next(path_from_root, None)
 
-        if arguments:
-            yield Label("Arguments", classes="command-form-heading")
-            yield from self._make_command_form(arguments)
+        # if not options and not arguments:
+        #     # TODO - improve this...
+        #     yield Label(
+        #         "Choose a command from the sidebar", classes="command-form-label"
+        #     )
 
-        if not options and not arguments:
-            # TODO - improve this...
-            yield Label(
-                "Choose a command from the sidebar", classes="command-form-label"
-            )
+    def on_input_changed(self) -> None:
+        self._form_changed()
 
-    def on_input_changed(self, event: Input.Changed) -> None:
-        pass
+    def on_radio_set_changed(self) -> None:
+        self._form_changed()
 
-    def form_changed(self) -> UserCommandData:
+    def on_checkbox_changed(self) -> None:
+        self._form_changed()
+
+    def _form_changed(self) -> UserCommandData:
         """Take the current state of the form and build a UserCommandData from it,
         then post a FormChanged message"""
 
-    def _make_command_form(self, arguments: Sequence[ArgumentSchema | OptionSchema]):
-        for argument in arguments:
-            name = argument.name
-            argument_type = argument.type
-            default = argument.default
-            help = argument.help if isinstance(argument, OptionSchema) else ""
+        # For each control in the form, pull out the value, look up the metadata, and add
+        #  it to the UserCommandData
+        command_data = UserCommandData(
+            name=self.command_schema.name,
+            options=[],
+            arguments=[],
+        )
+
+        for id, schema in self.id_to_metadata.items():
+            widget = self.query_one(f"#{id}")
+            value = self._get_form_control_value(widget)
+            # If we're dealing with an option
+            if isinstance(schema, OptionSchema):
+                option_data = UserOptionData(schema.name, value)
+                command_data.options.append(option_data)
+            elif isinstance(schema, ArgumentSchema):
+                argument_data = UserArgumentData(schema.name, value)
+                command_data.arguments.append(argument_data)
+
+        command_data.fill_defaults(self.command_schema)
+        self.post_message(self.Changed(command_data))
+        log(command_data)
+
+    @staticmethod
+    def _get_form_control_value(control: Input | RadioSet | Checkbox) -> Any:
+        if isinstance(control, (Input, Checkbox)):
+            return control.value
+        elif isinstance(control, RadioSet):
+            return control.pressed_button.label.plain
+
+    def _make_command_form(self, schemas: Sequence[ArgumentSchema | OptionSchema]):
+        for schema in schemas:
+            control_id = generate_unique_id()
+            self.id_to_metadata[control_id] = schema
+
+            name = schema.name
+            argument_type = schema.type
+            default = schema.default
+            help = schema.help if isinstance(schema, OptionSchema) else ""
             label = self._make_command_form_control_label(name, argument_type)
             if argument_type in {"text", "float", "integer", "Path"}:
                 yield Label(label, classes="command-form-label")
                 yield Input(
                     value=str(default) if default is not None else "",
                     placeholder=help if help else label.plain,
+                    id=control_id,
                 )
             elif argument_type in {"boolean"}:
                 yield Checkbox(
@@ -111,11 +152,12 @@ class CommandForm(Widget):
                     button_first=False,
                     value=default,
                     classes="command-form-checkbox",
+                    id=control_id,
                 )
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
-                with RadioSet(classes="command-form-radioset"):
-                    for choice in argument.choices:
+                with RadioSet(id=control_id, classes="command-form-radioset"):
+                    for choice in schema.choices:
                         yield RadioButton(choice)
 
     # def _build_command_data(self) -> UserCommandData:

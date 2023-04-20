@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence, NewType
 
 import click
+from textual import log
 
 
 @dataclass
@@ -33,6 +34,16 @@ class CommandSchema:
     options: list[OptionSchema] = field(default_factory=list)
     arguments: list[ArgumentSchema] = field(default_factory=list)
     subcommands: dict["CommandName", "CommandSchema"] = field(default_factory=dict)
+    parent: "CommandSchema | None" = None
+
+    @property
+    def path_from_root(self) -> list["CommandSchema"]:
+        node = self
+        path = [self]
+        while node.parent is not None:
+            node = node.parent
+            path.append(node)
+        return list(reversed(path))
 
 
 def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
@@ -55,7 +66,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
         TypedDicts (OptionData and ArgumentData).
     """
 
-    def process_command(cmd_name: CommandName, cmd_obj: click.Command) -> CommandSchema:
+    def process_command(cmd_name: CommandName, cmd_obj: click.Command, parent=None) -> CommandSchema:
         cmd_data = CommandSchema(
             name=cmd_name,
             docstring=cmd_obj.help,
@@ -63,10 +74,12 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
             options=[],
             arguments=[],
             subcommands={},
+            parent=parent,
         )
 
         for param in cmd_obj.params:
-            if isinstance(param, click.Option):
+            # Commands can have options and arguments
+            if isinstance(param, (click.Option, click.core.Group)):
                 option_data = OptionSchema(
                     name=param.name,
                     type=param.type.name,
@@ -86,7 +99,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
         if isinstance(cmd_obj, click.core.Group):
             for subcmd_name, subcmd_obj in cmd_obj.commands.items():
                 cmd_data.subcommands[CommandName(subcmd_name)] = process_command(
-                    CommandName(subcmd_name), subcmd_obj
+                    CommandName(subcmd_name), subcmd_obj, parent=cmd_data
                 )
 
         return cmd_data

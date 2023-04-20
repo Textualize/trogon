@@ -28,6 +28,7 @@ from textual_click.introspect import (
     CommandName,
     CommandSchema,
 )
+from textual_click.run_command import UserCommandData
 
 
 class CommandTree(Tree[CommandSchema]):
@@ -71,6 +72,7 @@ class CommandBuilder(Screen):
         classes: str | None = None,
     ):
         super().__init__(name, id, classes)
+        self.command_data = None
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
 
@@ -101,18 +103,25 @@ class CommandBuilder(Screen):
         scrollable_body.can_focus = True
         yield body
 
-    def on_tree_node_highlighted(self, event: Tree.NodeHighlighted):
+    def on_tree_node_highlighted(self, event: Tree.NodeHighlighted[CommandSchema]) -> None:
         """When we highlight a node in the CommandTree, the main body of the home page updates
         to display a form specific to the highlighted command."""
 
         # TODO: Add an ID check
 
-        command_string = self._build_command_from_node(event.node)
+        self.selected_command_schema = event.node.data
+        command_string = self._build_command_prefix_from_node(event.node)
         self._update_command_description(event.node)
-        self._update_execution_string_preview(command_string.plain)
+        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
         self._update_form_body(event.node)
 
-    def _build_command_from_node(self, node: TreeNode) -> Text:
+    def on_command_form_changed(self, event: CommandForm.Changed) -> None:
+        self.command_data = event.command_data
+        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
+        log(event.command_data.to_cli_string())
+
+    @staticmethod
+    def _build_command_prefix_from_node(node: TreeNode[CommandSchema]) -> Text:
         """Given a TreeNode, look up the ancestors and build the Text required
         to call that command."""
         command_parts = [node.label]
@@ -132,9 +141,12 @@ class CommandBuilder(Screen):
         description_text = f"[b]{node.label}[/]\n{description_text}"
         description_box.update(description_text)
 
-    def _update_execution_string_preview(self, command_string: str) -> None:
+    def _update_execution_string_preview(self, command_schema: CommandSchema, command_data: UserCommandData) -> None:
         """Update the preview box showing the command string to be executed"""
-        self.query_one("#home-exec-preview-static", Static).update(command_string)
+        if self.command_data is not None:
+            self.query_one("#home-exec-preview-static", Static).update(
+                command_data.to_cli_string()
+            )
 
     def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)

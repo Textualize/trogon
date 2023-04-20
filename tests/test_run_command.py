@@ -66,7 +66,7 @@ def user_command_data_with_subcommand(user_command_data_no_subcommand):
 def test_prefill_defaults_no_subcommand(command_schema):
     user_command_data = UserCommandData(name="test", options=[], arguments=[])
 
-    user_command_data.prefill_defaults(command_schema)
+    user_command_data.fill_defaults(command_schema)
 
     assert len(user_command_data.options) == 2
 
@@ -98,7 +98,7 @@ def test_prefill_defaults_with_subcommand(command_schema):
         subcommand=UserCommandData(name="sub", options=[], arguments=[]),
     )
 
-    user_command_data.prefill_defaults(command_schema)
+    user_command_data.fill_defaults(command_schema)
 
     assert len(user_command_data.options) == 2
     assert user_command_data.options[0] == UserOptionData(name="option1", value="default1")
