@@ -122,13 +122,11 @@ class CommandForm(Widget):
 
         )
 
-        # TODO - at this point, for each lookup, we've lost context of which command
-        #  in the tree an option belongs to. We'll need to adjust the id_to_metadata
-        #  so that we can keep track.
-        #  Using this, we'll need to build up our UserCommandData such that it's recursive
-        #  Since we have the command schema, we should be able to go to the root, then
+        # TODO -
+        #  We have the command_schema, so we should be able to go to the root, then
         #  for each command on the path from the root down to the current command, we
-        #  recursively build the user command data.
+        #  recursively build the user command data. I think we already have all the data
+        #  we require to do this here.
 
         for id, schema in self.id_to_metadata.items():
             widget = self.query_one(f"#{id}")
