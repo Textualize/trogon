@@ -52,6 +52,7 @@ class UserCommandData:
     options: List[UserOptionData]
     arguments: List[UserArgumentData]
     subcommand: Optional["UserCommandData"] = None
+    parent: Optional["UserCommandData"] = None
 
     def to_cli_args(self) -> List[str]:
         """

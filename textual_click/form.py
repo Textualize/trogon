@@ -7,7 +7,7 @@ from typing import Sequence, Any
 from rich.text import Text
 from textual import log
 from textual.app import ComposeResult
-from textual.containers import VerticalScroll
+from textual.containers import VerticalScroll, Vertical
 from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Label, Input, Checkbox, RadioSet, RadioButton
@@ -32,6 +32,9 @@ class CommandForm(Widget):
         padding: 1 0 0 2;
         text-style: bold;
     }
+    .command-form-input {
+        margin-bottom: 1;
+    }
     .command-form-label {
         padding: 1 0 0 2;
     }
@@ -40,6 +43,14 @@ class CommandForm(Widget):
     }
     .command-form-checkbox {
         padding: 1 2;
+    }
+    .command-form-command-group {
+        margin: 1 2;
+        height: auto;
+        background: $boost;
+        border: wide $background-lighten-2;
+        border-title-color: $text;
+        border-title-background: $primary;
     }
     """
 
@@ -70,13 +81,16 @@ class CommandForm(Widget):
             while command_node is not None:
                 options = command_node.options
                 arguments = command_node.arguments
-                if options:
-                    yield Label("Options", classes="command-form-heading")
-                    yield from self._make_command_form(options)
+                if options or arguments:
+                    with Vertical(classes="command-form-command-group") as v:
+                        v.border_title = f"{command_node.name}"
+                        if options:
+                            yield Label(f"Options", classes="command-form-heading")
+                            yield from self._make_command_form(options)
 
-                if arguments:
-                    yield Label("Arguments", classes="command-form-heading")
-                    yield from self._make_command_form(arguments)
+                        if arguments:
+                            yield Label(f"Arguments", classes="command-form-heading")
+                            yield from self._make_command_form(arguments)
 
                 command_node = next(path_from_root, None)
 
@@ -120,14 +134,15 @@ class CommandForm(Widget):
 
         command_data.fill_defaults(self.command_schema)
         self.post_message(self.Changed(command_data))
-        log(command_data)
 
     @staticmethod
     def _get_form_control_value(control: Input | RadioSet | Checkbox) -> Any:
         if isinstance(control, (Input, Checkbox)):
             return control.value
         elif isinstance(control, RadioSet):
-            return control.pressed_button.label.plain
+            if control.pressed_button is not None:
+                return control.pressed_button.label.plain
+            return None
 
     def _make_command_form(self, schemas: Sequence[ArgumentSchema | OptionSchema]):
         for schema in schemas:
@@ -145,6 +160,7 @@ class CommandForm(Widget):
                     value=str(default) if default is not None else "",
                     placeholder=help if help else label.plain,
                     id=control_id,
+                    classes="command-form-input",
                 )
             elif argument_type in {"boolean"}:
                 yield Checkbox(
@@ -157,8 +173,11 @@ class CommandForm(Widget):
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
                 with RadioSet(id=control_id, classes="command-form-radioset"):
-                    for choice in schema.choices:
-                        yield RadioButton(choice)
+                    for index, choice in enumerate(schema.choices):
+                        radio_button = RadioButton(choice)
+                        if index == 0:
+                            radio_button.value = True
+                        yield radio_button
 
     # def _build_command_data(self) -> UserCommandData:
     #     """Takes the current state of this form and converts it into a UserCommandData,

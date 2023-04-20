@@ -156,7 +156,6 @@ class CommandBuilder(Screen):
 
         # Process the metadata for this command and mount corresponding widgets
         command_schema = node.data
-        log(command_schema)
         parent.mount(
             CommandForm(
                 command_schema=command_schema, command_schemas=self.command_schemas
@@ -183,7 +182,7 @@ class TextualClick(App):
         headless: bool = False,
         size: tuple[int, int] | None = None,
         auto_pilot: AutopilotCallbackType | None = None,
-    ) -> ReturnType | None:
+    ) -> None:
         try:
             super().run(headless=headless, size=size, auto_pilot=auto_pilot)
         finally:
@@ -192,4 +191,3 @@ class TextualClick(App):
                 console = Console()
                 console.print(f"Running [b cyan]{shlex.join(self.post_run_command)}[/]")
                 subprocess.run(self.post_run_command)
-        return

@@ -40,8 +40,10 @@ class CommandSchema:
     def path_from_root(self) -> list["CommandSchema"]:
         node = self
         path = [self]
-        while node.parent is not None:
+        while True:
             node = node.parent
+            if node is None:
+                break
             path.append(node)
         return list(reversed(path))
 
