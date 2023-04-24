@@ -10,7 +10,7 @@ from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
 from textual.message import Message
 from textual.widget import Widget
-from textual.widgets import Label, Input, Checkbox, RadioSet, RadioButton
+from textual.widgets import Label, Input, Checkbox, RadioSet, RadioButton, Static
 
 from textual_click.introspect import CommandSchema, CommandName, ArgumentSchema, OptionSchema
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
@@ -46,6 +46,11 @@ class CommandForm(Widget):
         background: $boost;
         border: panel $primary 60%;
         border-title-color: $text;
+    }
+    .command-form-control-help-text {
+        margin: 1 2;
+        height: auto;
+        color: $text 40%;
     }
     """
 
@@ -84,6 +89,7 @@ class CommandForm(Widget):
                             yield from self._make_command_form(options, is_option=True)
 
                         if arguments:
+                            print(arguments)
                             yield Label(f"Arguments", classes="command-form-heading")
                             yield from self._make_command_form(arguments)
 
@@ -96,12 +102,15 @@ class CommandForm(Widget):
         #     )
 
     def on_input_changed(self) -> None:
+        print("INPUT CHANGED")
         self._form_changed()
 
     def on_radio_set_changed(self) -> None:
+        print("RADIO SET CHANGED")
         self._form_changed()
 
     def on_checkbox_changed(self) -> None:
+        print("CHECKBOX CHANGED")
         self._form_changed()
 
     def _form_changed(self) -> UserCommandData:
@@ -126,7 +135,10 @@ class CommandForm(Widget):
                 option_datas = []
                 # For each of the options in the schema for this command,
                 # lets grab the values the user has supplied for them in the form.
+
+                print(command.name)
                 for option in command.options:
+                    print(option.name, option.key, option.type)
                     form_control_widget = self.query_one(f"#{option.key}")
                     value = self._get_form_control_value(form_control_widget)
                     option_data = UserOptionData(option.name, value)
@@ -149,8 +161,13 @@ class CommandForm(Widget):
                 )
                 parent_command_data.subcommand = command_data
                 parent_command_data = command_data
-        except:
-            pass
+        except Exception as e:
+            # TODO: Tidy this up - there's a bit of a race condition here I think,
+            #  we query for nodes but I think this code can execute before mounting
+            #  is complete.
+            #  Or possibly an issue where there's a command tree with a single node (usually the case).
+            print(f"exception {e}")
+            return
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
@@ -177,7 +194,7 @@ class CommandForm(Widget):
             default = schema.default
             help = schema.help if isinstance(schema, OptionSchema) else ""
             label = self._make_command_form_control_label(name, argument_type, is_option, schema.required)
-            if argument_type in {"text", "float", "integer", "Path"}:
+            if argument_type in {"text", "float", "integer", "Path", "integer range", "file", "filename"}:
                 yield Label(label, classes="command-form-label")
                 yield Input(
                     value=str(default) if default is not None else "",
@@ -185,6 +202,7 @@ class CommandForm(Widget):
                     id=schema.key,
                     classes="command-form-input",
                 )
+                yield Static(help, classes="command-form-control-help-text")
             elif argument_type in {"boolean"}:
                 yield Checkbox(
                     f"{name} ({argument_type})",
@@ -193,6 +211,7 @@ class CommandForm(Widget):
                     classes="command-form-checkbox",
                     id=schema.key,
                 )
+                yield Static(help, classes="command-form-control-help-text")
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
                 with RadioSet(id=schema.key, classes="command-form-radioset"):
@@ -201,6 +220,7 @@ class CommandForm(Widget):
                         if index == 0:
                             radio_button.value = True
                         yield radio_button
+                yield Static(help, classes="command-form-control-help-text")
 
     # def _build_command_data(self) -> UserCommandData:
     #     """Takes the current state of this form and converts it into a UserCommandData,

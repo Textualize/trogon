@@ -88,7 +88,6 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
         )
 
         for param in cmd_obj.params:
-            # Commands can have options and arguments
             if isinstance(param, (click.Option, click.core.Group)):
                 option_data = OptionSchema(
                     name=param.name,
