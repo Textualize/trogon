@@ -53,6 +53,7 @@ class UserCommandData:
     arguments: List[UserArgumentData]
     subcommand: Optional["UserCommandData"] = None
     parent: Optional["UserCommandData"] = None
+    command_schema: Optional["CommandSchema"] = None
 
     def to_cli_args(self) -> List[str]:
         """
@@ -64,8 +65,11 @@ class UserCommandData:
         args = [self.name]
 
         for option in self.options:
-            args.append(f"--{option.name}")
-            args.append(str(option.value))
+            if option.value is not None and option.value is not False:
+                args.append(f"--{option.name}")
+                # Only add a value for non-boolean options
+                if option.value is not True:
+                    args.append(str(option.value))
 
         for argument in self.arguments:
             args.append(str(argument.value))

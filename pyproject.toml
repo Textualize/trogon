@@ -8,7 +8,8 @@ packages = [{include = "textual_click"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-textual = {extras = ["dev"], version = "^0.20.1"}
+#textual = {extras = ["dev"], version = ">=0.20.1"}
+textual = {extras = ["dev"], path = "../textual", develop = true}
 click = ">=8.0.0"
 
 

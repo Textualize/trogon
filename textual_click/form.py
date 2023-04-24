@@ -44,9 +44,8 @@ class CommandForm(Widget):
         margin: 1 2;
         height: auto;
         background: $boost;
-        border: wide $background-lighten-2;
+        border: panel $primary 60%;
         border-title-color: $text;
-        border-title-background: $primary;
     }
     """
 
@@ -82,7 +81,7 @@ class CommandForm(Widget):
                         v.border_title = f"{command_node.name}"
                         if options:
                             yield Label(f"Options", classes="command-form-heading")
-                            yield from self._make_command_form(options)
+                            yield from self._make_command_form(options, is_option=True)
 
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
@@ -122,35 +121,40 @@ class CommandForm(Widget):
         # Sentinel root value to make constructing the tree a little easier.
         parent_command_data = UserCommandData(name=CommandName("_command_sentinel"), options=[], arguments=[])
         root_command_data = parent_command_data
-        for command in path_from_root:
-            option_datas = []
-            # For each of the options in the schema for this command,
-            # lets grab the values the user has supplied for them in the form.
-            for option in command.options:
-                form_control_widget = self.query_one(f"#{option.key}")
-                value = self._get_form_control_value(form_control_widget)
-                option_data = UserOptionData(option.name, value)
-                option_datas.append(option_data)
+        try:
+            for command in path_from_root:
+                option_datas = []
+                # For each of the options in the schema for this command,
+                # lets grab the values the user has supplied for them in the form.
+                for option in command.options:
+                    form_control_widget = self.query_one(f"#{option.key}")
+                    value = self._get_form_control_value(form_control_widget)
+                    option_data = UserOptionData(option.name, value)
+                    option_datas.append(option_data)
 
-            # Now do the same for the arguments
-            argument_datas = []
-            for argument in command.arguments:
-                form_control_widget = self.query_one(f"#{argument.key}")
-                value = self._get_form_control_value(form_control_widget)
-                argument_data = UserOptionData(argument.name, value)
-                argument_datas.append(argument_data)
+                # Now do the same for the arguments
+                argument_datas = []
+                for argument in command.arguments:
+                    form_control_widget = self.query_one(f"#{argument.key}")
+                    value = self._get_form_control_value(form_control_widget)
+                    argument_data = UserArgumentData(argument.name, value)
+                    argument_datas.append(argument_data)
 
-            command_data = UserCommandData(
-                name=command.name,
-                options=option_datas,
-                arguments=argument_datas,
-                parent=parent_command_data,
-            )
-            parent_command_data.subcommand = command_data
-            parent_command_data = command_data
+                command_data = UserCommandData(
+                    name=command.name,
+                    options=option_datas,
+                    arguments=argument_datas,
+                    parent=parent_command_data,
+                    command_schema=command,
+                )
+                parent_command_data.subcommand = command_data
+                parent_command_data = command_data
+        except:
+            pass
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
+        root_command_data.parent = None
         root_command_data.fill_defaults(self.command_schema)
         self.post_message(self.Changed(root_command_data))
 
@@ -163,7 +167,7 @@ class CommandForm(Widget):
                 return control.pressed_button.label.plain
             return None
 
-    def _make_command_form(self, schemas: Sequence[ArgumentSchema | OptionSchema]):
+    def _make_command_form(self, schemas: Sequence[ArgumentSchema | OptionSchema], is_option: bool = False):
         for schema in schemas:
             # TODO: This may not be required any more.
             self.schema_key_to_metadata[schema.key] = schema
@@ -172,12 +176,12 @@ class CommandForm(Widget):
             argument_type = schema.type
             default = schema.default
             help = schema.help if isinstance(schema, OptionSchema) else ""
-            label = self._make_command_form_control_label(name, argument_type)
+            label = self._make_command_form_control_label(name, argument_type, is_option, schema.required)
             if argument_type in {"text", "float", "integer", "Path"}:
                 yield Label(label, classes="command-form-label")
                 yield Input(
                     value=str(default) if default is not None else "",
-                    placeholder=help if help else label.plain,
+                    placeholder=name,
                     id=schema.key,
                     classes="command-form-input",
                 )
@@ -206,5 +210,5 @@ class CommandForm(Widget):
     #     validate_user_command_data(self.command_schemas, self.)
 
     @staticmethod
-    def _make_command_form_control_label(name: str, type: str) -> Text:
-        return Text.from_markup(f"{name} [dim]{type}[/]")
+    def _make_command_form_control_label(name: str, type: str, is_option: bool, is_required: bool) -> Text:
+        return Text.from_markup(f"{'--' if is_option else ''}{name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}")

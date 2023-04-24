@@ -8,7 +8,7 @@ import click
 from rich.console import Console
 from rich.style import Style
 from rich.text import TextType, Text
-from textual import log
+from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
@@ -80,7 +80,7 @@ class CommandBuilder(Screen):
         tree = CommandTree("", self.command_schemas)
         tree.focus()
         yield Vertical(
-            Label("Command Builder", id="home-commands-label"), tree, id="home-sidebar"
+            Label("Command Tree", id="home-commands-label"), tree, id="home-sidebar"
         )
 
         scrollable_body = VerticalScroll(
@@ -103,16 +103,22 @@ class CommandBuilder(Screen):
         scrollable_body.can_focus = True
         yield body
 
+    def on_mount(self, event: events.Mount) -> None:
+        self._refresh_command_form()
+
+    def _refresh_command_form(self, node: TreeNode[CommandSchema] | None = None):
+        if node is None:
+            node = self.query_one(CommandTree).cursor_node
+        self.selected_command_schema = node.data
+        self._update_command_description(node)
+        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
+        self._update_form_body(node)
+
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted[CommandSchema]) -> None:
         """When we highlight a node in the CommandTree, the main body of the home page updates
         to display a form specific to the highlighted command."""
-
         # TODO: Add an ID check
-
-        self.selected_command_schema = event.node.data
-        self._update_command_description(event.node)
-        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
-        self._update_form_body(event.node)
+        self._refresh_command_form(event.node)
 
     def on_command_form_changed(self, event: CommandForm.Changed) -> None:
         self.command_data = event.command_data
@@ -180,12 +186,21 @@ class TextualClick(App):
 
 
 def tui():
-    def decorator(app):
-        @app.command(name="tui")
+    def decorator(app: click.Group | click.Command):
         def wrapped_tui(*args, **kwargs):
             TextualClick(app).run()
             # Call the original command function
-            app.callback(*args, **kwargs)
+            # app.callback(*args, **kwargs)
+
+        if isinstance(app, click.Group):
+            app.command(name="tui")(wrapped_tui)
+        else:
+            new_group = click.Group()
+            new_group = click.Group()
+            new_group.add_command(app)
+            new_group.command(name="tui")(wrapped_tui)
+            return new_group
+
         return app
 
     return decorator
