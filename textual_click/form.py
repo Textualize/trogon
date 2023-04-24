@@ -16,10 +16,6 @@ from textual_click.introspect import CommandSchema, CommandName, ArgumentSchema,
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
 
 
-def generate_unique_id():
-    return f"id_{str(uuid.uuid4())[:8]}"
-
-
 @dataclasses.dataclass
 class FormControlMeta:
     widget: Widget
@@ -72,7 +68,7 @@ class CommandForm(Widget):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.command_schema = command_schema
         self.command_schemas = command_schemas
-        self.id_to_metadata: dict[str, ArgumentSchema | OptionSchema] = {}
+        self.schema_key_to_metadata: dict[str, ArgumentSchema | OptionSchema] = {}
 
     def compose(self) -> ComposeResult:
         path_from_root = iter(self.command_schema.path_from_root)
@@ -115,32 +111,48 @@ class CommandForm(Widget):
 
         # For each control in the form, pull out the value, look up the metadata, and add
         #  it to the UserCommandData
-        command_data = UserCommandData(
-            name=self.command_schema.name,
-            options=[],
-            arguments=[],
-
-        )
 
         # TODO -
-        #  We have the command_schema, so we should be able to go to the root, then
-        #  for each command on the path from the root down to the current command, we
-        #  recursively build the user command data. I think we already have all the data
-        #  we require to do this here.
+        #  We should be able to go from the root of the schema, and gather up the data
+        #  from the form by looking up the keys inside schema_key_to_metadata.
 
-        for id, schema in self.id_to_metadata.items():
-            widget = self.query_one(f"#{id}")
-            value = self._get_form_control_value(widget)
-            # If we're dealing with an option
-            if isinstance(schema, OptionSchema):
-                option_data = UserOptionData(schema.name, value)
-                command_data.options.append(option_data)
-            elif isinstance(schema, ArgumentSchema):
-                argument_data = UserArgumentData(schema.name, value)
-                command_data.arguments.append(argument_data)
+        command_schema = self.command_schema
+        path_from_root = command_schema.path_from_root
 
-        command_data.fill_defaults(self.command_schema)
-        self.post_message(self.Changed(command_data))
+        # Sentinel root value to make constructing the tree a little easier.
+        parent_command_data = UserCommandData(name=CommandName("_command_sentinel"), options=[], arguments=[])
+        root_command_data = parent_command_data
+        for command in path_from_root:
+            option_datas = []
+            # For each of the options in the schema for this command,
+            # lets grab the values the user has supplied for them in the form.
+            for option in command.options:
+                form_control_widget = self.query_one(f"#{option.key}")
+                value = self._get_form_control_value(form_control_widget)
+                option_data = UserOptionData(option.name, value)
+                option_datas.append(option_data)
+
+            # Now do the same for the arguments
+            argument_datas = []
+            for argument in command.arguments:
+                form_control_widget = self.query_one(f"#{argument.key}")
+                value = self._get_form_control_value(form_control_widget)
+                argument_data = UserOptionData(argument.name, value)
+                argument_datas.append(argument_data)
+
+            command_data = UserCommandData(
+                name=command.name,
+                options=option_datas,
+                arguments=argument_datas,
+                parent=parent_command_data,
+            )
+            parent_command_data.subcommand = command_data
+            parent_command_data = command_data
+
+        # Trim the sentinel
+        root_command_data = root_command_data.subcommand
+        root_command_data.fill_defaults(self.command_schema)
+        self.post_message(self.Changed(root_command_data))
 
     @staticmethod
     def _get_form_control_value(control: Input | RadioSet | Checkbox) -> Any:
@@ -153,8 +165,8 @@ class CommandForm(Widget):
 
     def _make_command_form(self, schemas: Sequence[ArgumentSchema | OptionSchema]):
         for schema in schemas:
-            control_id = generate_unique_id()
-            self.id_to_metadata[control_id] = schema
+            # TODO: This may not be required any more.
+            self.schema_key_to_metadata[schema.key] = schema
 
             name = schema.name
             argument_type = schema.type
@@ -166,7 +178,7 @@ class CommandForm(Widget):
                 yield Input(
                     value=str(default) if default is not None else "",
                     placeholder=help if help else label.plain,
-                    id=control_id,
+                    id=schema.key,
                     classes="command-form-input",
                 )
             elif argument_type in {"boolean"}:
@@ -175,11 +187,11 @@ class CommandForm(Widget):
                     button_first=False,
                     value=default,
                     classes="command-form-checkbox",
-                    id=control_id,
+                    id=schema.key,
                 )
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
-                with RadioSet(id=control_id, classes="command-form-radioset"):
+                with RadioSet(id=schema.key, classes="command-form-radioset"):
                     for index, choice in enumerate(schema.choices):
                         radio_button = RadioButton(choice)
                         if index == 0:

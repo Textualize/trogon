@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence, NewType
 
 import click
 from textual import log
+
+
+def generate_unique_id():
+    return f"id_{str(uuid.uuid4())[:8]}"
 
 
 @dataclass
@@ -13,6 +18,7 @@ class OptionSchema:
     type: str
     default: Any
     required: bool
+    key: str = field(default_factory=generate_unique_id)
     help: str | None = None
     choices: Sequence[str] | None = None
 
@@ -22,6 +28,7 @@ class ArgumentSchema:
     name: str
     type: str
     required: bool
+    key: str = field(default_factory=generate_unique_id)
     default: Any | None = None
     choices: Sequence[str] | None = None
 
@@ -30,6 +37,7 @@ class ArgumentSchema:
 class CommandSchema:
     name: CommandName
     function: Callable[..., Any | None]
+    key: str = field(default_factory=generate_unique_id)
     docstring: str | None = None
     options: list[OptionSchema] = field(default_factory=list)
     arguments: list[ArgumentSchema] = field(default_factory=list)

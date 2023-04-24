@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.style import Style
 from rich.text import TextType, Text
 from textual import log
-from textual.app import ComposeResult, App, AutopilotCallbackType, ReturnType
+from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.containers import VerticalScroll, Vertical, Horizontal
 from textual.screen import Screen
 from textual.widgets import (
@@ -110,7 +110,6 @@ class CommandBuilder(Screen):
         # TODO: Add an ID check
 
         self.selected_command_schema = event.node.data
-        command_string = self._build_command_prefix_from_node(event.node)
         self._update_command_description(event.node)
         self._update_execution_string_preview(self.selected_command_schema, self.command_data)
         self._update_form_body(event.node)
@@ -119,19 +118,6 @@ class CommandBuilder(Screen):
         self.command_data = event.command_data
         self._update_execution_string_preview(self.selected_command_schema, self.command_data)
         log(event.command_data.to_cli_string())
-
-    @staticmethod
-    def _build_command_prefix_from_node(node: TreeNode[CommandSchema]) -> Text:
-        """Given a TreeNode, look up the ancestors and build the Text required
-        to call that command."""
-        command_parts = [node.label]
-        while node:
-            node = node.parent
-            if node.parent is None:
-                break
-            else:
-                command_parts.append(node.label)
-        return Text(" ").join(reversed(command_parts))
 
     def _update_command_description(self, node: TreeNode[CommandSchema]) -> None:
         """Update the description of the command at the bottom of the sidebar
@@ -191,3 +177,15 @@ class TextualClick(App):
                 console = Console()
                 console.print(f"Running [b cyan]{shlex.join(self.post_run_command)}[/]")
                 subprocess.run(self.post_run_command)
+
+
+def tui():
+    def decorator(app):
+        @app.command(name="tui")
+        def wrapped_tui(*args, **kwargs):
+            TextualClick(app).run()
+            # Call the original command function
+            app.callback(*args, **kwargs)
+        return app
+
+    return decorator
