@@ -59,7 +59,7 @@ class UserCommandData:
     parent: Optional["UserCommandData"] = None
     command_schema: Optional["CommandSchema"] = None
 
-    def to_cli_args(self, include_root_command: bool = False) -> List[str]:
+    def to_cli_args(self) -> List[str]:
         """
         Generates a list of strings representing the CLI invocation based on the user input data.
 
@@ -69,7 +69,9 @@ class UserCommandData:
         args = [self.name]
 
         for option in self.options:
-            if option.value is not None and option.value is not False:
+            value = option.value
+
+            if value is not None and value is not False and value != option.option_schema.default and value != "":
                 args.append(f"--{option.name.replace('_', '-')}")
 
                 # Only add a value for non-boolean options
@@ -82,9 +84,6 @@ class UserCommandData:
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
 
-        if not include_root_command:
-            args = args[1:]
-
         return args
 
     def to_cli_string(self, include_root_command: bool = False) -> str:
@@ -94,7 +93,9 @@ class UserCommandData:
         Returns:
             A string representing the command invocation.
         """
-        args = self.to_cli_args(include_root_command)
+        args = self.to_cli_args()
+        if not include_root_command:
+            args = args[1:]
         return ' '.join(shlex.quote(arg) for arg in args)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
