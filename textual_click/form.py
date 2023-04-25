@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 import uuid
 from typing import Sequence, Any
+from typing_extensions import Self
 
 from rich.text import Text
 from textual import log
@@ -75,11 +76,13 @@ class CommandForm(Widget):
         self.command_schema = command_schema
         self.command_schemas = command_schemas
         self.schema_key_to_metadata: dict[str, ArgumentSchema | OptionSchema] = {}
+        self.first_control: Widget | None = None
 
     def compose(self) -> ComposeResult:
         path_from_root = iter(self.command_schema.path_from_root)
         command_node = next(path_from_root)
-        with VerticalScroll():
+        with VerticalScroll() as vs:
+            vs.can_focus = False
             while command_node is not None:
                 options = command_node.options
                 arguments = command_node.arguments
@@ -91,7 +94,6 @@ class CommandForm(Widget):
                             yield from self._make_command_form(options, is_option=True)
 
                         if arguments:
-                            print(arguments)
                             yield Label(f"Arguments", classes="command-form-heading")
                             yield from self._make_command_form(arguments)
 
@@ -164,14 +166,19 @@ class CommandForm(Widget):
                 )
                 parent_command_data.subcommand = command_data
                 parent_command_data = command_data
-        except Exception:
+        except Exception as e:
+            print(f"exception {e}")
             return
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
         root_command_data.parent = None
         root_command_data.fill_defaults(self.command_schema)
+        print(root_command_data)
         self.post_message(self.Changed(root_command_data))
+
+    def focus(self, scroll_visible: bool = True):
+        return self.first_control.focus()
 
     @staticmethod
     def _get_form_control_value(control: Input | RadioSet | Checkbox) -> Any:
@@ -192,30 +199,41 @@ class CommandForm(Widget):
             default = schema.default
             help_text = getattr(schema, "help", "") or ""
             label = self._make_command_form_control_label(name, argument_type, is_option, schema.required)
-            if argument_type in {"text", "float", "integer", "Path", "integer range", "file", "filename"}:
+            if argument_type in {"text", "float", "integer", "path", "integer range", "file", "filename"}:
                 yield Label(label, classes="command-form-label")
-                yield Input(
+                control = Input(
                     value=str(default) if default is not None else "",
                     placeholder=name,
                     id=schema.key,
                     classes="command-form-input",
                 )
+                yield control
             elif argument_type in {"boolean"}:
-                yield Checkbox(
+                control = Checkbox(
                     f"{name}",
                     button_first=False,
                     value=default,
                     classes="command-form-checkbox",
                     id=schema.key,
                 )
+                yield control
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
-                with RadioSet(id=schema.key, classes="command-form-radioset"):
+                with RadioSet(id=schema.key, classes="command-form-radioset") as radio_set:
+                    control = radio_set
                     for index, choice in enumerate(schema.choices):
                         radio_button = RadioButton(choice)
                         if index == 0:
                             radio_button.value = True
                         yield radio_button
+            else:
+                print(argument_type)
+
+            print(schema.name, schema.type, control)
+
+            # Take note of the first form control so we can easily render it
+            if self.first_control is None:
+                self.first_control = control
 
             # Render the dim help text below the form controls
             if help_text:

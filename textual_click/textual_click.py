@@ -42,6 +42,7 @@ class CommandBuilder(Screen):
         super().__init__(name, id, classes)
         self.command_data = None
         self.cli = cli
+        self.is_grouped_cli = isinstance(cli, click.Group)
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
 
@@ -53,7 +54,7 @@ class CommandBuilder(Screen):
             tree,
             id="home-sidebar",
         )
-        if isinstance(self.cli, click.Group):
+        if self.is_grouped_cli:
             # If the root of the click app is a Group instance, then
             #  we display the command tree to users and focus it.
             tree.focus()
@@ -63,10 +64,12 @@ class CommandBuilder(Screen):
             sidebar.display = False
         yield sidebar
 
-        scrollable_body = VerticalScroll(
+        scrollable_body = Vertical(
             Pretty(self.command_schemas),
             id="home-body-scroll",
         )
+        scrollable_body.can_focus = False
+
         body = Vertical(
             Static("", id="home-command-description"),
             scrollable_body,
@@ -80,13 +83,12 @@ class CommandBuilder(Screen):
             ),
             id="home-body",
         )
-        scrollable_body.can_focus = True
         yield body
 
-    def on_mount(self, event: events.Mount) -> None:
-        self._refresh_command_form()
+    async def on_mount(self, event: events.Mount) -> None:
+        await self._refresh_command_form()
 
-    def _refresh_command_form(self, node: TreeNode[CommandSchema] | None = None):
+    async def _refresh_command_form(self, node: TreeNode[CommandSchema] | None = None):
         if node is None:
             try:
                 command_tree = self.query_one(CommandTree)
@@ -98,15 +100,14 @@ class CommandBuilder(Screen):
         self.selected_command_schema = node.data
         self._update_command_description(node)
         self._update_execution_string_preview(self.selected_command_schema, self.command_data)
-        self._update_form_body(node)
+        await self._update_form_body(node)
 
-    def on_tree_node_highlighted(self, event: Tree.NodeHighlighted[CommandSchema]) -> None:
+    async def on_tree_node_highlighted(self, event: Tree.NodeHighlighted[CommandSchema]) -> None:
         """When we highlight a node in the CommandTree, the main body of the home page updates
         to display a form specific to the highlighted command."""
         # TODO: Add an ID check
-        self._refresh_command_form(event.node)
+        await self._refresh_command_form(event.node)
         self._update_execution_string_preview(self.selected_command_schema, self.command_data)
-
 
     def on_command_form_changed(self, event: CommandForm.Changed) -> None:
         self.command_data = event.command_data
@@ -128,19 +129,20 @@ class CommandBuilder(Screen):
                 command_data.to_cli_string()
             )
 
-    def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
+    async def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)
-        parent = self.query_one("#home-body-scroll", VerticalScroll)
+        parent = self.query_one("#home-body-scroll", Vertical)
         for child in parent.children:
-            child.remove()
+            await child.remove()
 
         # Process the metadata for this command and mount corresponding widgets
         command_schema = node.data
-        parent.mount(
-            CommandForm(
-                command_schema=command_schema, command_schemas=self.command_schemas
-            )
+        command_form = CommandForm(
+            command_schema=command_schema, command_schemas=self.command_schemas
         )
+        await parent.mount(command_form)
+        if not self.is_grouped_cli:
+            command_form.focus()
 
 
 class TextualClick(App):
