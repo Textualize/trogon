@@ -5,7 +5,8 @@
 #home-exec-preview {
   background: $panel;
   dock: bottom;
-  height: 3;
+  height: auto;
+  max-height: 6;
 }
 
 #home-exec-preview-static {

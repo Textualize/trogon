@@ -7,6 +7,7 @@ from pathlib import Path
 
 import click
 from rich.console import Console
+from rich.highlighter import ReprHighlighter
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.containers import VerticalScroll, Vertical, Horizontal
@@ -45,6 +46,7 @@ class CommandBuilder(Screen):
         self.is_grouped_cli = isinstance(cli, click.Group)
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
+        self.highlighter = ReprHighlighter()
 
     def compose(self) -> ComposeResult:
         tree = CommandTree("", self.command_schemas)
@@ -125,9 +127,9 @@ class CommandBuilder(Screen):
     def _update_execution_string_preview(self, command_schema: CommandSchema, command_data: UserCommandData) -> None:
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
-            self.query_one("#home-exec-preview-static", Static).update(
-                command_data.to_cli_string()
-            )
+            new_value = command_data.to_cli_string()
+            highlighted_new_value = self.highlighter(new_value)
+            self.query_one("#home-exec-preview-static", Static).update(highlighted_new_value)
 
     async def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)

@@ -89,13 +89,13 @@ class CommandForm(Widget):
                 if options or arguments:
                     with Vertical(classes="command-form-command-group") as v:
                         v.border_title = f"{command_node.name}"
-                        if options:
-                            yield Label(f"Options", classes="command-form-heading")
-                            yield from self._make_command_form(options, is_option=True)
-
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
                             yield from self._make_command_form(arguments)
+
+                        if options:
+                            yield Label(f"Options", classes="command-form-heading")
+                            yield from self._make_command_form(options, is_option=True)
 
                 command_node = next(path_from_root, None)
 
@@ -109,15 +109,12 @@ class CommandForm(Widget):
         self._form_changed()
 
     def on_input_changed(self) -> None:
-        print("INPUT CHANGED")
         self._form_changed()
 
     def on_radio_set_changed(self) -> None:
-        print("RADIO SET CHANGED")
         self._form_changed()
 
     def on_checkbox_changed(self) -> None:
-        print("CHECKBOX CHANGED")
         self._form_changed()
 
     def _form_changed(self) -> UserCommandData:
