@@ -9,6 +9,7 @@ from rich.console import Console
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.containers import VerticalScroll, Vertical, Horizontal
+from textual.css.query import NoMatches
 from textual.screen import Screen
 from textual.widgets import (
     Pretty,
@@ -31,7 +32,7 @@ from textual_click.widgets.command_tree import CommandTree
 class CommandBuilder(Screen):
     def __init__(
         self,
-        cli: click.Group,
+        cli: click.BaseCommand,
         click_app_name: str,
         name: str | None = None,
         id: str | None = None,
@@ -39,15 +40,27 @@ class CommandBuilder(Screen):
     ):
         super().__init__(name, id, classes)
         self.command_data = None
+        self.cli = cli
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
 
     def compose(self) -> ComposeResult:
         tree = CommandTree("", self.command_schemas)
-        tree.focus()
-        yield Vertical(
-            Label("Command Tree", id="home-commands-label"), tree, id="home-sidebar"
+
+        sidebar = Vertical(
+            Label("Command Tree", id="home-commands-label"),
+            tree,
+            id="home-sidebar",
         )
+        if isinstance(self.cli, click.Group):
+            # If the root of the click app is a Group instance, then
+            #  we display the command tree to users.
+            tree.focus()
+        else:
+            # If the click app is structured using a single command,
+            #  there's no need for us to display the command tree.
+            sidebar.display = False
+        yield sidebar
 
         scrollable_body = VerticalScroll(
             Pretty(self.command_schemas),
@@ -74,7 +87,11 @@ class CommandBuilder(Screen):
 
     def _refresh_command_form(self, node: TreeNode[CommandSchema] | None = None):
         if node is None:
-            node = self.query_one(CommandTree).cursor_node
+            try:
+                command_tree = self.query_one(CommandTree)
+                node = command_tree.cursor_node
+            except NoMatches:
+                return
         self.selected_command_schema = node.data
         self._update_command_description(node)
         self._update_execution_string_preview(self.selected_command_schema, self.command_data)

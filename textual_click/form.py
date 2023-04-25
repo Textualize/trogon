@@ -139,7 +139,6 @@ class CommandForm(Widget):
                 # lets grab the values the user has supplied for them in the form.
 
                 for option in command.options:
-                    print(option.name, option.key, option.type)
                     form_control_widget = self.query_one(f"#{option.key}")
                     value = self._get_form_control_value(form_control_widget)
                     option_data = UserOptionData(option.name, value)
