@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shlex
 import subprocess
+import time
 from pathlib import Path
 
 import click
@@ -54,7 +55,7 @@ class CommandBuilder(Screen):
         )
         if isinstance(self.cli, click.Group):
             # If the root of the click app is a Group instance, then
-            #  we display the command tree to users.
+            #  we display the command tree to users and focus it.
             tree.focus()
         else:
             # If the click app is structured using a single command,
@@ -91,7 +92,9 @@ class CommandBuilder(Screen):
                 command_tree = self.query_one(CommandTree)
                 node = command_tree.cursor_node
             except NoMatches:
+                print("Failed to refresh command form.")
                 return
+
         self.selected_command_schema = node.data
         self._update_command_description(node)
         self._update_execution_string_preview(self.selected_command_schema, self.command_data)
@@ -102,6 +105,8 @@ class CommandBuilder(Screen):
         to display a form specific to the highlighted command."""
         # TODO: Add an ID check
         self._refresh_command_form(event.node)
+        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
+
 
     def on_command_form_changed(self, event: CommandForm.Changed) -> None:
         self.command_data = event.command_data
@@ -178,7 +183,6 @@ def tui():
         if isinstance(app, click.Group):
             app.command(name="tui")(wrapped_tui)
         else:
-            new_group = click.Group()
             new_group = click.Group()
             new_group.add_command(app)
             new_group.command(name="tui")(wrapped_tui)

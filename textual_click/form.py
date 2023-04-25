@@ -103,6 +103,9 @@ class CommandForm(Widget):
         #         "Choose a command from the sidebar", classes="command-form-label"
         #     )
 
+    def on_mount(self) -> None:
+        self._form_changed()
+
     def on_input_changed(self) -> None:
         print("INPUT CHANGED")
         self._form_changed()
