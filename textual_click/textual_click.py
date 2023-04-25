@@ -6,8 +6,6 @@ from pathlib import Path
 
 import click
 from rich.console import Console
-from rich.style import Style
-from rich.text import TextType, Text
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.containers import VerticalScroll, Vertical, Horizontal
@@ -19,47 +17,15 @@ from textual.widgets import (
     Static,
     Button,
 )
-from textual.widgets._tree import TreeDataType
 from textual.widgets.tree import TreeNode
 
 from textual_click.form import CommandForm
 from textual_click.introspect import (
     introspect_click_app,
-    CommandName,
     CommandSchema,
 )
 from textual_click.run_command import UserCommandData
-
-
-class CommandTree(Tree[CommandSchema]):
-    def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
-        super().__init__(label)
-        self.show_root = False
-        self.guide_depth = 3
-        self.cli_metadata = cli_metadata
-
-    def render_label(
-        self, node: TreeNode[TreeDataType], base_style: Style, style: Style
-    ) -> Text:
-        label = node._label.copy()
-        label.stylize(style)
-        return label
-
-    def on_mount(self):
-        def build_tree(
-            data: dict[CommandName, CommandSchema], node: TreeNode
-        ) -> TreeNode:
-            for cmd_name, cmd_data in data.items():
-                if cmd_data.subcommands:
-                    child = node.add(cmd_name, allow_expand=False, data=cmd_data)
-                    build_tree(cmd_data.subcommands, child)
-                else:
-                    node.add_leaf(cmd_name, data=cmd_data)
-            return node
-
-        build_tree(self.cli_metadata, self.root)
-        self.root.expand_all()
-        self.select_node(self.root)
+from textual_click.widgets.command_tree import CommandTree
 
 
 class CommandBuilder(Screen):

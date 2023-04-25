@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence, NewType
 
 import click
+from click import BaseCommand
 from textual import log
 
 
@@ -21,6 +22,7 @@ class OptionSchema:
     key: str = field(default_factory=generate_unique_id)
     help: str | None = None
     choices: Sequence[str] | None = None
+    multiple: bool = False
 
 
 @dataclass
@@ -31,6 +33,7 @@ class ArgumentSchema:
     key: str = field(default_factory=generate_unique_id)
     default: Any | None = None
     choices: Sequence[str] | None = None
+    multiple: bool = False
 
 
 @dataclass
@@ -43,6 +46,7 @@ class CommandSchema:
     arguments: list[ArgumentSchema] = field(default_factory=list)
     subcommands: dict["CommandName", "CommandSchema"] = field(default_factory=dict)
     parent: "CommandSchema | None" = None
+    has_groups: bool = False
 
     @property
     def path_from_root(self) -> list["CommandSchema"]:
@@ -56,7 +60,7 @@ class CommandSchema:
         return list(reversed(path))
 
 
-def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
+def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
     """
     Introspect a Click application and build a data structure containing
     information about all commands, options, arguments, and subcommands,
@@ -68,7 +72,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
     command function references.
 
     Args:
-        app (click.Group): The Click application's top-level group instance.
+        app (click.BaseCommand): The Click application's top-level group or command instance.
 
     Returns:
         Dict[str, CommandData]: A nested dictionary containing the Click application's
@@ -85,6 +89,7 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
             arguments=[],
             subcommands={},
             parent=parent,
+            has_groups=isinstance(app, click.Group),
         )
 
         for param in cmd_obj.params:
@@ -95,13 +100,14 @@ def introspect_click_app(app: click.Group) -> dict[CommandName, CommandSchema]:
                     required=param.required,
                     default=param.default,
                     help=param.help,
+                    multiple=param.multiple,
                 )
                 if isinstance(param.type, click.Choice):
                     option_data.choices = param.type.choices
                 cmd_data.options.append(option_data)
             elif isinstance(param, click.Argument):
                 argument_data = ArgumentSchema(
-                    name=param.name, type=param.type.name, required=param.required
+                    name=param.name, type=param.type.name, required=param.required, multiple=param.multiple
                 )
                 if isinstance(param.type, click.Choice):
                     argument_data.choices = param.type.choices

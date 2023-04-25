@@ -26,29 +26,31 @@ class CommandForm(Widget):
     DEFAULT_CSS = """
     .command-form-heading {
         padding: 1 0 0 2;
-        text-style: bold;
+        text-style: u;
+        color: $text 70%;
     }
     .command-form-input {
-        margin-bottom: 1;
+        margin: 0 1 0 1;
     }
     .command-form-label {
         padding: 1 0 0 2;
     }
     .command-form-radioset {
-        margin: 0 2;
+        margin: 0 0 0 2;
     }
     .command-form-checkbox {
-        padding: 1 2;
+        padding: 1 0 0 2;
     }
     .command-form-command-group {
         margin: 1 2;
         height: auto;
         background: $boost;
         border: panel $primary 60%;
-        border-title-color: $text;
+        border-title-color: $text 80%;
+        border-title-style: bold;
     }
     .command-form-control-help-text {
-        margin: 1 2;
+        margin: 0 0 0 2;
         height: auto;
         color: $text 40%;
     }
@@ -136,7 +138,6 @@ class CommandForm(Widget):
                 # For each of the options in the schema for this command,
                 # lets grab the values the user has supplied for them in the form.
 
-                print(command.name)
                 for option in command.options:
                     print(option.name, option.key, option.type)
                     form_control_widget = self.query_one(f"#{option.key}")
@@ -161,12 +162,7 @@ class CommandForm(Widget):
                 )
                 parent_command_data.subcommand = command_data
                 parent_command_data = command_data
-        except Exception as e:
-            # TODO: Tidy this up - there's a bit of a race condition here I think,
-            #  we query for nodes but I think this code can execute before mounting
-            #  is complete.
-            #  Or possibly an issue where there's a command tree with a single node (usually the case).
-            print(f"exception {e}")
+        except Exception:
             return
 
         # Trim the sentinel
@@ -192,7 +188,7 @@ class CommandForm(Widget):
             name = schema.name
             argument_type = schema.type
             default = schema.default
-            help = schema.help if isinstance(schema, OptionSchema) else ""
+            help_text = getattr(schema, "help", "") or ""
             label = self._make_command_form_control_label(name, argument_type, is_option, schema.required)
             if argument_type in {"text", "float", "integer", "Path", "integer range", "file", "filename"}:
                 yield Label(label, classes="command-form-label")
@@ -202,16 +198,14 @@ class CommandForm(Widget):
                     id=schema.key,
                     classes="command-form-input",
                 )
-                yield Static(help, classes="command-form-control-help-text")
             elif argument_type in {"boolean"}:
                 yield Checkbox(
-                    f"{name} ({argument_type})",
+                    f"{name}",
                     button_first=False,
                     value=default,
                     classes="command-form-checkbox",
                     id=schema.key,
                 )
-                yield Static(help, classes="command-form-control-help-text")
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
                 with RadioSet(id=schema.key, classes="command-form-radioset"):
@@ -220,7 +214,10 @@ class CommandForm(Widget):
                         if index == 0:
                             radio_button.value = True
                         yield radio_button
-                yield Static(help, classes="command-form-control-help-text")
+
+            # Render the dim help text below the form controls
+            if help_text:
+                yield Static(help_text, classes="command-form-control-help-text")
 
     # def _build_command_data(self) -> UserCommandData:
     #     """Takes the current state of this form and converts it into a UserCommandData,
@@ -231,4 +228,5 @@ class CommandForm(Widget):
 
     @staticmethod
     def _make_command_form_control_label(name: str, type: str, is_option: bool, is_required: bool) -> Text:
-        return Text.from_markup(f"{'--' if is_option else ''}{name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}")
+        return Text.from_markup(
+            f"{'--' if is_option else ''}{name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}")
