@@ -7,6 +7,11 @@
   dock: bottom;
   height: auto;
   max-height: 6;
+  border-top: wide $panel-lighten-1;
+}
+
+#home-exec-button {
+  height: 1fr;
 }
 
 #home-exec-preview-static {
@@ -46,11 +51,20 @@ CommandTree {
   background: $background-lighten-1;
   padding: 1 2;
   width: auto;
+  height: 1fr;
+}
+
+CommandTree :focus {
+  tint: $primary 10%;
+  outline: wide $primary;
 }
 
 CommandTree > .tree--cursor {
-  background: $primary-lighten-1;
+  background: $primary-darken-1;
+}
 
+CommandTree:focus > .tree--cursor {
+  background: $primary-lighten-1;
 }
 
 CommandTree > .tree--guides {

@@ -4,7 +4,7 @@ import shlex
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
-from textual_click.introspect import CommandSchema, CommandName
+from textual_click.introspect import CommandSchema, CommandName, OptionSchema, ArgumentSchema
 
 
 @dataclass
@@ -15,10 +15,12 @@ class UserOptionData:
     Attributes:
         name: The name of the option.
         value: The user-provided value for the option.
+        option_schema: The schema corresponding to this option.
     """
 
     name: str
     value: Any
+    option_schema: OptionSchema
 
 
 @dataclass
@@ -29,10 +31,12 @@ class UserArgumentData:
     Attributes:
         name: The name of the argument.
         value: The user-provided value for the argument.
+        argument_schema: The schema corresponding to this argument.
     """
 
     name: str
     value: Any
+    argument_schema: ArgumentSchema
 
 
 @dataclass
@@ -66,7 +70,8 @@ class UserCommandData:
 
         for option in self.options:
             if option.value is not None and option.value is not False:
-                args.append(f"--{option.name}")
+                args.append(f"--{option.name.replace('_', '-')}")
+
                 # Only add a value for non-boolean options
                 if option.value is not True:
                     args.append(str(option.value))
@@ -79,14 +84,14 @@ class UserCommandData:
 
         return args
 
-    def to_cli_string(self) -> str:
+    def to_cli_string(self, include_root_command: bool = False) -> str:
         """
         Generates a string representing the CLI invocation as if typed directly into the command line.
 
         Returns:
             A string representing the command invocation.
         """
-        args = self.to_cli_args()
+        args = self.to_cli_args()[1:]
         return ' '.join(shlex.quote(arg) for arg in args)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:

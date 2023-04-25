@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import dataclasses
-import uuid
 from typing import Sequence, Any
-from typing_extensions import Self
 
 from rich.text import Text
-from textual import log
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
 from textual.message import Message
@@ -99,12 +96,6 @@ class CommandForm(Widget):
 
                 command_node = next(path_from_root, None)
 
-        # if not options and not arguments:
-        #     # TODO - improve this...
-        #     yield Label(
-        #         "Choose a command from the sidebar", classes="command-form-label"
-        #     )
-
     def on_mount(self) -> None:
         self._form_changed()
 
@@ -132,7 +123,7 @@ class CommandForm(Widget):
         path_from_root = command_schema.path_from_root
 
         # Sentinel root value to make constructing the tree a little easier.
-        parent_command_data = UserCommandData(name=CommandName("_command_sentinel"), options=[], arguments=[])
+        parent_command_data = UserCommandData(name=CommandName("_"), options=[], arguments=[])
         root_command_data = parent_command_data
         try:
             for command in path_from_root:
@@ -143,7 +134,7 @@ class CommandForm(Widget):
                 for option in command.options:
                     form_control_widget = self.query_one(f"#{option.key}")
                     value = self._get_form_control_value(form_control_widget)
-                    option_data = UserOptionData(option.name, value)
+                    option_data = UserOptionData(option.name, value, option)
                     option_datas.append(option_data)
 
                 # Now do the same for the arguments
@@ -151,7 +142,7 @@ class CommandForm(Widget):
                 for argument in command.arguments:
                     form_control_widget = self.query_one(f"#{argument.key}")
                     value = self._get_form_control_value(form_control_widget)
-                    argument_data = UserArgumentData(argument.name, value)
+                    argument_data = UserArgumentData(argument.name, value, argument)
                     argument_datas.append(argument_data)
 
                 command_data = UserCommandData(
@@ -223,10 +214,6 @@ class CommandForm(Widget):
                         if index == 0:
                             radio_button.value = True
                         yield radio_button
-            else:
-                print(argument_type)
-
-            print(schema.name, schema.type, control)
 
             # Take note of the first form control so we can easily render it
             if self.first_control is None:
@@ -246,4 +233,4 @@ class CommandForm(Widget):
     @staticmethod
     def _make_command_form_control_label(name: str, type: str, is_option: bool, is_required: bool) -> Text:
         return Text.from_markup(
-            f"{'--' if is_option else ''}{name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}")
+            f"{'--' if is_option else ''}{name.replace('_', '-') if is_option else name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}")

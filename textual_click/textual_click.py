@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 from rich.console import Console
 from rich.highlighter import ReprHighlighter
+from rich.text import Text
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.containers import VerticalScroll, Vertical, Horizontal
@@ -73,12 +74,12 @@ class CommandBuilder(Screen):
         scrollable_body.can_focus = False
 
         body = Vertical(
-            Static("", id="home-command-description"),
+            Static(self.click_app_name or "", id="home-command-description"),
             scrollable_body,
             Horizontal(
                 Static("", id="home-exec-preview-static"),
                 Vertical(
-                    Button.success("Execute"),
+                    Button.success("Close & Execute", id="home-exec-button"),
                     id="home-exec-preview-buttons",
                 ),
                 id="home-exec-preview",
@@ -121,14 +122,15 @@ class CommandBuilder(Screen):
         based on the currently selected node in the command tree."""
         description_box = self.query_one("#home-command-description", Static)
         description_text = node.data.docstring or ""
-        description_text = f"[b]{node.label}[/]\n{description_text}"
+        description_text = f"[b]{node.label if self.is_grouped_cli else self.click_app_name}[/]\n{description_text}"
         description_box.update(description_text)
 
     def _update_execution_string_preview(self, command_schema: CommandSchema, command_data: UserCommandData) -> None:
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
+            prefix = Text(f"{self.click_app_name} ")
             new_value = command_data.to_cli_string()
-            highlighted_new_value = self.highlighter(new_value)
+            highlighted_new_value = prefix.append(self.highlighter(new_value))
             self.query_one("#home-exec-preview-static", Static).update(highlighted_new_value)
 
     async def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
@@ -150,15 +152,16 @@ class CommandBuilder(Screen):
 class TextualClick(App):
     CSS_PATH = Path(__file__).parent / "textual_click.scss"
 
-    def __init__(self, cli: click.Group, app_name: str = None) -> None:
+    def __init__(self, cli: click.Group, app_name: str = None, click_context: click.Context = None) -> None:
         super().__init__()
         self.cli = cli
         self.app_name = app_name
         # TODO: Don't hardcode ls
         self.post_run_command: list[str] = ["ls"]
+        self.click_context = click_context
 
     def on_mount(self):
-        self.push_screen(CommandBuilder(self.cli, self.app_name))
+        self.push_screen(CommandBuilder(self.cli, self.click_context.find_root().info_name))
 
     def run(
         self,
@@ -177,10 +180,11 @@ class TextualClick(App):
                 subprocess.run(self.post_run_command)
 
 
-def tui():
+def tui(name: str = "TUI Mode"):
     def decorator(app: click.Group | click.Command):
-        def wrapped_tui(*args, **kwargs):
-            TextualClick(app).run()
+        @click.pass_context
+        def wrapped_tui(ctx, *args, **kwargs):
+            TextualClick(app, app_name=name, click_context=ctx).run()
             # Call the original command function
             # app.callback(*args, **kwargs)
 
