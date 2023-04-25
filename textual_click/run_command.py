@@ -59,7 +59,7 @@ class UserCommandData:
     parent: Optional["UserCommandData"] = None
     command_schema: Optional["CommandSchema"] = None
 
-    def to_cli_args(self) -> List[str]:
+    def to_cli_args(self, include_root_command: bool = False) -> List[str]:
         """
         Generates a list of strings representing the CLI invocation based on the user input data.
 
@@ -82,6 +82,9 @@ class UserCommandData:
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
 
+        if not include_root_command:
+            args = args[1:]
+
         return args
 
     def to_cli_string(self, include_root_command: bool = False) -> str:
@@ -91,7 +94,7 @@ class UserCommandData:
         Returns:
             A string representing the command invocation.
         """
-        args = self.to_cli_args()[1:]
+        args = self.to_cli_args(include_root_command)
         return ' '.join(shlex.quote(arg) for arg in args)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
