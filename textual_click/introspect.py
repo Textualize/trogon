@@ -46,7 +46,7 @@ class CommandSchema:
     arguments: list[ArgumentSchema] = field(default_factory=list)
     subcommands: dict["CommandName", "CommandSchema"] = field(default_factory=dict)
     parent: "CommandSchema | None" = None
-    has_groups: bool = False
+    is_group: bool = False
 
     @property
     def path_from_root(self) -> list["CommandSchema"]:
@@ -89,7 +89,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
             arguments=[],
             subcommands={},
             parent=parent,
-            has_groups=isinstance(app, click.Group),
+            is_group=isinstance(app, click.Group),
         )
 
         for param in cmd_obj.params:

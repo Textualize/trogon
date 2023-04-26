@@ -71,7 +71,7 @@ class UserCommandData:
         for option in self.options:
             value = option.value
 
-            if value is not None and value is not False and value != option.option_schema.default and value != "":
+            if value is not None and value is not False and value != str(option.option_schema.default) and value != "":
                 args.append(f"--{option.name.replace('_', '-')}")
 
                 # Only add a value for non-boolean options

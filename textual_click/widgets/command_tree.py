@@ -12,7 +12,7 @@ class CommandTree(Tree[CommandSchema]):
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)
         self.show_root = False
-        self.guide_depth = 3
+        self.guide_depth = 2
         self.cli_metadata = cli_metadata
 
     def render_label(
@@ -30,7 +30,10 @@ class CommandTree(Tree[CommandSchema]):
                 if not cmd_data.subcommands and not cmd_data.options and not cmd_data.arguments:
                     continue
                 if cmd_data.subcommands:
-                    child = node.add(cmd_name, allow_expand=False, data=cmd_data)
+                    label = Text(cmd_name)
+                    if cmd_data.is_group:
+                        label.stylize("dim")
+                    child = node.add(label, allow_expand=False, data=cmd_data)
                     build_tree(cmd_data.subcommands, child)
                 else:
                     node.add_leaf(cmd_name, data=cmd_data)
