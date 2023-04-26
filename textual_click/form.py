@@ -253,7 +253,7 @@ class CommandForm(Widget):
                         control = radio_set
                         for index, choice in enumerate(schema.choices):
                             radio_button = RadioButton(choice)
-                            if index == 0:
+                            if schema.default == choice or (schema.default is None and index == 0):
                                 radio_button.value = True
                             yield radio_button
 

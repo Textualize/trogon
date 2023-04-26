@@ -122,7 +122,7 @@ class UserCommandData:
                 opt.name == option_schema.name for opt in self.options
             ):
                 self.options.append(
-                    UserOptionData(name=option_schema.name, value=option_schema.default)
+                    UserOptionData(name=option_schema.name, value=option_schema.default, option_schema=option_schema)
                 )
 
         # Prefill default argument values
