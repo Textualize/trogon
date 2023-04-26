@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shlex
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
@@ -73,20 +74,39 @@ class UserCommandData:
         """
         args = [self.name]
 
+        multiples = defaultdict(list)
+        multiples_schemas = {}
         for option in self.options:
-            value = option.value
+            if option.option_schema.multiple:
+                # We need to gather the items for the same option,
+                #  compare them to the default, then display them all
+                #  if they aren't equivalent to the default.
+                multiples[option.name].append(option.value)
+                multiples_schemas[option.name] = option.option_schema
+            else:
+                value = option.value
+                default = option.option_schema.default
+                is_default = value == str(default)
 
-            if (
-                value is not None
-                and value is not False
-                and value != str(option.option_schema.default)
-                and value != ""
-            ):
-                args.append(f"--{option.name.replace('_', '-')}")
+                if (
+                    value is not None
+                    and value is not False
+                    and not is_default
+                    and value != ""
+                ):
+                    args.append(f"--{option.name.replace('_', '-')}")
 
-                # Only add a value for non-boolean options
-                if option.value is not True:
-                    args.append(str(option.value))
+                    # Only add a value for non-boolean options
+                    if value is not True:
+                        args.append(str(value))
+
+        for option_name, values in multiples.items():
+            # Check if the values given for this option differ from the default
+            defaults = multiples_schemas[option_name].default
+            if list(sorted(map(str, values))) != list(sorted(map(str, multiples_schemas[option_name].default))):
+                for value in values:
+                    args.append(f"--{option_name.replace('_', '-')}")
+                    args.append(str(value))
 
         for argument in self.arguments:
             args.append(str(argument.value))
@@ -121,9 +141,15 @@ class UserCommandData:
             if option_schema.default is not None and not any(
                 opt.name == option_schema.name for opt in self.options
             ):
-                self.options.append(
-                    UserOptionData(name=option_schema.name, value=option_schema.default, option_schema=option_schema)
-                )
+                if option_schema.multiple:
+                    for default in option_schema.default:
+                        self.options.append(
+                            UserOptionData(name=option_schema.name, value=default, option_schema=option_schema)
+                        )
+                else:
+                    self.options.append(
+                        UserOptionData(name=option_schema.name, value=option_schema.default, option_schema=option_schema)
+                    )
 
         # Prefill default argument values
         for arg_schema in command_schema.arguments:
@@ -131,7 +157,7 @@ class UserCommandData:
                 arg.name == arg_schema.name for arg in self.arguments
             ):
                 self.arguments.append(
-                    UserArgumentData(name=arg_schema.name, value=arg_schema.default)
+                    UserArgumentData(name=arg_schema.name, value=arg_schema.default, argument_schema=arg_schema)
                 )
 
         # Prefill defaults for subcommand if present
@@ -146,30 +172,3 @@ class UserCommandData:
             )
             if subcommand_schema:
                 self.subcommand.fill_defaults(subcommand_schema)
-
-    def copy_with(
-        self,
-        name: Optional[str] = None,
-        options: Optional[List[UserOptionData]] = None,
-        arguments: Optional[List[UserArgumentData]] = None,
-        subcommand: Optional["UserCommandData"] = None,
-    ) -> "UserCommandData":
-        """
-        Creates a new instance of UserCommandData with the given values, falling back to the original values if
-        not provided.
-
-        Args:
-            name: The name of the command.
-            options: A list of UserOptionData instances representing the options for the command.
-            arguments: A list of UserArgumentData instances representing the arguments for the command.
-            subcommand: A UserCommandData instance representing the subcommand for the command, if any.
-
-        Returns:
-            A new UserCommandData instance with the updated values.
-        """
-        return UserCommandData(
-            name=name or self.name,
-            options=options or self.options,
-            arguments=arguments or self.arguments,
-            subcommand=subcommand or self.subcommand,
-        )

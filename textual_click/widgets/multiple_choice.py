@@ -9,7 +9,6 @@ from textual.widgets import Checkbox
 
 
 class MultipleChoice(Widget):
-
     DEFAULT_CSS = """
     MultipleChoice {
         border: round #666;
@@ -29,6 +28,7 @@ class MultipleChoice(Widget):
     def __init__(
         self,
         options: list[TextType],
+        defaults: list[str] | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -36,7 +36,10 @@ class MultipleChoice(Widget):
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.options = options
-        self.selected = []
+        if defaults is None:
+            defaults = []
+        self.defaults = defaults
+        self.selected = defaults
 
     class Changed(Message):
         def __init__(self, selected: list[Checkbox]):
@@ -47,7 +50,7 @@ class MultipleChoice(Widget):
         with VerticalScroll() as vs:
             vs.can_focus = False
             for option in self.options:
-                yield Checkbox(option)
+                yield Checkbox(option, value=option in self.defaults)
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         checkboxes = self.query(Checkbox)

@@ -245,7 +245,8 @@ class CommandForm(Widget):
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
                 if multiple:
-                    yield MultipleChoice(list(schema.choices), classes="command-form-multiple-choice", id=schema.key)
+                    multi_choice =  MultipleChoice(list(schema.choices), classes="command-form-multiple-choice", id=schema.key, defaults=default)
+                    yield multi_choice
                 else:
                     with RadioSet(
                         id=schema.key, classes="command-form-radioset"
