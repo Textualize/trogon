@@ -17,6 +17,7 @@ from textual_click.introspect import (
     OptionSchema,
 )
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
+from textual_click.widgets.multiple_choice import MultipleChoice
 
 
 @dataclasses.dataclass
@@ -42,6 +43,9 @@ class CommandForm(Widget):
         padding: 1 0 0 2;
     }
     .command-form-radioset {
+        margin: 0 0 0 2;
+    }
+    .command-form-multiple-choice {
         margin: 0 0 0 2;
     }
     .command-form-checkbox {
@@ -122,6 +126,9 @@ class CommandForm(Widget):
     def on_checkbox_changed(self) -> None:
         self._form_changed()
 
+    def on_multiple_choice_changed(self) -> None:
+        self._form_changed()
+
     def _form_changed(self) -> UserCommandData:
         """Take the current state of the form and build a UserCommandData from it,
         then post a FormChanged message"""
@@ -143,8 +150,14 @@ class CommandForm(Widget):
                 for option in command.options:
                     form_control_widget = self.query_one(f"#{option.key}")
                     value = self._get_form_control_value(form_control_widget)
-                    option_data = UserOptionData(option.name, value, option)
-                    option_datas.append(option_data)
+                    # Handle the case of multiple=True
+                    if option.multiple:
+                        for v in value:
+                            option_data = UserOptionData(option.name, v, option)
+                            option_datas.append(option_data)
+                    else:
+                        option_data = UserOptionData(option.name, value, option)
+                        option_datas.append(option_data)
 
                 # Now do the same for the arguments
                 argument_datas = []
@@ -172,20 +185,21 @@ class CommandForm(Widget):
         root_command_data = root_command_data.subcommand
         root_command_data.parent = None
         root_command_data.fill_defaults(self.command_schema)
-        print(root_command_data)
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):
         return self.first_control.focus()
 
     @staticmethod
-    def _get_form_control_value(control: Input | RadioSet | Checkbox) -> Any:
+    def _get_form_control_value(control: Input | RadioSet | Checkbox | MultipleChoice) -> Any:
         if isinstance(control, (Input, Checkbox)):
             return control.value
         elif isinstance(control, RadioSet):
             if control.pressed_button is not None:
                 return control.pressed_button.label.plain
             return None
+        elif isinstance(control, MultipleChoice):
+            return control.selected
 
     def _make_command_form(
         self, schemas: Sequence[ArgumentSchema | OptionSchema], is_option: bool = False
@@ -200,7 +214,7 @@ class CommandForm(Widget):
             help_text = getattr(schema, "help", "") or ""
             multiple = schema.multiple
             label = self._make_command_form_control_label(
-                name, argument_type, is_option, schema.required
+                name, argument_type, is_option, schema.required, multiple=multiple
             )
             if argument_type in {
                 "text",
@@ -231,9 +245,7 @@ class CommandForm(Widget):
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
                 if multiple:
-                    with VerticalScroll():
-                        for index, choice in enumerate(schema.choices):
-                            yield Checkbox(choice)
+                    yield MultipleChoice(list(schema.choices), classes="command-form-multiple-choice", id=schema.key)
                 else:
                     with RadioSet(
                         id=schema.key, classes="command-form-radioset"
@@ -245,7 +257,7 @@ class CommandForm(Widget):
                                 radio_button.value = True
                             yield radio_button
 
-            # Take note of the first form control so we can easily render it
+            # Take note of the first form control, so we can easily render it
             if self.first_control is None:
                 self.first_control = control
 
@@ -262,8 +274,8 @@ class CommandForm(Widget):
 
     @staticmethod
     def _make_command_form_control_label(
-        name: str, type: str, is_option: bool, is_required: bool
+        name: str, type: str, is_option: bool, is_required: bool, multiple: bool
     ) -> Text:
         return Text.from_markup(
-            f"{'--' if is_option else ''}{name.replace('_', '-') if is_option else name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}"
+            f"{'--' if is_option else ''}{name.replace('_', '-') if is_option else name}[dim]{' multiple' if multiple else ''} {type}[/] {' [b red]*[/]required' if is_required else ''}"
         )

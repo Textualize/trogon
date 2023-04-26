@@ -3,11 +3,10 @@
 }
 
 #home-exec-preview {
-  background: $panel;
+  background: $panel-darken-2;
   dock: bottom;
   height: auto;
   max-height: 6;
-  border-top: wide $panel-lighten-1;
 }
 
 #home-exec-button {
