@@ -46,6 +46,8 @@ class CommandForm(Widget):
         border: panel $primary 60%;
         border-title-color: $text 80%;
         border-title-style: bold;
+        border-subtitle-color: $text 30%;
+        padding-bottom: 1;
     }
     .command-form-control-help-text {
         margin: 0 0 0 2;
@@ -85,7 +87,9 @@ class CommandForm(Widget):
                 arguments = command_node.arguments
                 if options or arguments:
                     with Vertical(classes="command-form-command-group") as v:
-                        v.border_title = f"{command_node.name}"
+                        is_inherited = command_node is not self.command_schema
+                        v.border_title = f"{'↪ ' if is_inherited else ''}{command_node.name}"
+                        v.border_subtitle = f"{'(parameters inherited from parent)' if is_inherited else ''}"
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
                             yield from self._make_command_form(arguments)
