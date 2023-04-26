@@ -27,7 +27,11 @@ class CommandTree(Tree[CommandSchema]):
             data: dict[CommandName, CommandSchema], node: TreeNode
         ) -> TreeNode:
             for cmd_name, cmd_data in data.items():
-                if not cmd_data.subcommands and not cmd_data.options and not cmd_data.arguments:
+                if (
+                    not cmd_data.subcommands
+                    and not cmd_data.options
+                    and not cmd_data.arguments
+                ):
                     continue
                 if cmd_data.subcommands:
                     label = Text(cmd_name)

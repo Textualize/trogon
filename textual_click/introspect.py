@@ -80,7 +80,9 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
         TypedDicts (OptionData and ArgumentData).
     """
 
-    def process_command(cmd_name: CommandName, cmd_obj: click.Command, parent=None) -> CommandSchema:
+    def process_command(
+        cmd_name: CommandName, cmd_obj: click.Command, parent=None
+    ) -> CommandSchema:
         cmd_data = CommandSchema(
             name=cmd_name,
             docstring=cmd_obj.help,
@@ -107,7 +109,10 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                 cmd_data.options.append(option_data)
             elif isinstance(param, click.Argument):
                 argument_data = ArgumentSchema(
-                    name=param.name, type=param.type.name, required=param.required, multiple=param.multiple
+                    name=param.name,
+                    type=param.type.name,
+                    required=param.required,
+                    multiple=param.multiple,
                 )
                 if isinstance(param.type, click.Choice):
                     argument_data.choices = param.type.choices
@@ -125,7 +130,9 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
 
     if isinstance(app, click.Group):
         for cmd_name, cmd_obj in app.commands.items():
-            data[CommandName(cmd_name)] = process_command(CommandName(cmd_name), cmd_obj)
+            data[CommandName(cmd_name)] = process_command(
+                CommandName(cmd_name), cmd_obj
+            )
     elif isinstance(app, click.Command):
         cmd_name = CommandName(app.name)
         data[cmd_name] = process_command(cmd_name, app)

@@ -10,7 +10,12 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Label, Input, Checkbox, RadioSet, RadioButton, Static
 
-from textual_click.introspect import CommandSchema, CommandName, ArgumentSchema, OptionSchema
+from textual_click.introspect import (
+    CommandSchema,
+    CommandName,
+    ArgumentSchema,
+    OptionSchema,
+)
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
 
 
@@ -21,6 +26,9 @@ class FormControlMeta:
 
 
 class CommandForm(Widget):
+    """Form which is constructed from an introspected Click app. Users
+    make use of this form in order to construct CLI invocation strings."""
+
     DEFAULT_CSS = """
     .command-form-heading {
         padding: 1 0 0 2;
@@ -88,7 +96,9 @@ class CommandForm(Widget):
                 if options or arguments:
                     with Vertical(classes="command-form-command-group") as v:
                         is_inherited = command_node is not self.command_schema
-                        v.border_title = f"{'↪ ' if is_inherited else ''}{command_node.name}"
+                        v.border_title = (
+                            f"{'↪ ' if is_inherited else ''}{command_node.name}"
+                        )
                         v.border_subtitle = f"{'(parameters inherited from parent)' if is_inherited else ''}"
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
@@ -116,18 +126,13 @@ class CommandForm(Widget):
         """Take the current state of the form and build a UserCommandData from it,
         then post a FormChanged message"""
 
-        # For each control in the form, pull out the value, look up the metadata, and add
-        #  it to the UserCommandData
-
-        # TODO -
-        #  We should be able to go from the root of the schema, and gather up the data
-        #  from the form by looking up the keys inside schema_key_to_metadata.
-
         command_schema = self.command_schema
         path_from_root = command_schema.path_from_root
 
         # Sentinel root value to make constructing the tree a little easier.
-        parent_command_data = UserCommandData(name=CommandName("_"), options=[], arguments=[])
+        parent_command_data = UserCommandData(
+            name=CommandName("_"), options=[], arguments=[]
+        )
         root_command_data = parent_command_data
         try:
             for command in path_from_root:
@@ -159,6 +164,7 @@ class CommandForm(Widget):
                 parent_command_data.subcommand = command_data
                 parent_command_data = command_data
         except Exception as e:
+            # TODO
             print(f"exception {e}")
             return
 
@@ -181,7 +187,9 @@ class CommandForm(Widget):
                 return control.pressed_button.label.plain
             return None
 
-    def _make_command_form(self, schemas: Sequence[ArgumentSchema | OptionSchema], is_option: bool = False):
+    def _make_command_form(
+        self, schemas: Sequence[ArgumentSchema | OptionSchema], is_option: bool = False
+    ):
         for schema in schemas:
             # TODO: This may not be required any more.
             self.schema_key_to_metadata[schema.key] = schema
@@ -190,8 +198,19 @@ class CommandForm(Widget):
             argument_type = schema.type
             default = schema.default
             help_text = getattr(schema, "help", "") or ""
-            label = self._make_command_form_control_label(name, argument_type, is_option, schema.required)
-            if argument_type in {"text", "float", "integer", "path", "integer range", "file", "filename"}:
+            multiple = schema.multiple
+            label = self._make_command_form_control_label(
+                name, argument_type, is_option, schema.required
+            )
+            if argument_type in {
+                "text",
+                "float",
+                "integer",
+                "path",
+                "integer range",
+                "file",
+                "filename",
+            }:
                 yield Label(label, classes="command-form-label")
                 control = Input(
                     value=str(default) if default is not None else "",
@@ -211,13 +230,20 @@ class CommandForm(Widget):
                 yield control
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
-                with RadioSet(id=schema.key, classes="command-form-radioset") as radio_set:
-                    control = radio_set
-                    for index, choice in enumerate(schema.choices):
-                        radio_button = RadioButton(choice)
-                        if index == 0:
-                            radio_button.value = True
-                        yield radio_button
+                if multiple:
+                    with VerticalScroll():
+                        for index, choice in enumerate(schema.choices):
+                            yield Checkbox(choice)
+                else:
+                    with RadioSet(
+                        id=schema.key, classes="command-form-radioset"
+                    ) as radio_set:
+                        control = radio_set
+                        for index, choice in enumerate(schema.choices):
+                            radio_button = RadioButton(choice)
+                            if index == 0:
+                                radio_button.value = True
+                            yield radio_button
 
             # Take note of the first form control so we can easily render it
             if self.first_control is None:
@@ -235,6 +261,9 @@ class CommandForm(Widget):
     #     validate_user_command_data(self.command_schemas, self.)
 
     @staticmethod
-    def _make_command_form_control_label(name: str, type: str, is_option: bool, is_required: bool) -> Text:
+    def _make_command_form_control_label(
+        name: str, type: str, is_option: bool, is_required: bool
+    ) -> Text:
         return Text.from_markup(
-            f"{'--' if is_option else ''}{name.replace('_', '-') if is_option else name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}")
+            f"{'--' if is_option else ''}{name.replace('_', '-') if is_option else name} [dim] {type}[/] {' [b red]*[/]required' if is_required else ''}"
+        )

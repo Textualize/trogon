@@ -4,7 +4,12 @@ import shlex
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
-from textual_click.introspect import CommandSchema, CommandName, OptionSchema, ArgumentSchema
+from textual_click.introspect import (
+    CommandSchema,
+    CommandName,
+    OptionSchema,
+    ArgumentSchema,
+)
 
 
 @dataclass
@@ -71,7 +76,12 @@ class UserCommandData:
         for option in self.options:
             value = option.value
 
-            if value is not None and value is not False and value != str(option.option_schema.default) and value != "":
+            if (
+                value is not None
+                and value is not False
+                and value != str(option.option_schema.default)
+                and value != ""
+            ):
                 args.append(f"--{option.name.replace('_', '-')}")
 
                 # Only add a value for non-boolean options
@@ -96,7 +106,7 @@ class UserCommandData:
         args = self.to_cli_args()
         if not include_root_command:
             args = args[1:]
-        return ' '.join(shlex.quote(arg) for arg in args)
+        return " ".join(shlex.quote(arg) for arg in args)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
         """
@@ -108,24 +118,30 @@ class UserCommandData:
         """
         # Prefill default option values
         for option_schema in command_schema.options:
-            if (
-                option_schema.default is not None
-                and not any(opt.name == option_schema.name for opt in self.options)
+            if option_schema.default is not None and not any(
+                opt.name == option_schema.name for opt in self.options
             ):
-                self.options.append(UserOptionData(name=option_schema.name, value=option_schema.default))
+                self.options.append(
+                    UserOptionData(name=option_schema.name, value=option_schema.default)
+                )
 
         # Prefill default argument values
         for arg_schema in command_schema.arguments:
-            if (
-                arg_schema.default is not None
-                and not any(arg.name == arg_schema.name for arg in self.arguments)
+            if arg_schema.default is not None and not any(
+                arg.name == arg_schema.name for arg in self.arguments
             ):
-                self.arguments.append(UserArgumentData(name=arg_schema.name, value=arg_schema.default))
+                self.arguments.append(
+                    UserArgumentData(name=arg_schema.name, value=arg_schema.default)
+                )
 
         # Prefill defaults for subcommand if present
         if self.subcommand:
             subcommand_schema = next(
-                (cmd for cmd in command_schema.subcommands.values() if cmd.name == self.subcommand.name),
+                (
+                    cmd
+                    for cmd in command_schema.subcommands.values()
+                    if cmd.name == self.subcommand.name
+                ),
                 None,
             )
             if subcommand_schema:
@@ -136,8 +152,8 @@ class UserCommandData:
         name: Optional[str] = None,
         options: Optional[List[UserOptionData]] = None,
         arguments: Optional[List[UserArgumentData]] = None,
-        subcommand: Optional['UserCommandData'] = None,
-    ) -> 'UserCommandData':
+        subcommand: Optional["UserCommandData"] = None,
+    ) -> "UserCommandData":
         """
         Creates a new instance of UserCommandData with the given values, falling back to the original values if
         not provided.

@@ -102,19 +102,27 @@ class CommandBuilder(Screen):
 
         self.selected_command_schema = node.data
         self._update_command_description(node)
-        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
+        self._update_execution_string_preview(
+            self.selected_command_schema, self.command_data
+        )
         await self._update_form_body(node)
 
-    async def on_tree_node_highlighted(self, event: Tree.NodeHighlighted[CommandSchema]) -> None:
+    async def on_tree_node_highlighted(
+        self, event: Tree.NodeHighlighted[CommandSchema]
+    ) -> None:
         """When we highlight a node in the CommandTree, the main body of the home page updates
         to display a form specific to the highlighted command."""
         # TODO: Add an ID check
         await self._refresh_command_form(event.node)
-        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
+        self._update_execution_string_preview(
+            self.selected_command_schema, self.command_data
+        )
 
     def on_command_form_changed(self, event: CommandForm.Changed) -> None:
         self.command_data = event.command_data
-        self._update_execution_string_preview(self.selected_command_schema, self.command_data)
+        self._update_execution_string_preview(
+            self.selected_command_schema, self.command_data
+        )
         log(event.command_data.to_cli_string())
 
     def _update_command_description(self, node: TreeNode[CommandSchema]) -> None:
@@ -125,13 +133,17 @@ class CommandBuilder(Screen):
         description_text = f"[b]{node.label if self.is_grouped_cli else self.click_app_name}[/]\n{description_text}"
         description_box.update(description_text)
 
-    def _update_execution_string_preview(self, command_schema: CommandSchema, command_data: UserCommandData) -> None:
+    def _update_execution_string_preview(
+        self, command_schema: CommandSchema, command_data: UserCommandData
+    ) -> None:
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
             prefix = Text(f"{self.click_app_name} ")
             new_value = command_data.to_cli_string()
             highlighted_new_value = prefix.append(self.highlighter(new_value))
-            self.query_one("#home-exec-preview-static", Static).update(highlighted_new_value)
+            self.query_one("#home-exec-preview-static", Static).update(
+                highlighted_new_value
+            )
 
     async def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)
@@ -152,7 +164,12 @@ class CommandBuilder(Screen):
 class TextualClick(App):
     CSS_PATH = Path(__file__).parent / "textual_click.scss"
 
-    def __init__(self, cli: click.Group, app_name: str = None, click_context: click.Context = None) -> None:
+    def __init__(
+        self,
+        cli: click.Group,
+        app_name: str = None,
+        click_context: click.Context = None,
+    ) -> None:
         super().__init__()
         self.cli = cli
         self.app_name = app_name
@@ -161,7 +178,9 @@ class TextualClick(App):
         self.click_context = click_context
 
     def on_mount(self):
-        self.push_screen(CommandBuilder(self.cli, self.click_context.find_root().info_name))
+        self.push_screen(
+            CommandBuilder(self.cli, self.click_context.find_root().info_name)
+        )
 
     def run(
         self,
