@@ -28,6 +28,13 @@ class UserOptionData:
     value: Any
     option_schema: OptionSchema
 
+    @property
+    def string_name(self) -> str:
+        if isinstance(self.name, str):
+            return self.name
+        else:
+            return self.name[0]
+
 
 @dataclass
 class UserArgumentData:
@@ -81,8 +88,8 @@ class UserCommandData:
                 # We need to gather the items for the same option,
                 #  compare them to the default, then display them all
                 #  if they aren't equivalent to the default.
-                multiples[option.name].append(option.value)
-                multiples_schemas[option.name] = option.option_schema
+                multiples[option.string_name].append(option.value)
+                multiples_schemas[option.string_name] = option.option_schema
             else:
                 value = option.value
                 default = option.option_schema.default
@@ -92,7 +99,7 @@ class UserCommandData:
                     value is not None
                     and value is not False
                     and not is_default
-                    and value != ""
+                    and value != ""  # TODO: We need to support empty strings
                 ):
                     if isinstance(option.name, str):
                         args.append(option.name)
@@ -109,9 +116,11 @@ class UserCommandData:
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
+            print(defaults)
+            print(values)
             if list(sorted(map(str, values))) != list(sorted(map(str, defaults))):
                 for value in values:
-                    args.append(f"--{option_name.replace('_', '-')}")
+                    args.append(option_name)
                     args.append(str(value))
 
         for argument in self.arguments:

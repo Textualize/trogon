@@ -11,7 +11,7 @@ from rich.text import Text
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.binding import Binding
-from textual.containers import Vertical, Horizontal
+from textual.containers import Vertical, Horizontal, VerticalScroll
 from textual.css.query import NoMatches
 from textual.screen import Screen
 from textual.widgets import (
@@ -79,7 +79,10 @@ class CommandBuilder(Screen):
         scrollable_body.can_focus = False
 
         body = Vertical(
-            Static(self.click_app_name or "", id="home-command-description"),
+            VerticalScroll(
+                Static(self.click_app_name or "", id="home-command-description"),
+                id="home-command-description-container",
+            ),
             scrollable_body,
             Horizontal(
                 Static("", id="home-exec-preview-static"),

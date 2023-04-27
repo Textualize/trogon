@@ -21,6 +21,7 @@ class MultipleInput(Widget):
     
     MultipleInput Input {
         width: 1fr;
+        margin-left: 1;
     }
     MultipleInput Button {
         width: auto;
@@ -66,7 +67,7 @@ class MultipleInput(Widget):
     @property
     def values(self) -> list[str]:
         inputs = self.query(Input)
-        return [input_widget.value for input_widget in inputs]
+        return [input_widget.value for input_widget in inputs if input_widget.value != ""]
 
     def on_input_changed(self) -> None:
         self.post_message(self.Changed())

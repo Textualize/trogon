@@ -221,6 +221,7 @@ class CommandForm(Widget):
             label = self._make_command_form_control_label(
                 name, argument_type, is_option, schema.required, multiple=multiple
             )
+            print(argument_type)
             if argument_type in {
                 "text",
                 "float",
@@ -274,6 +275,9 @@ class CommandForm(Widget):
                             ):
                                 radio_button.value = True
                             yield radio_button
+            else:
+                print("Couldn't decide what to render")
+                print(schema.name, argument_type, type(schema.type))
 
             # Take note of the first form control, so we can easily render it
             if self.first_control is None:
