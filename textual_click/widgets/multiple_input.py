@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.message import Message
 from textual.widget import Widget
@@ -23,9 +24,13 @@ class MultipleInput(Widget):
     }
     MultipleInput Button {
         width: auto;
+        margin-right: 1;
     }
-    
     """
+
+    BINDINGS = [
+        Binding(key="ctrl+x", action="remove_input", description="Remove Item"),
+    ]
 
     class Changed(Message):
         def __init__(self):

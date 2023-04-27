@@ -24,7 +24,7 @@ class UserOptionData:
         option_schema: The schema corresponding to this option.
     """
 
-    name: str
+    name: str | list[str]
     value: Any
     option_schema: OptionSchema
 
@@ -94,7 +94,13 @@ class UserCommandData:
                     and not is_default
                     and value != ""
                 ):
-                    args.append(f"--{option.name.replace('_', '-')}")
+                    if isinstance(option.name, str):
+                        args.append(option.name)
+                    else:
+                        # Use the option with the longest name, since
+                        # it's probably the most descriptive.
+                        longest_name = max(option.name, key=len)
+                        args.append(longest_name)
 
                     # Only add a value for non-boolean options
                     if value is not True:
@@ -125,9 +131,6 @@ class UserCommandData:
             A string representing the command invocation.
         """
         args = self.to_cli_args()
-        # TODO: I think we need more sophisticated at the call site to calculate
-        #  the value for this bool...
-
         if not include_root_command:
             args = args[1:]
         return " ".join(shlex.quote(arg) for arg in args)

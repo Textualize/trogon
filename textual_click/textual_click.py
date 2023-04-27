@@ -10,6 +10,7 @@ from rich.highlighter import ReprHighlighter
 from rich.text import Text
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
+from textual.binding import Binding
 from textual.containers import Vertical, Horizontal
 from textual.css.query import NoMatches
 from textual.screen import Screen
@@ -18,7 +19,7 @@ from textual.widgets import (
     Tree,
     Label,
     Static,
-    Button,
+    Button, Footer,
 )
 from textual.widgets.tree import TreeNode
 
@@ -32,6 +33,11 @@ from textual_click.widgets.command_tree import CommandTree
 
 
 class CommandBuilder(Screen):
+
+    BINDINGS = [
+        Binding(key="ctrl+r", action="close_and_run", description="Close & Run")
+    ]
+
     def __init__(
         self,
         cli: click.BaseCommand,
@@ -52,7 +58,7 @@ class CommandBuilder(Screen):
         tree = CommandTree("", self.command_schemas)
 
         sidebar = Vertical(
-            Label("Command Tree", id="home-commands-label"),
+            Label(self.click_app_name, id="home-commands-label"),
             tree,
             id="home-sidebar",
         )
@@ -78,7 +84,7 @@ class CommandBuilder(Screen):
             Horizontal(
                 Static("", id="home-exec-preview-static"),
                 Vertical(
-                    Button.success("Close & Execute", id="home-exec-button"),
+                    Button.success("Close & Run", id="home-exec-button"),
                     id="home-exec-preview-buttons",
                 ),
                 id="home-exec-preview",
@@ -86,6 +92,11 @@ class CommandBuilder(Screen):
             id="home-body",
         )
         yield body
+        yield Footer()
+
+    def action_close_and_run(self) -> None:
+        self.app.execute_on_exit = True
+        self.app.exit()
 
     async def on_mount(self, event: events.Mount) -> None:
         await self._refresh_command_form()
@@ -195,11 +206,10 @@ class TextualClick(App):
         try:
             super().run(headless=headless, size=size, auto_pilot=auto_pilot)
         finally:
-            # TODO: Make this happen only when you Execute/Save+Execute
             if self.post_run_command:
                 console = Console()
-                console.print(f"Running [b cyan]{self.app_name} {shlex.join(self.post_run_command)}[/]")
                 if self.post_run_command and self.execute_on_exit:
+                    console.print(f"Running [b cyan]{self.app_name} {shlex.join(self.post_run_command)}[/]")
                     os.execvp(self.app_name, [self.app_name, *self.post_run_command])
 
     def on_command_form_changed(self, event: CommandForm.Changed):

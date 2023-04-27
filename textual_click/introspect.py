@@ -15,7 +15,7 @@ def generate_unique_id():
 
 @dataclass
 class OptionSchema:
-    name: str
+    name: list[str]
     type: str
     default: Any
     required: bool
@@ -97,7 +97,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
         for param in cmd_obj.params:
             if isinstance(param, (click.Option, click.core.Group)):
                 option_data = OptionSchema(
-                    name=param.name,
+                    name=param.opts,
                     type=param.type.name,
                     required=param.required,
                     default=param.default,

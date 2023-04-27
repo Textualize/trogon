@@ -237,14 +237,14 @@ class CommandForm(Widget):
                 else:
                     control = Input(
                         value=str(default) if default is not None else "",
-                        placeholder=name,
+                        placeholder=str(default) if default is not None else "",
                         id=schema.key,
                         classes="command-form-input",
                     )
                     yield control
             elif argument_type in {"boolean"}:
                 control = Checkbox(
-                    f"{name}",
+                    label,
                     button_first=False,
                     value=default,
                     classes="command-form-checkbox",
@@ -292,8 +292,13 @@ class CommandForm(Widget):
 
     @staticmethod
     def _make_command_form_control_label(
-        name: str, type: str, is_option: bool, is_required: bool, multiple: bool
+        name: str | list[str], type: str, is_option: bool, is_required: bool, multiple: bool
     ) -> Text:
-        return Text.from_markup(
-            f"{'--' if is_option else ''}{name.replace('_', '-') if is_option else name}[dim]{' multiple' if multiple else ''} {type}[/] {' [b red]*[/]required' if is_required else ''}"
-        )
+        if isinstance(name, str):
+            return Text.from_markup(
+                f"{name}[dim]{' multiple' if multiple else ''} {type}[/] {' [b red]*[/]required' if is_required else ''}"
+            )
+        elif isinstance(name, list):
+            names = Text(" / ", style="dim").join([Text(n) for n in name])
+            return f"{names}[dim]{' multiple' if multiple else ''} {type}[/] {' [b red]*[/]required' if is_required else ''}"
+
