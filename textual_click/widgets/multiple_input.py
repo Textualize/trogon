@@ -52,11 +52,11 @@ class MultipleInput(Widget):
                 with Horizontal():
                     yield Input(value=default)
                     if index == len(self.defaults) - 1:
-                        yield Button(label="Add another", variant="primary")
+                        yield self.button
         else:
             with Horizontal():
                 yield Input()
-                yield Button(label="Add another", variant="primary")
+                yield self.button
 
     @property
     def values(self) -> list[str]:
@@ -65,3 +65,21 @@ class MultipleInput(Widget):
 
     def on_input_changed(self) -> None:
         self.post_message(self.Changed())
+
+    async def on_input_submitted(self) -> None:
+        await self._add_new_row()
+
+    async def on_button_pressed(self) -> None:
+        await self._add_new_row()
+
+    async def _add_new_row(self) -> None:
+        button = self.query_one(Button)
+        await button.remove()
+        new_button = self.button
+        new_input = Input()
+        await self.mount(Horizontal(new_input, new_button))
+        new_input.focus()
+
+    @property
+    def button(self) -> Button:
+        return Button(label="Add another", variant="primary")

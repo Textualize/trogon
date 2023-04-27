@@ -183,7 +183,7 @@ class TextualClick(App):
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "home-exec-button":
             self.execute_on_exit = True
-        self.exit()
+            self.exit()
 
     def run(
         self,
