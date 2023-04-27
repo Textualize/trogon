@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+import os
 import shlex
-import subprocess
-import time
 from pathlib import Path
 
 import click
@@ -11,7 +10,7 @@ from rich.highlighter import ReprHighlighter
 from rich.text import Text
 from textual import log, events
 from textual.app import ComposeResult, App, AutopilotCallbackType
-from textual.containers import VerticalScroll, Vertical, Horizontal
+from textual.containers import Vertical, Horizontal
 from textual.css.query import NoMatches
 from textual.screen import Screen
 from textual.widgets import (
@@ -139,7 +138,8 @@ class CommandBuilder(Screen):
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
             prefix = Text(f"{self.click_app_name} ")
-            new_value = command_data.to_cli_string()
+            include_root = self.is_grouped_cli
+            new_value = command_data.to_cli_string(include_root_command=include_root)
             highlighted_new_value = prefix.append(self.highlighter(new_value))
             self.query_one("#home-exec-preview-static", Static).update(
                 highlighted_new_value
@@ -172,15 +172,18 @@ class TextualClick(App):
     ) -> None:
         super().__init__()
         self.cli = cli
-        self.app_name = app_name
-        # TODO: Don't hardcode ls
-        self.post_run_command: list[str] = ["ls"]
+        self.post_run_command: list[str] = []
+        self.execute_on_exit = False
         self.click_context = click_context
+        self.app_name = click_context.find_root().info_name
 
     def on_mount(self):
-        self.push_screen(
-            CommandBuilder(self.cli, self.click_context.find_root().info_name)
-        )
+        self.push_screen(CommandBuilder(self.cli, self.app_name))
+
+    def on_button_pressed(self, event: Button.Pressed):
+        if event.button.id == "home-exec-button":
+            self.execute_on_exit = True
+        self.exit()
 
     def run(
         self,
@@ -195,8 +198,12 @@ class TextualClick(App):
             # TODO: Make this happen only when you Execute/Save+Execute
             if self.post_run_command:
                 console = Console()
-                console.print(f"Running [b cyan]{shlex.join(self.post_run_command)}[/]")
-                subprocess.run(self.post_run_command)
+                console.print(f"Running [b cyan]{self.app_name} {shlex.join(self.post_run_command)}[/]")
+                if self.post_run_command and self.execute_on_exit:
+                    os.execvp(self.app_name, [self.app_name, *self.post_run_command])
+
+    def on_command_form_changed(self, event: CommandForm.Changed):
+        self.post_run_command = event.command_data.to_cli_args()
 
 
 def tui(name: str = "TUI Mode"):
@@ -204,8 +211,6 @@ def tui(name: str = "TUI Mode"):
         @click.pass_context
         def wrapped_tui(ctx, *args, **kwargs):
             TextualClick(app, app_name=name, click_context=ctx).run()
-            # Call the original command function
-            # app.callback(*args, **kwargs)
 
         if isinstance(app, click.Group):
             app.command(name="tui")(wrapped_tui)

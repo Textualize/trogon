@@ -102,14 +102,15 @@ class UserCommandData:
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
-            defaults = multiples_schemas[option_name].default
-            if list(sorted(map(str, values))) != list(sorted(map(str, multiples_schemas[option_name].default))):
+            defaults = multiples_schemas[option_name].default or []
+            if list(sorted(map(str, values))) != list(sorted(map(str, defaults))):
                 for value in values:
                     args.append(f"--{option_name.replace('_', '-')}")
                     args.append(str(value))
 
         for argument in self.arguments:
-            args.append(str(argument.value))
+            if argument.value != "":
+                args.append(str(argument.value))
 
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
@@ -124,6 +125,9 @@ class UserCommandData:
             A string representing the command invocation.
         """
         args = self.to_cli_args()
+        # TODO: I think we need more sophisticated at the call site to calculate
+        #  the value for this bool...
+
         if not include_root_command:
             args = args[1:]
         return " ".join(shlex.quote(arg) for arg in args)
@@ -144,11 +148,19 @@ class UserCommandData:
                 if option_schema.multiple:
                     for default in option_schema.default:
                         self.options.append(
-                            UserOptionData(name=option_schema.name, value=default, option_schema=option_schema)
+                            UserOptionData(
+                                name=option_schema.name,
+                                value=default,
+                                option_schema=option_schema,
+                            )
                         )
                 else:
                     self.options.append(
-                        UserOptionData(name=option_schema.name, value=option_schema.default, option_schema=option_schema)
+                        UserOptionData(
+                            name=option_schema.name,
+                            value=option_schema.default,
+                            option_schema=option_schema,
+                        )
                     )
 
         # Prefill default argument values
@@ -157,7 +169,11 @@ class UserCommandData:
                 arg.name == arg_schema.name for arg in self.arguments
             ):
                 self.arguments.append(
-                    UserArgumentData(name=arg_schema.name, value=arg_schema.default, argument_schema=arg_schema)
+                    UserArgumentData(
+                        name=arg_schema.name,
+                        value=arg_schema.default,
+                        argument_schema=arg_schema,
+                    )
                 )
 
         # Prefill defaults for subcommand if present

@@ -18,6 +18,7 @@ from textual_click.introspect import (
 )
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
 from textual_click.widgets.multiple_choice import MultipleChoice
+from textual_click.widgets.multiple_input import MultipleInput
 
 
 @dataclasses.dataclass
@@ -191,7 +192,9 @@ class CommandForm(Widget):
         return self.first_control.focus()
 
     @staticmethod
-    def _get_form_control_value(control: Input | RadioSet | Checkbox | MultipleChoice) -> Any:
+    def _get_form_control_value(
+        control: Input | RadioSet | Checkbox | MultipleChoice,
+    ) -> Any:
         if isinstance(control, (Input, Checkbox)):
             return control.value
         elif isinstance(control, RadioSet):
@@ -200,6 +203,8 @@ class CommandForm(Widget):
             return None
         elif isinstance(control, MultipleChoice):
             return control.selected
+        elif isinstance(control, MultipleInput):
+            return control.values
 
     def _make_command_form(
         self, schemas: Sequence[ArgumentSchema | OptionSchema], is_option: bool = False
@@ -226,13 +231,17 @@ class CommandForm(Widget):
                 "filename",
             }:
                 yield Label(label, classes="command-form-label")
-                control = Input(
-                    value=str(default) if default is not None else "",
-                    placeholder=name,
-                    id=schema.key,
-                    classes="command-form-input",
-                )
-                yield control
+                if multiple:
+                    control = MultipleInput(defaults=schema.default, id=schema.key)
+                    yield control
+                else:
+                    control = Input(
+                        value=str(default) if default is not None else "",
+                        placeholder=name,
+                        id=schema.key,
+                        classes="command-form-input",
+                    )
+                    yield control
             elif argument_type in {"boolean"}:
                 control = Checkbox(
                     f"{name}",
@@ -245,7 +254,13 @@ class CommandForm(Widget):
             elif argument_type in {"choice"}:
                 yield Label(label, classes="command-form-label")
                 if multiple:
-                    multi_choice =  MultipleChoice(list(schema.choices), classes="command-form-multiple-choice", id=schema.key, defaults=default)
+                    multi_choice = MultipleChoice(
+                        list(schema.choices),
+                        classes="command-form-multiple-choice",
+                        id=schema.key,
+                        defaults=default,
+                    )
+                    control = multi_choice
                     yield multi_choice
                 else:
                     with RadioSet(
@@ -254,7 +269,9 @@ class CommandForm(Widget):
                         control = radio_set
                         for index, choice in enumerate(schema.choices):
                             radio_button = RadioButton(choice)
-                            if schema.default == choice or (schema.default is None and index == 0):
+                            if schema.default == choice or (
+                                schema.default is None and index == 0
+                            ):
                                 radio_button.value = True
                             yield radio_button
 
