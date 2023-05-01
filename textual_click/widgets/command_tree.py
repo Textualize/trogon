@@ -26,6 +26,7 @@ class CommandTree(Tree[CommandSchema]):
         def build_tree(
             data: dict[CommandName, CommandSchema], node: TreeNode
         ) -> TreeNode:
+            data = {key: data[key] for key in sorted(data)}
             for cmd_name, cmd_data in data.items():
                 if (
                     not cmd_data.subcommands
