@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Sequence, Any
+from typing import Sequence, Any, Callable, Iterable
 
 import click
 from rich.text import Text
@@ -246,7 +246,7 @@ class CommandForm(Widget):
                     default, label, multiple, schema
                 )
             elif argument_type == click.types.BOOL:
-                control = yield from self.make_checkbox_control(default, label, schema)
+                control = yield from self.make_checkbox_control(default, label, multiple, schema)
             elif isinstance(argument_type, click.types.Choice):
                 control = yield from self.make_choice_control(
                     default, label, multiple, schema
@@ -267,8 +267,28 @@ class CommandForm(Widget):
             if help_text:
                 yield Static(help_text, classes="command-form-control-help-text")
 
+    def get_control_method(self, argument_type: Any) -> Callable[
+        [Any, Text, bool, OptionSchema | ArgumentSchema], Widget]:
+        text_click_types = {
+            click.types.STRING,
+            click.types.FLOAT,
+            click.types.INT,
+            click.types.UUID,
+            "integer range",  # TODO - update these types
+            "filename",
+        }
+        text_types = (
+            click.types.Path,
+            click.types.File,
+            click.types.IntRange,
+            click.types.FloatRange,
+        )
+        is_text_type = argument_type in text_click_types or isinstance(argument_type, text_types)
+        if is_text_type:
+            return self.make_text_control
+
     @staticmethod
-    def make_text_control(default, label, multiple, schema):
+    def make_text_control(default: Any, label: Text, multiple: bool, schema: OptionSchema | ArgumentSchema) -> Widget:
         yield Label(label, classes="command-form-label")
         if multiple:
             control = MultipleInput(defaults=schema.default, id=schema.key)
@@ -284,7 +304,8 @@ class CommandForm(Widget):
         return control
 
     @staticmethod
-    def make_checkbox_control(default, label, schema):
+    def make_checkbox_control(default: Any, label: Text, multiple: bool,
+                              schema: OptionSchema | ArgumentSchema) -> Widget:
         control = Checkbox(
             label,
             button_first=False,
@@ -296,7 +317,7 @@ class CommandForm(Widget):
         return control
 
     @staticmethod
-    def make_choice_control(default, label, multiple, schema):
+    def make_choice_control(default: Any, label: Text, multiple: bool, schema: OptionSchema | ArgumentSchema) -> Widget:
         yield Label(label, classes="command-form-label")
         if multiple:
             multi_choice = MultipleChoice(
@@ -306,6 +327,7 @@ class CommandForm(Widget):
                 defaults=default,
             )
             yield multi_choice
+            return multi_choice
         else:
             with RadioSet(id=schema.key, classes="command-form-radioset") as radio_set:
                 for index, choice in enumerate(schema.choices):
