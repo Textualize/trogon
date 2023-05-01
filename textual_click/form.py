@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Sequence, Any
 
+import click
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
@@ -209,6 +210,8 @@ class CommandForm(Widget):
     def _make_command_form(
         self, schemas: Sequence[ArgumentSchema | OptionSchema], is_option: bool = False
     ):
+        """Takes the schemas for each parameter of the current command, and converts it into a
+        form consisting of Textual widgets."""
         for schema in schemas:
             # TODO: This may not be required any more.
             self.schema_key_to_metadata[schema.key] = schema
@@ -221,60 +224,37 @@ class CommandForm(Widget):
             label = self._make_command_form_control_label(
                 name, argument_type, is_option, schema.required, multiple=multiple
             )
+            control: Widget | None = None
             print(argument_type)
             if argument_type in {
-                "text",
-                "float",
-                "integer",
-                "path",
-                "integer range",
-                "file",
+                click.types.STRING,
+                click.types.FLOAT,
+                click.types.INT,
+                click.types.UUID,
+                "integer range",  # TODO - update these types
                 "filename",
-            }:
-                yield Label(label, classes="command-form-label")
-                if multiple:
-                    control = MultipleInput(defaults=schema.default, id=schema.key)
-                    yield control
-                else:
-                    control = Input(
-                        value=str(default) if default is not None else "",
-                        placeholder=str(default) if default is not None else "",
-                        id=schema.key,
-                        classes="command-form-input",
-                    )
-                    yield control
-            elif argument_type in {"boolean"}:
-                control = Checkbox(
-                    label,
-                    button_first=False,
-                    value=default,
-                    classes="command-form-checkbox",
-                    id=schema.key,
+            } or isinstance(
+                argument_type,
+                (
+                    click.types.Path,
+                    click.types.File,
+                    click.types.IntRange,
+                    click.types.FloatRange,
+                ),
+            ):
+                control = yield from self.make_text_control(
+                    default, label, multiple, schema
                 )
-                yield control
-            elif argument_type in {"choice"}:
-                yield Label(label, classes="command-form-label")
-                if multiple:
-                    multi_choice = MultipleChoice(
-                        list(schema.choices),
-                        classes="command-form-multiple-choice",
-                        id=schema.key,
-                        defaults=default,
-                    )
-                    control = multi_choice
-                    yield multi_choice
-                else:
-                    with RadioSet(
-                        id=schema.key, classes="command-form-radioset"
-                    ) as radio_set:
-                        control = radio_set
-                        for index, choice in enumerate(schema.choices):
-                            radio_button = RadioButton(choice)
-                            if schema.default == choice or (
-                                schema.default is None and index == 0
-                            ):
-                                radio_button.value = True
-                            yield radio_button
+            elif argument_type == click.types.BOOL:
+                control = yield from self.make_checkbox_control(default, label, schema)
+            elif isinstance(argument_type, click.types.Choice):
+                control = yield from self.make_choice_control(
+                    default, label, multiple, schema
+                )
+            elif isinstance(argument_type, click.types.Tuple):
+                # This is the case for multi-value options. e.g. --paths "." "../" "path"
+                # We need to ensure we render the correct type for each of the values in the tuple
+                print(argument_type.types)
             else:
                 print("Couldn't decide what to render")
                 print(schema.name, argument_type, type(schema.type))
@@ -287,16 +267,63 @@ class CommandForm(Widget):
             if help_text:
                 yield Static(help_text, classes="command-form-control-help-text")
 
-    # def _build_command_data(self) -> UserCommandData:
-    #     """Takes the current state of this form and converts it into a UserCommandData,
-    #     ready to be executed."""
+    @staticmethod
+    def make_text_control(default, label, multiple, schema):
+        yield Label(label, classes="command-form-label")
+        if multiple:
+            control = MultipleInput(defaults=schema.default, id=schema.key)
+            yield control
+        else:
+            control = Input(
+                value=str(default) if default is not None else "",
+                placeholder=str(default) if default is not None else "",
+                id=schema.key,
+                classes="command-form-input",
+            )
+            yield control
+        return control
 
-    # def _validate_command_data(self) -> None:
-    #     validate_user_command_data(self.command_schemas, self.)
+    @staticmethod
+    def make_checkbox_control(default, label, schema):
+        control = Checkbox(
+            label,
+            button_first=False,
+            value=default,
+            classes="command-form-checkbox",
+            id=schema.key,
+        )
+        yield control
+        return control
+
+    @staticmethod
+    def make_choice_control(default, label, multiple, schema):
+        yield Label(label, classes="command-form-label")
+        if multiple:
+            multi_choice = MultipleChoice(
+                list(schema.choices),
+                classes="command-form-multiple-choice",
+                id=schema.key,
+                defaults=default,
+            )
+            yield multi_choice
+        else:
+            with RadioSet(id=schema.key, classes="command-form-radioset") as radio_set:
+                for index, choice in enumerate(schema.choices):
+                    radio_button = RadioButton(choice)
+                    if schema.default == choice or (
+                        schema.default is None and index == 0
+                    ):
+                        radio_button.value = True
+                    yield radio_button
+                return radio_set
 
     @staticmethod
     def _make_command_form_control_label(
-        name: str | list[str], type: str, is_option: bool, is_required: bool, multiple: bool
+        name: str | list[str],
+        type: str,
+        is_option: bool,
+        is_required: bool,
+        multiple: bool,
     ) -> Text:
         if isinstance(name, str):
             return Text.from_markup(
@@ -305,4 +332,3 @@ class CommandForm(Widget):
         elif isinstance(name, list):
             names = Text(" / ", style="dim").join([Text(n) for n in name])
             return f"{names}[dim]{' multiple' if multiple else ''} {type}[/] {' [b red]*[/]required' if is_required else ''}"
-

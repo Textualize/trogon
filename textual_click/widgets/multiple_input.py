@@ -45,9 +45,7 @@ class MultipleInput(Widget):
         classes: str | None = None,
         disabled: bool = False,
     ):
-        super().__init__(
-            name=name, id=id, classes=classes, disabled=disabled
-        )
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         if defaults is None:
             defaults = []
         self.defaults = defaults
@@ -67,7 +65,9 @@ class MultipleInput(Widget):
     @property
     def values(self) -> list[str]:
         inputs = self.query(Input)
-        return [input_widget.value for input_widget in inputs if input_widget.value != ""]
+        return [
+            input_widget.value for input_widget in inputs if input_widget.value != ""
+        ]
 
     def on_input_changed(self) -> None:
         self.post_message(self.Changed())

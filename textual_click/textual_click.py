@@ -19,7 +19,8 @@ from textual.widgets import (
     Tree,
     Label,
     Static,
-    Button, Footer,
+    Button,
+    Footer,
 )
 from textual.widgets.tree import TreeNode
 
@@ -33,7 +34,6 @@ from textual_click.widgets.command_tree import CommandTree
 
 
 class CommandBuilder(Screen):
-
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run")
     ]
@@ -212,7 +212,9 @@ class TextualClick(App):
             if self.post_run_command:
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
-                    console.print(f"Running [b cyan]{self.app_name} {shlex.join(self.post_run_command)}[/]")
+                    console.print(
+                        f"Running [b cyan]{self.app_name} {shlex.join(self.post_run_command)}[/]"
+                    )
                     os.execvp(self.app_name, [self.app_name, *self.post_run_command])
 
     def on_command_form_changed(self, event: CommandForm.Changed):

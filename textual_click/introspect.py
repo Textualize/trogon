@@ -98,7 +98,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
             if isinstance(param, (click.Option, click.core.Group)):
                 option_data = OptionSchema(
                     name=param.opts,
-                    type=param.type.name,
+                    type=param.type,
                     required=param.required,
                     default=param.default,
                     help=param.help,
@@ -110,7 +110,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
             elif isinstance(param, click.Argument):
                 argument_data = ArgumentSchema(
                     name=param.name,
-                    type=param.type.name,
+                    type=param.type,
                     required=param.required,
                     multiple=param.multiple,
                 )
