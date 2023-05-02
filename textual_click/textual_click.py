@@ -24,7 +24,7 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 
-from textual_click.form import CommandForm
+from textual_click.widgets.form import CommandForm
 from textual_click.introspect import (
     introspect_click_app,
     CommandSchema,

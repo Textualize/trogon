@@ -116,8 +116,6 @@ class UserCommandData:
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
-            print(defaults)
-            print(values)
             if list(sorted(map(str, values))) != list(sorted(map(str, defaults))):
                 for value in values:
                     args.append(option_name)

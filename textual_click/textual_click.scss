@@ -81,6 +81,20 @@ CommandTree > .tree--guides-hover {
   color: $primary-lighten-2;
 }
 
+ParameterControls {
+  height: auto;
+}
+
+ControlGroup {
+  height: auto;
+  border: solid $panel-lighten-2;
+  margin: 0 1;
+}
+
+ControlGroup:focus-within {
+  border: solid $primary-lighten-1;
+}
+
 Pretty {
   height: auto;
 }

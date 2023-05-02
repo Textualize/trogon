@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence, NewType
 
 import click
-from click import BaseCommand
+from click import BaseCommand, ParamType
 from textual import log
 
 
@@ -16,13 +16,17 @@ def generate_unique_id():
 @dataclass
 class OptionSchema:
     name: list[str]
-    type: str
+    type: ParamType
     default: Any
     required: bool
-    key: str = field(default_factory=generate_unique_id)
+    key: str | tuple[str] = field(default_factory=generate_unique_id)
     help: str | None = None
     choices: Sequence[str] | None = None
     multiple: bool = False
+    multi_value: bool = False
+
+    def __post_init__(self):
+        self.multi_value = isinstance(self.type, click.Tuple)
 
 
 @dataclass
