@@ -60,3 +60,8 @@ class MultipleChoice(Widget):
                 selected.append(checkbox)
         self.selected = [checkbox.label.plain for checkbox in selected]
         self.post_message(self.Changed(selected))
+
+    def select_by_label(self, label: str) -> None:
+        checkboxes = self.query(Checkbox)
+        for checkbox in checkboxes:
+            checkbox.value = checkbox.label == label

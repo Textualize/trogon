@@ -103,13 +103,11 @@ class CommandForm(Widget):
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
                             for argument in arguments:
-                                print(argument)
                                 yield ParameterControls(argument, id=argument.key)
 
                         if options:
                             yield Label(f"Options", classes="command-form-heading")
                             for option in options:
-                                print(option)
                                 yield ParameterControls(option, id=option.key)
 
                 command_node = next(path_from_root, None)
