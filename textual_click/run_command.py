@@ -90,7 +90,6 @@ class UserCommandData:
                 #  if they aren't equivalent to the default.
                 multiples[option.string_name].append(option.value)
                 multiples_schemas[option.string_name] = option.option_schema
-                print(f"the value in to_cli_args is {option.value}")
             else:
                 value = option.value
                 default = option.option_schema.default
@@ -119,6 +118,11 @@ class UserCommandData:
                         else:
                             args.append(str(value))
 
+        # TODO: The multiple choice input only makes sense when multiple=True
+        #  and the type is choice (not when the type is tuple). We need to ensure
+        #  that we receive the values from MultipleChoice in the correct format,
+        #  namely, a list of tuples of length 1.
+
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
@@ -132,11 +136,9 @@ class UserCommandData:
 
         for argument in self.arguments:
             value = argument.value
-            if argument.value != "":
-                if isinstance(value, tuple):
-                    args.extend(value)
-                else:
-                    args.append(str(value))
+            print(f"the argument value is {value}")
+            for argument_value in value:
+                args.extend(argument_value)
 
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
@@ -153,6 +155,7 @@ class UserCommandData:
         args = self.to_cli_args()
         if not include_root_command:
             args = args[1:]
+        print("args = ", args)
         return " ".join(shlex.quote(arg) for arg in args)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
