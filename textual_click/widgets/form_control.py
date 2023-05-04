@@ -5,9 +5,9 @@ from typing import Any, Callable, Iterable, TypeVar, Union
 
 import click
 from rich.text import Text
-from textual import log
+from textual import log, on
 from textual.app import ComposeResult
-from textual.containers import Vertical
+from textual.containers import Vertical, Horizontal
 from textual.widget import Widget
 from textual.widgets import RadioButton, RadioSet, Label, Checkbox, Input, Static, Button
 
@@ -18,6 +18,10 @@ ControlWidgetType: TypeVar = Union[Input, RadioSet, Checkbox, MultipleChoice]
 
 
 class ControlGroup(Vertical):
+    pass
+
+
+class ControlGroupsContainer(Vertical):
     pass
 
 
@@ -62,53 +66,55 @@ class ParameterControls(Widget):
         # Fill the widget set with a group of default values
         # Add a button which adds another widget set.
 
-        if isinstance(argument_type, click.Choice) and multiple:
-            # There's a special case where we have a Choice with multiple=True,
-            # in this case, we can just render a single MultipleChoice widget
-            # instead of multiple radio-sets.
-            control_method = self.get_control_method(argument_type)
-            multiple_choice_widget = control_method(default=default, label=label, multiple=multiple, schema=schema,
-                                                    control_id=schema.key)
-            yield from multiple_choice_widget
-        else:
-            # For other widgets, we'll render as normal...
-            # If required, we'll generate widgets containing the defaults
-            if default:
-                defaults = default if multiple else [default]
-                for default_value in defaults:
+        with ControlGroupsContainer():
+            if isinstance(argument_type, click.Choice) and multiple:
+                # There's a special case where we have a Choice with multiple=True,
+                # in this case, we can just render a single MultipleChoice widget
+                # instead of multiple radio-sets.
+                control_method = self.get_control_method(argument_type)
+                multiple_choice_widget = control_method(default=default, label=label, multiple=multiple, schema=schema,
+                                                        control_id=schema.key)
+                yield from multiple_choice_widget
+            else:
+                # For other widgets, we'll render as normal...
+                # If required, we'll generate widgets containing the defaults
+                if default:
+                    defaults = default if multiple else [default]
+                    for default_value in defaults:
+                        widget_group = self.make_widget_group()
+                        print(f"Parameter {name}: defaults = {defaults!r}")
+                        with ControlGroup():
+                            # Parameter types can be of length 1, but there could still be multiple defaults.
+                            # We need to render a widget for each of those defaults.
+                            # Extend the widget group such that there's a slot available for each default...
+                            for control_widget in widget_group:
+                                self._apply_default_value(control_widget, default_value)
+                                yield control_widget
+                                # Keep track of the first control we render, for easy focus
+                                if first_focus_control is None:
+                                    first_focus_control = control_widget
+
+                # We always need to display the original group of controls, regardless of whether there are defaults
+                if multiple or not default:
                     widget_group = self.make_widget_group()
-                    print(f"Parameter {name}: defaults = {defaults!r}")
                     with ControlGroup():
-                        # Parameter types can be of length 1, but there could still be multiple defaults.
-                        # We need to render a widget for each of those defaults.
-                        # Extend the widget group such that there's a slot available for each default...
+                        # No need to apply defaults to this group
                         for control_widget in widget_group:
-                            self._apply_default_value(control_widget, default_value)
                             yield control_widget
-                            # Keep track of the first control we render, for easy focus
                             if first_focus_control is None:
                                 first_focus_control = control_widget
-
-            # We always need to display the original group of controls, regardless of whether there are defaults
-            if multiple or not default:
-                widget_group = self.make_widget_group()
-                with ControlGroup():
-                    # No need to apply defaults to this group
-                    for control_widget in widget_group:
-                        yield control_widget
-                        if first_focus_control is None:
-                            first_focus_control = control_widget
 
         # Take note of the first form control, so we can easily focus it
         if self.first_control is None:
             self.first_control = first_focus_control
 
-        # If it's a multiple and it's a Choice parameter, then we display
+        # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
         if multiple and not isinstance(argument_type, click.Choice):
             # TODO Add handler for this button and probably filter by id
-            yield Button("Add another", variant="primary")
+            with Horizontal(classes="add-another-button-container"):
+                yield Button("Add another", variant="primary", classes="add-another-button")
 
         # Render the dim help text below the form controls
         if help_text:
@@ -134,6 +140,15 @@ class ParameterControls(Widget):
             control_method = self.get_control_method(_type)
             control_widgets = control_method(default, label, multiple, schema, schema.key)
             yield from control_widgets
+
+    @on(Button.Pressed, ".add-another-button")
+    def add_another_widget_group(self, event: Button.Pressed) -> None:
+        widget_group = list(self.make_widget_group())
+        widget_group[0].focus()
+        widget_group = ControlGroup(*widget_group)
+        control_groups_container = self.query_one(ControlGroupsContainer)
+        control_groups_container.mount(widget_group)
+        event.button.scroll_visible(animate=False)
 
     @staticmethod
     def _apply_default_value(control_widget: ControlWidgetType, default_value: Any) -> None:
@@ -221,11 +236,12 @@ class ParameterControls(Widget):
             yield multi_choice
             return multi_choice
         else:
-            with RadioSet(classes=f"{control_id} command-form-radioset") as radio_set:
-                for index, choice in enumerate(choices):
-                    radio_button = RadioButton(choice)
-                    yield radio_button
-                return radio_set
+            radio_set = RadioSet(
+                *[RadioButton(choice) for choice in choices],
+                classes=f"{control_id} command-form-radioset"
+            )
+            yield radio_set
+            return radio_set
 
     @staticmethod
     def _make_command_form_control_label(

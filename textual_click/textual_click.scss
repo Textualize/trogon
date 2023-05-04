@@ -5,6 +5,7 @@
 #home-exec-preview {
   background: $panel-darken-2;
   dock: bottom;
+  min-height: 3;
   height: auto;
   max-height: 6;
 }
@@ -17,10 +18,12 @@
   dock: left;
   width: 80%;
   padding: 1 2;
+  height: auto;
 }
 
 #home-exec-preview-buttons {
   dock: right;
+  height: auto;
   width: auto;
 }
 
@@ -74,9 +77,11 @@ CommandTree:focus > .tree--cursor {
 CommandTree > .tree--guides {
   color: slategray;
 }
+
 CommandTree > .tree--guides-selected {
   color: $primary-lighten-2;
 }
+
 CommandTree > .tree--guides-hover {
   color: $primary-lighten-2;
 }
@@ -95,6 +100,19 @@ ControlGroup:focus-within {
   border: solid $primary-lighten-1;
 }
 
+ControlGroupsContainer {
+  height: auto;
+}
+
 Pretty {
+  height: auto;
+}
+
+.add-another-button {
+  dock: right;
+}
+
+.add-another-button-container {
+  width: 1fr;
   height: auto;
 }
