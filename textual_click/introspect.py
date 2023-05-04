@@ -24,6 +24,7 @@ class OptionSchema:
     choices: Sequence[str] | None = None
     multiple: bool = False
     multi_value: bool = False
+    nargs: int = 1
 
     def __post_init__(self):
         self.multi_value = isinstance(self.type, click.Tuple)
@@ -38,6 +39,7 @@ class ArgumentSchema:
     default: Any | None = None
     choices: Sequence[str] | None = None
     multiple: bool = False
+    nargs: int = 1
 
 
 @dataclass
@@ -107,6 +109,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     default=param.default,
                     help=param.help,
                     multiple=param.multiple,
+                    nargs=param.nargs,
                 )
                 if isinstance(param.type, click.Choice):
                     option_data.choices = param.type.choices

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Iterable, Any, Sized
 
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
@@ -131,60 +132,65 @@ class CommandForm(Widget):
         """Take the current state of the form and build a UserCommandData from it,
         then post a FormChanged message"""
 
-        # command_schema = self.command_schema
-        # path_from_root = command_schema.path_from_root
-        #
-        # # Sentinel root value to make constructing the tree a little easier.
-        # parent_command_data = UserCommandData(
-        #     name=CommandName("_"), options=[], arguments=[]
-        # )
-        # root_command_data = parent_command_data
-        # try:
-        #     for command in path_from_root:
-        #         option_datas = []
-        #         # For each of the options in the schema for this command,
-        #         # lets grab the values the user has supplied for them in the form.
-        #         for option in command.options:
-        #             parameter_control = self.query_one(f"#{option.key}", ParameterControls)
-        #             value = "abc"  # TODO - use new method
-        #
-        #             # Handle the case of multiple=True
-        #             if option.multiple:
-        #                 for v in value:
-        #                     option_data = UserOptionData(option.name, v, option)
-        #                     option_datas.append(option_data)
-        #             else:
-        #                 option_data = UserOptionData(option.name, value, option)
-        #                 option_datas.append(option_data)
-        #
-        #         # Now do the same for the arguments
-        #         argument_datas = []
-        #
-        #         for argument in command.arguments:
-        #             form_control_widget = self.query_one(f"#{argument.key}")
-        #             value ="def"  # TODO - use new method
-        #             argument_data = UserArgumentData(argument.name, value, argument)
-        #             argument_datas.append(argument_data)
-        #
-        #         command_data = UserCommandData(
-        #             name=command.name,
-        #             options=option_datas,
-        #             arguments=argument_datas,
-        #             parent=parent_command_data,
-        #             command_schema=command,
-        #         )
-        #         parent_command_data.subcommand = command_data
-        #         parent_command_data = command_data
-        # except Exception as e:
-        #     # TODO
-        #     print(f"exception {e}")
-        #     return
-        #
-        # # Trim the sentinel
-        # root_command_data = root_command_data.subcommand
-        # root_command_data.parent = None
-        # root_command_data.fill_defaults(self.command_schema)
-        # self.post_message(self.Changed(root_command_data))
+        command_schema = self.command_schema
+        path_from_root = command_schema.path_from_root
+
+        # Sentinel root value to make constructing the tree a little easier.
+        parent_command_data = UserCommandData(
+            name=CommandName("_"), options=[], arguments=[]
+        )
+
+        root_command_data = parent_command_data
+        try:
+            for command in path_from_root:
+                option_datas = []
+                # For each of the options in the schema for this command,
+                # lets grab the values the user has supplied for them in the form.
+                for option in command.options:
+                    parameter_control = self.query_one(f"#{option.key}", ParameterControls)
+                    value = parameter_control.get_values()
+
+                    print(value)
+                    # Handle the case of multiple=True
+                    # [('123', 'BLOB'), ('456', 'FLOAT')]
+                    if option.multiple:
+                        for v in value:
+                            print(v)
+                            option_data = UserOptionData(option.name, v, option)
+                            option_datas.append(option_data)
+                    else:
+                        print(f"not multiple: {value[0]}")
+                        option_data = UserOptionData(option.name, value[0], option)
+                        option_datas.append(option_data)
+
+                # Now do the same for the arguments
+                argument_datas = []
+
+                for argument in command.arguments:
+                    form_control_widget = self.query_one(f"#{argument.key}", ParameterControls)
+                    value = form_control_widget.get_values()
+                    argument_data = UserArgumentData(argument.name, value, argument)
+                    argument_datas.append(argument_data)
+
+                command_data = UserCommandData(
+                    name=command.name,
+                    options=option_datas,
+                    arguments=argument_datas,
+                    parent=parent_command_data,
+                    command_schema=command,
+                )
+                parent_command_data.subcommand = command_data
+                parent_command_data = command_data
+        except Exception as e:
+            # TODO
+            print(f"exception {e}")
+            return
+
+        # Trim the sentinel
+        root_command_data = root_command_data.subcommand
+        root_command_data.parent = None
+        root_command_data.fill_defaults(self.command_schema)
+        self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):
         return self.first_control.focus()

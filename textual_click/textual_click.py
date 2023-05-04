@@ -86,7 +86,7 @@ class CommandBuilder(Screen):
             scrollable_body,
             Horizontal(
                 Static("", id="home-exec-preview-static"),
-                Vertical(
+                VerticalScroll(
                     Button.success("Close & Run", id="home-exec-button"),
                     id="home-exec-preview-buttons",
                 ),

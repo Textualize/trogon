@@ -25,7 +25,7 @@ class UserOptionData:
     """
 
     name: str | list[str]
-    value: Any
+    value: tuple[Any]  # Multi-value options will be tuple length > 1
     option_schema: OptionSchema
 
     @property
@@ -90,16 +90,19 @@ class UserCommandData:
                 #  if they aren't equivalent to the default.
                 multiples[option.string_name].append(option.value)
                 multiples_schemas[option.string_name] = option.option_schema
+                print(f"the value in to_cli_args is {option.value}")
             else:
                 value = option.value
                 default = option.option_schema.default
                 is_default = value == str(default)
 
+                print(f"the value in to_cli_args is {value}")
+
                 if (
                     value is not None
                     and value is not False
                     and not is_default
-                    and value != ""  # TODO: We need to support empty strings
+                    and value != []  # TODO: We need to support empty strings
                 ):
                     if isinstance(option.name, str):
                         args.append(option.name)
@@ -111,7 +114,10 @@ class UserCommandData:
 
                     # Only add a value for non-boolean options
                     if value is not True:
-                        args.append(str(value))
+                        if isinstance(value, tuple):
+                            args.extend(value)
+                        else:
+                            args.append(str(value))
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
@@ -119,11 +125,18 @@ class UserCommandData:
             if list(sorted(map(str, values))) != list(sorted(map(str, defaults))):
                 for value in values:
                     args.append(option_name)
-                    args.append(str(value))
+                    if isinstance(value, tuple):
+                        args.extend(value)
+                    else:
+                        args.append(str(value))
 
         for argument in self.arguments:
+            value = argument.value
             if argument.value != "":
-                args.append(str(argument.value))
+                if isinstance(value, tuple):
+                    args.extend(value)
+                else:
+                    args.append(str(value))
 
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())

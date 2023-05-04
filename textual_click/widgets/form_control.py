@@ -164,14 +164,29 @@ class ParameterControls(Widget):
 
     @staticmethod
     def _get_form_control_value(control: ControlWidgetType) -> Any:
-        if isinstance(control, (Input, Checkbox)):
-            return control.value
+        if isinstance(control, MultipleChoice):
+            return control.selected
         elif isinstance(control, RadioSet):
             if control.pressed_button is not None:
                 return control.pressed_button.label.plain
             return None
-        elif isinstance(control, MultipleChoice):
-            return control.selected
+        elif isinstance(control, (Input, Checkbox)):
+            return control.value
+
+    def get_values(self) -> list[tuple[str, ...]]:
+        # We can find all relevant control widgets by querying the schema
+        # key as a class.
+
+        def list_to_tuples(lst: list[Any], tuple_size: int) -> list[tuple[Any, ...]]:
+            if tuple_size <= 0:
+                raise ValueError("Size must be greater than 0.")
+            return [tuple(lst[i:i + tuple_size]) for i in range(0, len(lst), tuple_size)]
+
+        controls = self.query(f".{self.schema.key}")
+        values = []
+        for control in list(controls):
+            values.append(self._get_form_control_value(control))
+        return list_to_tuples(values, self.schema.nargs)
 
     def get_control_method(self, argument_type: Any) -> Callable[
         [Any, Text, bool, OptionSchema | ArgumentSchema, str], Widget]:
