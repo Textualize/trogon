@@ -8,7 +8,7 @@ import click
 from rich.console import Console
 from rich.highlighter import ReprHighlighter
 from rich.text import Text
-from textual import log, events
+from textual import log, events, on
 from textual.app import ComposeResult, App, AutopilotCallbackType
 from textual.binding import Binding
 from textual.containers import Vertical, Horizontal, VerticalScroll
@@ -120,18 +120,16 @@ class CommandBuilder(Screen):
         )
         await self._update_form_body(node)
 
-    async def on_tree_node_highlighted(
+    @on(Tree.NodeHighlighted)
+    async def selected_command_changed(
         self, event: Tree.NodeHighlighted[CommandSchema]
     ) -> None:
         """When we highlight a node in the CommandTree, the main body of the home page updates
         to display a form specific to the highlighted command."""
-        # TODO: Add an ID check
         await self._refresh_command_form(event.node)
-        self._update_execution_string_preview(
-            self.selected_command_schema, self.command_data
-        )
 
-    def on_command_form_changed(self, event: CommandForm.Changed) -> None:
+    @on(CommandForm.Changed)
+    def update_command_data(self, event: CommandForm.Changed) -> None:
         self.command_data = event.command_data
         self._update_execution_string_preview(
             self.selected_command_schema, self.command_data
@@ -217,7 +215,8 @@ class TextualClick(App):
                     )
                     os.execvp(self.app_name, [self.app_name, *self.post_run_command])
 
-    def on_command_form_changed(self, event: CommandForm.Changed):
+    @on(CommandForm.Changed)
+    def update_command_to_run(self, event: CommandForm.Changed):
         self.post_run_command = event.command_data.to_cli_args()
 
 
