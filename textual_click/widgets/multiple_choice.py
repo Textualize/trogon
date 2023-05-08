@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shlex
+
 from rich.text import TextType
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
