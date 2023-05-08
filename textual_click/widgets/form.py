@@ -150,16 +150,11 @@ class CommandForm(Widget):
                     parameter_control = self.query_one(f"#{option.key}", ParameterControls)
                     value = parameter_control.get_values()
 
-                    print(value)
-                    # Handle the case of multiple=True
-                    # [('123', 'BLOB'), ('456', 'FLOAT')]
                     if option.multiple:
                         for v in value:
-                            print(v)
                             option_data = UserOptionData(option.name, v, option)
                             option_datas.append(option_data)
                     else:
-                        print(f"not multiple: {value[0]}")
                         option_data = UserOptionData(option.name, value[0], option)
                         option_datas.append(option_data)
 

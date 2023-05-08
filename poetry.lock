@@ -380,24 +380,19 @@ version = "0.23.0"
 description = "Modern Text User Interface framework"
 category = "main"
 optional = false
-python-versions = "^3.7"
-develop = true
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-aiohttp = {version = ">=3.8.1", optional = true}
-click = {version = ">=8.1.2", optional = true}
+aiohttp = {version = ">=3.8.1", optional = true, markers = "extra == \"dev\""}
+click = {version = ">=8.1.2", optional = true, markers = "extra == \"dev\""}
 importlib-metadata = ">=4.11.3"
-markdown-it-py = {version = "^2.1.0", extras = ["linkify", "plugins"]}
-msgpack = {version = ">=1.0.3", optional = true}
+markdown-it-py = {version = ">=2.1.0,<3.0.0", extras = ["linkify", "plugins"]}
+msgpack = {version = ">=1.0.3", optional = true, markers = "extra == \"dev\""}
 rich = ">=13.3.3"
-typing-extensions = "^4.4.0"
+typing-extensions = ">=4.4.0,<5.0.0"
 
 [package.extras]
 dev = ["aiohttp (>=3.8.1)", "click (>=8.1.2)", "msgpack (>=1.0.3)"]
-
-[package.source]
-type = "directory"
-url = "../textual"
 
 [[package]]
 name = "tomli"
@@ -462,7 +457,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "5008505bc464b71c8abd5e09b5079d70dc719aab5b00b8b2ce546b33daf09d33"
+content-hash = "bef5206bdeff99012b0f0b8d87ad712f820623e75cb4018b530a2c99df9b9498"
 
 [metadata.files]
 aiohttp = [
@@ -991,7 +986,10 @@ rich = [
     {file = "rich-13.3.5-py3-none-any.whl", hash = "sha256:69cdf53799e63f38b95b9bf9c875f8c90e78dd62b2f00c13a911c7a3b9fa4704"},
     {file = "rich-13.3.5.tar.gz", hash = "sha256:2d11b9b8dd03868f09b4fffadc84a6a8cda574e40dc90821bd845720ebb8e89c"},
 ]
-textual = []
+textual = [
+    {file = "textual-0.23.0-py3-none-any.whl", hash = "sha256:9eb1284ae312801b12b19668bf84faa2ae226a2ab6269e5f84edff851f2ad371"},
+    {file = "textual-0.23.0.tar.gz", hash = "sha256:f3e08d7afaf6c8562d2d5d6230fa891b515ebf9813cda4ea1807a639032edbd4"},
+]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},

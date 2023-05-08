@@ -155,7 +155,6 @@ class UserCommandData:
         args = self.to_cli_args()
         if not include_root_command:
             args = args[1:]
-        print("args = ", args)
         return " ".join(shlex.quote(arg) for arg in args)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:

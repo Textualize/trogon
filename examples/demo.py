@@ -20,6 +20,12 @@ def cli(ctx, verbose):
 @click.option('--tags', '-t', multiple=True, help='Add tags to the task (repeatable)')
 @click.option('--extra', '-e', nargs=2, type=(str, int), multiple=True,
               help='Add extra data as key-value pairs (repeatable)')
+@click.option('--category', '-c',
+              type=click.Choice(['work', 'home', 'leisure'], case_sensitive=False),
+              help='Choose a category for the task')
+@click.option('--labels', '-l',
+              type=click.Choice(['important', 'urgent', 'later'], case_sensitive=False),
+              multiple=True, help='Add labels to the task (repeatable)')
 @click.pass_context
 def add(ctx, task, priority, tags, extra):
     """Add a new task to the to-do list."""
