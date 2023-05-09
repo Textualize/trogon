@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import shlex
-
 from rich.text import TextType
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
@@ -60,8 +58,8 @@ class MultipleChoice(Widget):
         for checkbox in checkboxes:
             if checkbox.value is True:
                 selected.append(checkbox)
-        self.selected = [(checkbox.label.plain,) for checkbox in selected]
-        self.post_message(self.Changed(self.selected))
+        self.selected = [checkbox.label.plain for checkbox in selected]
+        self.post_message(self.Changed(selected))
 
     def select_by_label(self, label: str) -> None:
         checkboxes = self.query(Checkbox)

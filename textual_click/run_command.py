@@ -25,7 +25,7 @@ class UserOptionData:
     """
 
     name: str | list[str]
-    value: tuple[Any]  # Multi-value options will be tuple length > 1
+    value: list[tuple[Any]]  # Multi-value options will be tuple length > 1
     option_schema: OptionSchema
 
     @property
@@ -83,6 +83,7 @@ class UserCommandData:
 
         multiples = defaultdict(list)
         multiples_schemas = {}
+
         for option in self.options:
             if option.option_schema.multiple:
                 # We need to gather the items for the same option,
@@ -93,52 +94,52 @@ class UserCommandData:
             else:
                 value = option.value
                 default = option.option_schema.default
-                is_default = value == str(default)
 
-                print(f"the value in to_cli_args is {value}")
+                # Convert the defaults into the expected form...
+                expanded_defaults = [("",) * option.option_schema.nargs]
 
-                if (
-                    value is not None
-                    and value is not False
-                    and not is_default
-                    and value != []  # TODO: We need to support empty strings
-                ):
-                    if isinstance(option.name, str):
-                        args.append(option.name)
-                    else:
-                        # Use the option with the longest name, since
-                        # it's probably the most descriptive.
-                        longest_name = max(option.name, key=len)
-                        args.append(longest_name)
-
-                    # Only add a value for non-boolean options
-                    if value is not True:
-                        if isinstance(value, tuple):
-                            args.extend(value)
+                # Value is always a list of tuples
+                for subvalue in value:
+                    if (
+                        subvalue is not None
+                        and subvalue is not False
+                        and not is_default
+                        and subvalue != []  # TODO: We need to support empty strings
+                    ):
+                        if isinstance(option.name, str):
+                            args.append(option.name)
                         else:
-                            args.append(str(value))
+                            # Use the option with the longest name, since
+                            # it's probably the most descriptive.
+                            longest_name = max(option.name, key=len)
+                            args.append(longest_name)
 
-        # TODO: The multiple choice input only makes sense when multiple=True
-        #  and the type is choice (not when the type is tuple). We need to ensure
-        #  that we receive the values from MultipleChoice in the correct format,
-        #  namely, a list of tuples of length 1.
+                        print(f"value is {value}")
+                        # Only add a value for non-boolean options
+                        if value is not True:
+                            if isinstance(value, tuple):
+                                args.extend(str(v) for v in value)
+                            else:
+                                args.append(str(value))
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
-            if list(sorted(map(str, values))) != list(sorted(map(str, defaults))):
+            sorted_supplied_values = list(sorted(values))
+            sorted_default_values = list(sorted(defaults))
+
+            if sorted_supplied_values != sorted_default_values:
                 for value in values:
                     args.append(option_name)
                     if isinstance(value, tuple):
-                        args.extend(value)
+                        args.extend(str(v) for v in value)
                     else:
                         args.append(str(value))
 
         for argument in self.arguments:
             value = argument.value
-            print(f"the argument value is {value}")
             for argument_value in value:
-                args.extend(argument_value)
+                args.extend(str(argument_value))
 
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
@@ -167,15 +168,16 @@ class UserCommandData:
         """
         # Prefill default option values
         for option_schema in command_schema.options:
-            if option_schema.default is not None and not any(
+            default = option_schema.default
+            if default is not None and not any(
                 opt.name == option_schema.name for opt in self.options
             ):
                 if option_schema.multiple:
-                    for default in option_schema.default:
+                    for default in default:
                         self.options.append(
                             UserOptionData(
                                 name=option_schema.name,
-                                value=default,
+                                value=(default,) if not isinstance(default, tuple) else default,
                                 option_schema=option_schema,
                             )
                         )
@@ -183,7 +185,7 @@ class UserCommandData:
                     self.options.append(
                         UserOptionData(
                             name=option_schema.name,
-                            value=option_schema.default,
+                            value=(default,) if not isinstance(default, tuple) else default,
                             option_schema=option_schema,
                         )
                     )

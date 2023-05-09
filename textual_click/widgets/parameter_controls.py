@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, Iterable, TypeVar, Union
+from typing import Any, Callable, Iterable, TypeVar, Union, cast
 
 import click
 from rich.text import Text
@@ -54,7 +54,6 @@ class ParameterControls(Widget):
             name, argument_type, is_option, schema.required, multiple=multiple
         )
         first_focus_control: Widget | None = None  # The widget that will be focused when the form is focused.
-        print(argument_type)
 
         # If there are N defaults, we render the "group" N times.
         # Each group will contain `nargs` widgets.
@@ -82,7 +81,6 @@ class ParameterControls(Widget):
                     defaults = default if multiple else [default]
                     for default_value in defaults:
                         widget_group = self.make_widget_group()
-                        print(f"Parameter {name}: defaults = {defaults!r}")
                         with ControlGroup():
                             # Parameter types can be of length 1, but there could still be multiple defaults.
                             # We need to render a widget for each of those defaults.
@@ -154,7 +152,6 @@ class ParameterControls(Widget):
     def _apply_default_value(control_widget: ControlWidgetType, default_value: Any) -> None:
         """Set the default value of a parameter-handling widget."""
         if isinstance(control_widget, Input):
-            print(f"Setting Input widget value to: {default_value}")
             control_widget.value = str(default_value)
         elif isinstance(control_widget, RadioSet):
             for item in control_widget.walk_children():
@@ -173,8 +170,8 @@ class ParameterControls(Widget):
         elif isinstance(control, (Input, Checkbox)):
             return control.value
 
-    def get_values(self) -> list[tuple[str, ...]]:
-        # We can find all relevant control widgets by querying the schema
+    def get_values(self) -> list[tuple[Any, ...]]:
+        # We can find all relevant control widgets by querying the parameter schema
         # key as a class.
 
         def list_to_tuples(lst: list[Any], tuple_size: int) -> list[tuple[Any, ...]]:
@@ -182,11 +179,28 @@ class ParameterControls(Widget):
                 raise ValueError("Size must be greater than 0.")
             return [tuple(lst[i:i + tuple_size]) for i in range(0, len(lst), tuple_size)]
 
-        controls = self.query(f".{self.schema.key}")
-        values = []
-        for control in list(controls):
-            values.append(self._get_form_control_value(control))
-        return list_to_tuples(values, self.schema.nargs)
+        controls = list(self.query(f".{self.schema.key}"))
+        collected_values = []
+
+        if len(controls) == 1 and isinstance(controls[0], MultipleChoice):
+            # Since MultipleChoice widgets are a special case that appear in isolation,
+            # our logic to fetch the values out of them is slightly modified from the nominal
+            # case presented in the other branch.
+            control = cast(MultipleChoice, controls[0])
+            control_values = self._get_form_control_value(control)
+            for value in control_values:
+                collected_values.append((value,))
+        else:
+            # For each of the control widgets for this parameter, capture the value(s) from them.
+            for control in list(controls):
+                control_values = self._get_form_control_value(control)
+                # Standard widgets each only return a single value
+                print(f"standard widget values {control_values}")
+                collected_values.append(control_values)
+            collected_values = list_to_tuples(collected_values, self.schema.nargs)
+
+        print(collected_values)
+        return collected_values
 
     def get_control_method(self, argument_type: Any) -> Callable[
         [Any, Text, bool, OptionSchema | ArgumentSchema, str], Widget]:

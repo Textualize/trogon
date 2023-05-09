@@ -16,7 +16,7 @@ from textual_click.introspect import (
     OptionSchema,
 )
 from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
-from textual_click.widgets.form_control import ParameterControls
+from textual_click.widgets.parameter_controls import ParameterControls
 
 
 @dataclasses.dataclass
@@ -148,6 +148,7 @@ class CommandForm(Widget):
                 # lets grab the values the user has supplied for them in the form.
                 for option in command.options:
                     parameter_control = self.query_one(f"#{option.key}", ParameterControls)
+                    print(f"param {option.name}")
                     value = parameter_control.get_values()
 
                     if option.multiple:
@@ -155,7 +156,7 @@ class CommandForm(Widget):
                             option_data = UserOptionData(option.name, v, option)
                             option_datas.append(option_data)
                     else:
-                        option_data = UserOptionData(option.name, value[0], option)
+                        option_data = UserOptionData(option.name, value, option)
                         option_datas.append(option_data)
 
                 # Now do the same for the arguments
@@ -180,6 +181,7 @@ class CommandForm(Widget):
             # TODO
             print(f"exception {e}")
             return
+            # raise e
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
