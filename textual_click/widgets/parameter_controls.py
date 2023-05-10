@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import functools
 from functools import partial
 from typing import Any, Callable, Iterable, TypeVar, Union, cast
 
 import click
+from rich.console import Console, ConsoleOptions
+from rich.segment import Segment
 from rich.text import Text
 from textual import log, on
 from textual.app import ComposeResult
@@ -31,6 +34,18 @@ class ControlGroup(Vertical):
 
 class ControlGroupsContainer(Vertical):
     pass
+
+
+@functools.total_ordering
+class ValueNotSupplied:
+    def __eq__(self, other):
+        return isinstance(other, ValueNotSupplied)
+
+    def __lt__(self, other):
+        return False
+
+    def __rich_console__(self, console: Console, console_options: ConsoleOptions):
+        yield Text("?", style="black on yellow bold italic")
 
 
 class ParameterControls(Widget):
@@ -195,8 +210,10 @@ class ParameterControls(Widget):
         elif isinstance(control, RadioSet):
             if control.pressed_button is not None:
                 return control.pressed_button.label.plain
-            return None
-        elif isinstance(control, (Input, Checkbox)):
+            return ValueNotSupplied()
+        elif isinstance(control, Input):
+            return ValueNotSupplied() if control.value == "" else control.value  # TODO: We should only return "" when user selects a checkbox - needs custom widget.
+        elif isinstance(control, Checkbox):
             return control.value
 
     def get_values(self) -> MultiValueParamData:
@@ -209,7 +226,7 @@ class ParameterControls(Widget):
             if tuple_size <= 0:
                 raise ValueError("Size must be greater than 0.")
             return [
-                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))

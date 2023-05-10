@@ -6,6 +6,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
+from rich.text import Text
+
 from textual_click.introspect import (
     CommandSchema,
     CommandName,
@@ -13,6 +15,7 @@ from textual_click.introspect import (
     ArgumentSchema,
     MultiValueParamData,
 )
+from textual_click.widgets.parameter_controls import ValueNotSupplied
 
 
 @dataclass
@@ -108,7 +111,8 @@ class UserCommandData:
 
                 # If the user has supplied values (any values are not None), then
                 # we don't display the value.
-                values_supplied = any(value is not None for value in flattened_values)
+                values_supplied = any(
+                    value != ValueNotSupplied() for value in flattened_values)
                 values_are_defaults = list(map(str, flattened_values)) == list(
                     map(str, flattened_defaults)
                 )
@@ -125,7 +129,9 @@ class UserCommandData:
                         args.append(longest_name)
 
                     # Only add a value for non-boolean options
-                    if value_data is not True:
+                    is_true_bool = value_data == [(True,)]
+                    this_value_supplied = value_data != ValueNotSupplied()
+                    if this_value_supplied or is_true_bool:
                         if isinstance(value_data, tuple):
                             args.extend(str(v) for v in value_data)
                         else:
@@ -139,35 +145,32 @@ class UserCommandData:
                 sorted(itertools.chain.from_iterable(defaults.values))
             )
 
-            print(option_name)
-            print(sorted_supplied_values)
-            print(sorted_default_values)
-
             supplied_values = list(map(str, sorted_supplied_values))
             supplied_defaults = list(map(str, sorted_default_values))
             values_are_defaults = supplied_values == supplied_defaults
-            values_supplied = any(value is not None for value in sorted_supplied_values)
+            values_supplied = any(
+                value != ValueNotSupplied() for value in sorted_supplied_values)
 
-            # If the user has supplied and non-default values, include them...
+            # If the user has supplied any non-default values, include them...
             if values_supplied and not values_are_defaults:
                 for value_data in values:
-                    args.append(option_name)
-                    if isinstance(value_data, tuple):
+                    if value_data != ValueNotSupplied():
+                        args.append(option_name)
+                        print(f"Adding {value_data}")
                         args.extend(str(v) for v in value_data)
-                    else:
-                        args.append(str(value_data))
 
         for argument in self.arguments:
             value_data = argument.value
             for argument_value in value_data:
-                args.append(argument_value)
+                if argument_value != ValueNotSupplied():
+                    args.append(argument_value)
 
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
 
         return args
 
-    def to_cli_string(self, include_root_command: bool = False) -> str:
+    def to_cli_string(self, include_root_command: bool = False) -> Text:
         """
         Generates a string representing the CLI invocation as if typed directly into the
         command line.
@@ -178,7 +181,7 @@ class UserCommandData:
         args = self.to_cli_args()
         if not include_root_command:
             args = args[1:]
-        return " ".join(shlex.quote(arg) for arg in args)
+        return Text(" ").join(Text(shlex.quote(arg)) for arg in args if not arg == ValueNotSupplied())
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
         """
