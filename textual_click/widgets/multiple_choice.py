@@ -52,7 +52,7 @@ class MultipleChoice(Widget):
         with VerticalScroll() as vs:
             vs.can_focus = False
             for option in self.options:
-                yield Checkbox(option, value=option in self.defaults)
+                yield Checkbox(option, value=(option,) in self.defaults)
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         checkboxes = self.query(Checkbox)
