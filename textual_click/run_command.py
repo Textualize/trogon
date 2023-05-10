@@ -181,7 +181,7 @@ class UserCommandData:
 
         text_renderables = []
         for arg in args:
-            text_renderables.append(Text(str(arg)) if arg != ValueNotSupplied() else Text("???", style="black on yellow"))
+            text_renderables.append(Text(shlex.quote(str(arg))) if arg != ValueNotSupplied() else Text("???", style="bold black on red"))
         return Text(" ").join(text_renderables)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
