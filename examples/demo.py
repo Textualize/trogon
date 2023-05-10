@@ -5,13 +5,13 @@ from textual_click.textual_click import tui
 
 @tui()
 @click.group()
-@click.option(
-    "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
-)
+# @click.option(
+#     "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
+# )
 @click.pass_context
-def cli(ctx, verbose):
+def cli(ctx):
     ctx.ensure_object(dict)
-    ctx.obj["verbose"] = verbose
+    # ctx.obj["verbose"] = verbose
 
 
 @cli.command()
@@ -39,6 +39,7 @@ def cli(ctx, verbose):
     "-l",
     type=click.Choice(["important", "urgent", "later"], case_sensitive=False),
     multiple=True,
+    default=["urgent"],
     help="Add labels to the task (repeatable)",
 )
 @click.pass_context

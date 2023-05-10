@@ -91,20 +91,24 @@ class ParameterControls(Widget):
             else:
                 # For other widgets, we'll render as normal...
                 # If required, we'll generate widgets containing the defaults
-                for default_value in default.values:
+                for default_value_tuple in default.values:
                     widget_group = self.make_widget_group()
                     with ControlGroup():
-                        # Parameter types can be of length 1, but there could still be multiple defaults.
-                        # We need to render a widget for each of those defaults.
-                        # Extend the widget group such that there's a slot available for each default...
-                        for control_widget in widget_group:
+                        # Parameter types can be of length 1, but there could still
+                        # be multiple defaults. We need to render a widget for each
+                        # of those defaults. Extend the widget group such that
+                        # there's a slot available for each default...
+                        for default_value, control_widget in zip(
+                            default_value_tuple, widget_group
+                        ):
                             self._apply_default_value(control_widget, default_value)
                             yield control_widget
                             # Keep track of the first control we render, for easy focus
                             if first_focus_control is None:
                                 first_focus_control = control_widget
 
-                # We always need to display the original group of controls, regardless of whether there are defaults
+                # We always need to display the original group of controls,
+                # regardless of whether there are defaults
                 if multiple or not default:
                     widget_group = self.make_widget_group()
                     with ControlGroup():
@@ -156,6 +160,7 @@ class ParameterControls(Widget):
         # At this point we don't care about filling in the default values.
         for _type in parameter_types:
             control_method = self.get_control_method(_type)
+            print(control_method)
             control_widgets = control_method(
                 default, label, multiple, schema, schema.key
             )
@@ -217,14 +222,15 @@ class ParameterControls(Widget):
             # where multiple=True.
             control = cast(MultipleChoice, controls[0])
             control_values = self._get_form_control_value(control)
-            return MultiValueParamData(control_values)
+            print(f"control values {control_values!r}")
+            return MultiValueParamData.process_cli_option(control_values)
         else:
             # For each control widget for this parameter, capture the value(s) from them
             collected_values = []
             for control in list(controls):
                 control_values = self._get_form_control_value(control)
                 # Standard widgets each only return a single value
-                print(f"standard widget values {control_values}")
+                print(f"standard widget values {control_values} {type(control_values)}")
                 collected_values.append(control_values)
 
             # Since we fetched a flat list of widgets (and thus a flat list of values
@@ -233,7 +239,8 @@ class ParameterControls(Widget):
             # as the types specified in the click Option `type`. We convert a flat list
             # of widget values into a list of tuples, each tuple of length nargs.
             collected_values = list_to_tuples(collected_values, self.schema.nargs)
-            return MultiValueParamData(collected_values)
+            print(f"collected values = {collected_values}")
+            return MultiValueParamData.process_cli_option(collected_values)
 
     def get_control_method(
         self, argument_type: Any

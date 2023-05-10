@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import shlex
 from collections import defaultdict
 from dataclasses import dataclass
@@ -10,6 +11,7 @@ from textual_click.introspect import (
     CommandName,
     OptionSchema,
     ArgumentSchema,
+    MultiValueParamData,
 )
 
 
@@ -92,53 +94,54 @@ class UserCommandData:
                 multiples[option.string_name].append(option.value)
                 multiples_schemas[option.string_name] = option.option_schema
             else:
-                value = option.value
-                default = option.option_schema.default
+                value_data: list[tuple[Any]] = [option.value]
+                default_data: list[tuple[Any]] = option.option_schema.default.values
 
-                print("value=", value)
-                print("default=", default)
+                flattened_values = sorted(itertools.chain.from_iterable(value_data))
+                flattened_defaults = sorted(itertools.chain.from_iterable(default_data))
 
-                # Value is always a list of tuples
-                for subvalue in value:
-                    if (
-                        subvalue is not None
-                        and subvalue is not False
-                        # and not is_default
-                        and subvalue != []  # TODO: We need to support empty strings
-                    ):
-                        if isinstance(option.name, str):
-                            args.append(option.name)
+                is_default = list(map(str, flattened_values)) == list(
+                    map(str, flattened_defaults)
+                )
+
+                if not is_default and not all(
+                    value == "" for value in flattened_values):
+                    if isinstance(option.name, str):
+                        args.append(option.name)
+                    else:
+                        # Use the option with the longest name, since
+                        # it's probably the most descriptive.
+                        longest_name = max(option.name, key=len)
+                        args.append(longest_name)
+
+                    # Only add a value for non-boolean options
+                    if value_data is not True:
+                        if isinstance(value_data, tuple):
+                            args.extend(str(v) for v in value_data)
                         else:
-                            # Use the option with the longest name, since
-                            # it's probably the most descriptive.
-                            longest_name = max(option.name, key=len)
-                            args.append(longest_name)
-
-                        print(f"value is {value}")
-                        # Only add a value for non-boolean options
-                        if value is not True:
-                            if isinstance(value, tuple):
-                                args.extend(str(v) for v in value)
-                            else:
-                                args.append(str(value))
+                            args.append(str(value_data))
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
-            sorted_supplied_values = list(sorted(values))
-            sorted_default_values = list(sorted(defaults))
+            sorted_supplied_values = list(sorted(itertools.chain.from_iterable(values)))
+            sorted_default_values = list(
+                sorted(itertools.chain.from_iterable(defaults.values))
+            )
 
-            if sorted_supplied_values != sorted_default_values:
-                for value in values:
+            if list(map(str, sorted_supplied_values)) != list(
+                map(str, sorted_default_values)
+            ):
+                for value_data in values:
                     args.append(option_name)
-                    if isinstance(value, tuple):
-                        args.extend(str(v) for v in value)
+                    if isinstance(value_data, tuple):
+                        args.extend(str(v) for v in value_data)
                     else:
-                        args.append(str(value))
+                        args.append(str(value_data))
 
         for argument in self.arguments:
-            value = argument.value
-            for argument_value in value:
+            value_data = argument.value.values
+            for argument_value in value_data:
                 args.extend(str(argument_value))
 
         if self.subcommand:

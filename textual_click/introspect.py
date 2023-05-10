@@ -20,16 +20,18 @@ class MultiValueParamData:
     @staticmethod
     def process_cli_option(value) -> "MultiValueParamData":
         if value is None:
-            return MultiValueParamData([])
+            value = MultiValueParamData([])
         elif isinstance(value, tuple):
-            return MultiValueParamData([value])
+            value = MultiValueParamData([value])
         elif isinstance(value, list):
             processed_list = [
                 tuple(item) if not isinstance(item, tuple) else item for item in value
             ]
-            return MultiValueParamData(processed_list)
+            value = MultiValueParamData(processed_list)
         else:
-            return MultiValueParamData([(value,)])
+            value = MultiValueParamData([(value,)])
+
+        return value
 
 
 @dataclass
