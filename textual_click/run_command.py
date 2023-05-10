@@ -100,17 +100,27 @@ class UserCommandData:
                 flattened_values = sorted(itertools.chain.from_iterable(value_data))
                 flattened_defaults = sorted(itertools.chain.from_iterable(default_data))
 
-                is_default = list(map(str, flattened_values)) == list(
+                # TODO: We need to improve handling of empty strings to differentiate
+                #  between a value that hasn't been supplied and an actual empty string.
+                #  When we retrieve the value from the input, if the user wants empty str
+                #  (i.e. the user has checked a checkbox saying so), then we should pass
+                #  up the empty string, otherwise we should pass up None.
+
+                # If the user has supplied values (any values are not None), then
+                # we don't display the value.
+                values_supplied = any(value is not None for value in flattened_values)
+                values_are_defaults = list(map(str, flattened_values)) == list(
                     map(str, flattened_defaults)
                 )
 
-                if not is_default and not all(
-                    value == "" for value in flattened_values):
+                # If the user has supplied values, and they're not the default values,
+                # then we want to display them in the command string...
+                if values_supplied and not values_are_defaults:
                     if isinstance(option.name, str):
                         args.append(option.name)
                     else:
                         # Use the option with the longest name, since
-                        # it's probably the most descriptive.
+                        # it's probably the most descriptive (use --verbose over -v)
                         longest_name = max(option.name, key=len)
                         args.append(longest_name)
 
@@ -129,9 +139,17 @@ class UserCommandData:
                 sorted(itertools.chain.from_iterable(defaults.values))
             )
 
-            if list(map(str, sorted_supplied_values)) != list(
-                map(str, sorted_default_values)
-            ):
+            print(option_name)
+            print(sorted_supplied_values)
+            print(sorted_default_values)
+
+            supplied_values = list(map(str, sorted_supplied_values))
+            supplied_defaults = list(map(str, sorted_default_values))
+            values_are_defaults = supplied_values == supplied_defaults
+            values_supplied = any(value is not None for value in sorted_supplied_values)
+
+            # If the user has supplied and non-default values, include them...
+            if values_supplied and not values_are_defaults:
                 for value_data in values:
                     args.append(option_name)
                     if isinstance(value_data, tuple):
