@@ -132,10 +132,7 @@ class UserCommandData:
                     is_true_bool = value_data == [(True,)]
                     this_value_supplied = value_data != ValueNotSupplied()
                     if this_value_supplied or is_true_bool:
-                        if isinstance(value_data, tuple):
-                            args.extend(str(v) for v in value_data)
-                        else:
-                            args.append(str(value_data))
+                        args.extend(v for v in value_data)
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
@@ -157,7 +154,7 @@ class UserCommandData:
                     if value_data != ValueNotSupplied():
                         args.append(option_name)
                         print(f"Adding {value_data}")
-                        args.extend(str(v) for v in value_data)
+                        args.extend(v for v in value_data)
 
         for argument in self.arguments:
             value_data = argument.value
@@ -181,7 +178,11 @@ class UserCommandData:
         args = self.to_cli_args()
         if not include_root_command:
             args = args[1:]
-        return Text(" ").join(Text(shlex.quote(arg)) for arg in args if not arg == ValueNotSupplied())
+
+        text_renderables = []
+        for arg in args:
+            text_renderables.append(Text(str(arg)) if arg != ValueNotSupplied() else Text("???", style="black on yellow"))
+        return Text(" ").join(text_renderables)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
         """

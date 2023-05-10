@@ -44,9 +44,6 @@ class ValueNotSupplied:
     def __lt__(self, other):
         return False
 
-    def __rich_console__(self, console: Console, console_options: ConsoleOptions):
-        yield Text("?", style="black on yellow bold italic")
-
 
 class ParameterControls(Widget):
     def __init__(
