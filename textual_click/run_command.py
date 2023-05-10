@@ -140,9 +140,9 @@ class UserCommandData:
                         args.append(str(value_data))
 
         for argument in self.arguments:
-            value_data = argument.value.values
+            value_data = argument.value
             for argument_value in value_data:
-                args.extend(str(argument_value))
+                args.append(argument_value)
 
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())

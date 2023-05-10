@@ -110,7 +110,6 @@ class CommandBuilder(Screen):
                 command_tree = self.query_one(CommandTree)
                 node = command_tree.cursor_node
             except NoMatches:
-                print("Failed to refresh command form.")
                 return
 
         self.selected_command_schema = node.data

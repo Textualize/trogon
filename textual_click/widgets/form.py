@@ -150,9 +150,9 @@ class CommandForm(Widget):
                     parameter_control = self.query_one(
                         f"#{option.key}", ParameterControls
                     )
-                    print(f"param {option.name}")
                     value = parameter_control.get_values()
                     for v in value.values:
+                        assert isinstance(v, tuple)
                         option_data = UserOptionData(option.name, v, option)
                         option_datas.append(option_data)
 
@@ -163,10 +163,14 @@ class CommandForm(Widget):
                         f"#{argument.key}", ParameterControls
                     )
                     value = form_control_widget.get_values()
+                    # This should only ever loop once since arguments can be multi-value but not multiple=True.
                     for v in value.values:
+                        assert isinstance(v, tuple)
                         argument_data = UserArgumentData(argument.name, v, argument)
                         argument_datas.append(argument_data)
 
+                assert all(isinstance(option.value, tuple) for option in option_datas)
+                assert all(isinstance(argument.value, tuple) for argument in argument_datas)
                 command_data = UserCommandData(
                     name=command.name,
                     options=option_datas,
@@ -178,14 +182,14 @@ class CommandForm(Widget):
                 parent_command_data = command_data
         except Exception as e:
             # TODO
-            print(f"exception {e}")
-            return
-            # raise e
+            # print(f"exception {e}")
+            # return
+            raise e
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
         root_command_data.parent = None
-        root_command_data.fill_defaults(self.command_schema)
+        # root_command_data.fill_defaults(self.command_schema)
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):

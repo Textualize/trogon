@@ -76,6 +76,7 @@ class ParameterControls(Widget):
 
         with ControlGroupsContainer():
             if isinstance(argument_type, click.Choice) and multiple:
+                # Display a MultipleChoice widget
                 # There's a special case where we have a Choice with multiple=True,
                 # in this case, we can just render a single MultipleChoice widget
                 # instead of multiple radio-sets.
@@ -109,7 +110,7 @@ class ParameterControls(Widget):
 
                 # We always need to display the original group of controls,
                 # regardless of whether there are defaults
-                if multiple or not default:
+                if multiple or not default.values:
                     widget_group = self.make_widget_group()
                     with ControlGroup():
                         # No need to apply defaults to this group
@@ -160,7 +161,6 @@ class ParameterControls(Widget):
         # At this point we don't care about filling in the default values.
         for _type in parameter_types:
             control_method = self.get_control_method(_type)
-            print(control_method)
             control_widgets = control_method(
                 default, label, multiple, schema, schema.key
             )
@@ -222,7 +222,6 @@ class ParameterControls(Widget):
             # where multiple=True.
             control = cast(MultipleChoice, controls[0])
             control_values = self._get_form_control_value(control)
-            print(f"control values {control_values!r}")
             return MultiValueParamData.process_cli_option(control_values)
         else:
             # For each control widget for this parameter, capture the value(s) from them
@@ -230,7 +229,6 @@ class ParameterControls(Widget):
             for control in list(controls):
                 control_values = self._get_form_control_value(control)
                 # Standard widgets each only return a single value
-                print(f"standard widget values {control_values} {type(control_values)}")
                 collected_values.append(control_values)
 
             # Since we fetched a flat list of widgets (and thus a flat list of values
@@ -239,7 +237,6 @@ class ParameterControls(Widget):
             # as the types specified in the click Option `type`. We convert a flat list
             # of widget values into a list of tuples, each tuple of length nargs.
             collected_values = list_to_tuples(collected_values, self.schema.nargs)
-            print(f"collected values = {collected_values}")
             return MultiValueParamData.process_cli_option(collected_values)
 
     def get_control_method(
@@ -320,7 +317,7 @@ class ParameterControls(Widget):
             multi_choice = MultipleChoice(
                 choices,
                 classes=f"command-form-multiple-choice {control_id}",
-                defaults=default,
+                defaults=default.values,
             )
             yield multi_choice
             return multi_choice

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
+
 from rich.text import TextType
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Checkbox
-
-from textual_click.introspect import MultiValueParamData
 
 
 class MultipleChoice(Widget):
@@ -30,7 +30,7 @@ class MultipleChoice(Widget):
     def __init__(
         self,
         options: list[TextType],
-        defaults: MultiValueParamData | None = None,
+        defaults: list[tuple[Any]] | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -38,7 +38,7 @@ class MultipleChoice(Widget):
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         if defaults is None:
-            defaults = MultiValueParamData.process_cli_option([])
+            defaults = [()]
         self.options = options
         self.defaults = defaults
         self.selected = defaults
@@ -52,7 +52,7 @@ class MultipleChoice(Widget):
         with VerticalScroll() as vs:
             vs.can_focus = False
             for option in self.options:
-                yield Checkbox(option, value=option in self.defaults.values)
+                yield Checkbox(option, value=option in self.defaults)
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         checkboxes = self.query(Checkbox)

@@ -25,7 +25,7 @@ class MultiValueParamData:
             value = MultiValueParamData([value])
         elif isinstance(value, list):
             processed_list = [
-                tuple(item) if not isinstance(item, tuple) else item for item in value
+                (item,) if not isinstance(item, tuple) else item for item in value
             ]
             value = MultiValueParamData(processed_list)
         else:
@@ -123,11 +123,12 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
 
         for param in cmd_obj.params:
             if isinstance(param, (click.Option, click.core.Group)):
+                default = MultiValueParamData.process_cli_option(param.default)
                 option_data = OptionSchema(
                     name=param.opts,
                     type=param.type,
                     required=param.required,
-                    default=MultiValueParamData.process_cli_option(param.default),
+                    default=default,
                     help=param.help,
                     multiple=param.multiple,
                     nargs=param.nargs,
