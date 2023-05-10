@@ -14,10 +14,29 @@ def generate_unique_id():
 
 
 @dataclass
+class MultiValueParamData:
+    values: list[tuple[int | float | str]]
+
+    @staticmethod
+    def process_cli_option(value) -> "MultiValueParamData":
+        if value is None:
+            return MultiValueParamData([])
+        elif isinstance(value, tuple):
+            return MultiValueParamData([value])
+        elif isinstance(value, list):
+            processed_list = [
+                tuple(item) if not isinstance(item, tuple) else item for item in value
+            ]
+            return MultiValueParamData(processed_list)
+        else:
+            return MultiValueParamData([(value,)])
+
+
+@dataclass
 class OptionSchema:
     name: list[str]
     type: ParamType
-    default: Any
+    default: MultiValueParamData
     required: bool
     key: str | tuple[str] = field(default_factory=generate_unique_id)
     help: str | None = None
@@ -36,7 +55,7 @@ class ArgumentSchema:
     type: str
     required: bool
     key: str = field(default_factory=generate_unique_id)
-    default: Any | None = None
+    default: MultiValueParamData | None = None
     choices: Sequence[str] | None = None
     multiple: bool = False
     nargs: int = 1
@@ -106,7 +125,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     name=param.opts,
                     type=param.type,
                     required=param.required,
-                    default=param.default,
+                    default=MultiValueParamData.process_cli_option(param.default),
                     help=param.help,
                     multiple=param.multiple,
                     nargs=param.nargs,
@@ -120,6 +139,8 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     type=param.type,
                     required=param.required,
                     multiple=param.multiple,
+                    default=MultiValueParamData.process_cli_option(param.default),
+                    nargs=param.nargs
                 )
                 if isinstance(param.type, click.Choice):
                     argument_data.choices = param.type.choices

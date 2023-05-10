@@ -25,7 +25,7 @@ class UserOptionData:
     """
 
     name: str | list[str]
-    value: list[tuple[Any]]  # Multi-value options will be tuple length > 1
+    value: tuple[Any]  # Multi-value options will be tuple length > 1
     option_schema: OptionSchema
 
     @property
@@ -95,15 +95,15 @@ class UserCommandData:
                 value = option.value
                 default = option.option_schema.default
 
-                # Convert the defaults into the expected form...
-                expanded_defaults = [("",) * option.option_schema.nargs]
+                print("value=", value)
+                print("default=", default)
 
                 # Value is always a list of tuples
                 for subvalue in value:
                     if (
                         subvalue is not None
                         and subvalue is not False
-                        and not is_default
+                        # and not is_default
                         and subvalue != []  # TODO: We need to support empty strings
                     ):
                         if isinstance(option.name, str):
@@ -148,7 +148,8 @@ class UserCommandData:
 
     def to_cli_string(self, include_root_command: bool = False) -> str:
         """
-        Generates a string representing the CLI invocation as if typed directly into the command line.
+        Generates a string representing the CLI invocation as if typed directly into the
+        command line.
 
         Returns:
             A string representing the command invocation.
@@ -160,11 +161,12 @@ class UserCommandData:
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:
         """
-        Prefills the UserCommandData instance with default values for options and arguments based on the provided
-        CommandSchema.
+        Prefills the UserCommandData instance with default values for options and
+        arguments based on the provided CommandSchema.
 
         Args:
-            command_schema: A CommandSchema instance representing the schema for the command to prefill defaults.
+            command_schema: A CommandSchema instance representing the schema for
+                the command to prefill defaults.
         """
         # Prefill default option values
         for option_schema in command_schema.options:
@@ -172,20 +174,16 @@ class UserCommandData:
             if default is not None and not any(
                 opt.name == option_schema.name for opt in self.options
             ):
-                if option_schema.multiple:
-                    for default in default:
-                        self.options.append(
-                            UserOptionData(
-                                name=option_schema.name,
-                                value=(default,) if not isinstance(default, tuple) else default,
-                                option_schema=option_schema,
-                            )
-                        )
-                else:
+                # There's a separate UserOptionData instance for each instance of an
+                # option passed. So `--path . --path src` would be 2 UserOptionData
+                # objects. If multiple=True, there'll be many instances. If
+                # multiple=False, then we expect that only a single UserOptionData
+                # will be appended here.
+                for value in default.values:
                     self.options.append(
                         UserOptionData(
                             name=option_schema.name,
-                            value=(default,) if not isinstance(default, tuple) else default,
+                            value=value,
                             option_schema=option_schema,
                         )
                     )

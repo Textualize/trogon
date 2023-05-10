@@ -7,6 +7,8 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Checkbox
 
+from textual_click.introspect import MultiValueParamData
+
 
 class MultipleChoice(Widget):
     DEFAULT_CSS = """
@@ -28,16 +30,16 @@ class MultipleChoice(Widget):
     def __init__(
         self,
         options: list[TextType],
-        defaults: list[str] | None = None,
+        defaults: MultiValueParamData | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
-        self.options = options
         if defaults is None:
-            defaults = []
+            defaults = MultiValueParamData.process_cli_option([])
+        self.options = options
         self.defaults = defaults
         self.selected = defaults
 
@@ -50,7 +52,7 @@ class MultipleChoice(Widget):
         with VerticalScroll() as vs:
             vs.can_focus = False
             for option in self.options:
-                yield Checkbox(option, value=option in self.defaults)
+                yield Checkbox(option, value=option in self.defaults.values)
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         checkboxes = self.query(Checkbox)

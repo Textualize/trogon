@@ -147,26 +147,25 @@ class CommandForm(Widget):
                 # For each of the options in the schema for this command,
                 # lets grab the values the user has supplied for them in the form.
                 for option in command.options:
-                    parameter_control = self.query_one(f"#{option.key}", ParameterControls)
+                    parameter_control = self.query_one(
+                        f"#{option.key}", ParameterControls
+                    )
                     print(f"param {option.name}")
                     value = parameter_control.get_values()
-
-                    if option.multiple:
-                        for v in value:
-                            option_data = UserOptionData(option.name, v, option)
-                            option_datas.append(option_data)
-                    else:
-                        option_data = UserOptionData(option.name, value, option)
+                    for v in value.values:
+                        option_data = UserOptionData(option.name, v, option)
                         option_datas.append(option_data)
 
                 # Now do the same for the arguments
                 argument_datas = []
-
                 for argument in command.arguments:
-                    form_control_widget = self.query_one(f"#{argument.key}", ParameterControls)
+                    form_control_widget = self.query_one(
+                        f"#{argument.key}", ParameterControls
+                    )
                     value = form_control_widget.get_values()
-                    argument_data = UserArgumentData(argument.name, value, argument)
-                    argument_datas.append(argument_data)
+                    for v in value.values:
+                        argument_data = UserArgumentData(argument.name, v, argument)
+                        argument_datas.append(argument_data)
 
                 command_data = UserCommandData(
                     name=command.name,
@@ -186,7 +185,7 @@ class CommandForm(Widget):
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
         root_command_data.parent = None
-        root_command_data.fill_defaults(self.command_schema)
+        # root_command_data.fill_defaults(self.command_schema)
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):
