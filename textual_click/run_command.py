@@ -97,7 +97,9 @@ class UserCommandData:
                 multiples[option.string_name].append(option.value)
                 multiples_schemas[option.string_name] = option.option_schema
             else:
-                value_data: list[tuple[Any]] = [option.value]
+                value_data: list[tuple[Any]] = MultiValueParamData.process_cli_option(
+                    option.value
+                ).values
                 default_data: list[tuple[Any]] = option.option_schema.default.values
 
                 flattened_values = sorted(itertools.chain.from_iterable(value_data))
@@ -112,7 +114,8 @@ class UserCommandData:
                 # If the user has supplied values (any values are not None), then
                 # we don't display the value.
                 values_supplied = any(
-                    value != ValueNotSupplied() for value in flattened_values)
+                    value != ValueNotSupplied() for value in flattened_values
+                )
                 values_are_defaults = list(map(str, flattened_values)) == list(
                     map(str, flattened_defaults)
                 )
@@ -121,18 +124,27 @@ class UserCommandData:
                 # then we want to display them in the command string...
                 if values_supplied and not values_are_defaults:
                     if isinstance(option.name, str):
-                        args.append(option.name)
+                        option_name = option.name
                     else:
                         # Use the option with the longest name, since
                         # it's probably the most descriptive (use --verbose over -v)
                         longest_name = max(option.name, key=len)
-                        args.append(longest_name)
+                        option_name = longest_name
 
-                    # Only add a value for non-boolean options
+                    is_false_bool = value_data == [(False,)]
                     is_true_bool = value_data == [(True,)]
-                    this_value_supplied = value_data != ValueNotSupplied()
-                    if this_value_supplied or is_true_bool:
-                        args.extend(v for v in value_data)
+                    is_bool = is_false_bool or is_true_bool
+
+                    if is_true_bool:
+                        args.append(option_name)
+
+                    # Although buried away a little, this branch here is actually
+                    # the nominal case... single value options.
+                    # Only add a value for non-boolean options
+                    print(value_data)
+                    if not is_bool:
+                        for subvalue_tuple in value_data:
+                            args.extend(subvalue_tuple)
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
@@ -146,7 +158,8 @@ class UserCommandData:
             supplied_defaults = list(map(str, sorted_default_values))
             values_are_defaults = supplied_values == supplied_defaults
             values_supplied = any(
-                value != ValueNotSupplied() for value in sorted_supplied_values)
+                value != ValueNotSupplied() for value in sorted_supplied_values
+            )
 
             # If the user has supplied any non-default values, include them...
             if values_supplied and not values_are_defaults:
@@ -181,7 +194,11 @@ class UserCommandData:
 
         text_renderables = []
         for arg in args:
-            text_renderables.append(Text(shlex.quote(str(arg))) if arg != ValueNotSupplied() else Text("???", style="bold black on red"))
+            text_renderables.append(
+                Text(shlex.quote(str(arg)))
+                if arg != ValueNotSupplied()
+                else Text("???", style="bold black on red")
+            )
         return Text(" ").join(text_renderables)
 
     def fill_defaults(self, command_schema: CommandSchema) -> None:

@@ -209,7 +209,9 @@ class ParameterControls(Widget):
                 return control.pressed_button.label.plain
             return ValueNotSupplied()
         elif isinstance(control, Input):
-            return ValueNotSupplied() if control.value == "" else control.value  # TODO: We should only return "" when user selects a checkbox - needs custom widget.
+            return (
+                ValueNotSupplied() if control.value == "" else control.value
+            )  # TODO: We should only return "" when user selects a checkbox - needs custom widget.
         elif isinstance(control, Checkbox):
             return control.value
 
@@ -223,7 +225,7 @@ class ParameterControls(Widget):
             if tuple_size <= 0:
                 raise ValueError("Size must be greater than 0.")
             return [
-                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))
@@ -242,7 +244,6 @@ class ParameterControls(Widget):
             collected_values = []
             for control in list(controls):
                 control_values = self._get_form_control_value(control)
-                # Standard widgets each only return a single value
                 collected_values.append(control_values)
 
             # Since we fetched a flat list of widgets (and thus a flat list of values

@@ -170,7 +170,9 @@ class CommandForm(Widget):
                         argument_datas.append(argument_data)
 
                 assert all(isinstance(option.value, tuple) for option in option_datas)
-                assert all(isinstance(argument.value, tuple) for argument in argument_datas)
+                assert all(
+                    isinstance(argument.value, tuple) for argument in argument_datas
+                )
                 command_data = UserCommandData(
                     name=command.name,
                     options=option_datas,
