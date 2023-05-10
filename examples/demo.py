@@ -5,13 +5,13 @@ from textual_click.textual_click import tui
 
 @tui()
 @click.group()
-# @click.option(
-#     "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
-# )
+@click.option(
+    "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
+)
 @click.pass_context
-def cli(ctx):
+def cli(ctx, verbose):
     ctx.ensure_object(dict)
-    # ctx.obj["verbose"] = verbose
+    ctx.obj["verbose"] = verbose
 
 
 @cli.command()
@@ -31,6 +31,7 @@ def cli(ctx):
 @click.option(
     "--category",
     "-c",
+    default="home",
     type=click.Choice(["work", "home", "leisure"], case_sensitive=False),
     help="Choose a category for the task",
 )
@@ -69,7 +70,7 @@ def remove(ctx, task_id):
 
 @cli.command()
 @click.option(
-    "--all", "-a", is_flag=True, help="List all tasks, including completed ones."
+    "--all", "-a", is_flag=True, default=True, help="List all tasks, including completed ones."
 )
 @click.option("--completed", "-c", is_flag=True, help="List only completed tasks.")
 @click.pass_context

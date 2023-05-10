@@ -122,8 +122,8 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
         )
 
         for param in cmd_obj.params:
+            default = MultiValueParamData.process_cli_option(param.default)
             if isinstance(param, (click.Option, click.core.Group)):
-                default = MultiValueParamData.process_cli_option(param.default)
                 option_data = OptionSchema(
                     name=param.opts,
                     type=param.type,
@@ -142,7 +142,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     type=param.type,
                     required=param.required,
                     multiple=param.multiple,
-                    default=MultiValueParamData.process_cli_option(param.default),
+                    default=default,
                     nargs=param.nargs,
                 )
                 if isinstance(param.type, click.Choice):

@@ -135,13 +135,12 @@ class UserCommandData:
                     is_true_bool = value_data == [(True,)]
                     is_bool = is_false_bool or is_true_bool
 
-                    if is_true_bool:
+                    if not is_false_bool:
                         args.append(option_name)
 
                     # Although buried away a little, this branch here is actually
                     # the nominal case... single value options.
                     # Only add a value for non-boolean options
-                    print(value_data)
                     if not is_bool:
                         for subvalue_tuple in value_data:
                             args.extend(subvalue_tuple)
@@ -166,7 +165,6 @@ class UserCommandData:
                 for value_data in values:
                     if value_data != ValueNotSupplied():
                         args.append(option_name)
-                        print(f"Adding {value_data}")
                         args.extend(v for v in value_data)
 
         for argument in self.arguments:
@@ -238,7 +236,7 @@ class UserCommandData:
                 self.arguments.append(
                     UserArgumentData(
                         name=arg_schema.name,
-                        value=arg_schema.default,
+                        value=arg_schema.default.values,
                         argument_schema=arg_schema,
                     )
                 )
