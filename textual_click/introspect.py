@@ -140,7 +140,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     required=param.required,
                     multiple=param.multiple,
                     default=MultiValueParamData.process_cli_option(param.default),
-                    nargs=param.nargs
+                    nargs=param.nargs,
                 )
                 if isinstance(param.type, click.Choice):
                     argument_data.choices = param.type.choices
