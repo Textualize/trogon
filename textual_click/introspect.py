@@ -40,6 +40,11 @@ class OptionSchema:
     type: ParamType
     default: MultiValueParamData
     required: bool
+    is_flag: bool
+    is_boolean_flag: bool
+    flag_value: Any
+    opts: list
+    secondary_opts: list
     key: str | tuple[str] = field(default_factory=generate_unique_id)
     help: str | None = None
     choices: Sequence[str] | None = None
@@ -127,6 +132,11 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                 option_data = OptionSchema(
                     name=param.opts,
                     type=param.type,
+                    is_flag=param.is_flag,
+                    is_boolean_flag=param.is_bool_flag,
+                    flag_value=param.flag_value,
+                    opts=param.opts,
+                    secondary_opts=param.secondary_opts,
                     required=param.required,
                     default=default,
                     help=param.help,

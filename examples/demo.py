@@ -70,7 +70,7 @@ def remove(ctx, task_id):
 
 @cli.command()
 @click.option(
-    "--all", "-a", is_flag=True, default=True, help="List all tasks, including completed ones."
+    "--all/--not-all", default=True, help="List all tasks, including completed ones."
 )
 @click.option("--completed", "-c", is_flag=True, help="List only completed tasks.")
 @click.pass_context

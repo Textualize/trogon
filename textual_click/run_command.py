@@ -123,6 +123,7 @@ class UserCommandData:
                 # If the user has supplied values, and they're not the default values,
                 # then we want to display them in the command string...
                 if values_supplied and not values_are_defaults:
+                    print(f"WE MADE IT {option.name}")
                     if isinstance(option.name, str):
                         option_name = option.name
                     else:
@@ -135,13 +136,29 @@ class UserCommandData:
                     is_true_bool = value_data == [(True,)]
                     is_bool = is_false_bool or is_true_bool
 
-                    if not is_false_bool:
-                        args.append(option_name)
+                    is_flag = option.option_schema.is_flag
+                    secondary_opts = option.option_schema.secondary_opts
+                    print(option.option_schema.is_flag)
+                    print(option.option_schema.is_boolean_flag)
+                    print(option.option_schema.flag_value)
+                    print(option.option_schema.opts)
+                    print(option.option_schema.secondary_opts)
+                    print(is_false_bool, is_true_bool, is_bool)
 
-                    # Although buried away a little, this branch here is actually
-                    # the nominal case... single value options.
-                    # Only add a value for non-boolean options
-                    if not is_bool:
+                    if is_flag:
+                        # If the option is specified like `--thing/--not-thing`,
+                        # then secondary_opts will contain `--not-thing`, and if the
+                        # value is False, we should use that.
+                        if is_true_bool:
+                            args.append(option_name)
+                        else:
+                            if secondary_opts:
+                                longest_secondary_name = max(secondary_opts, key=len)
+                                args.append(longest_secondary_name)
+                    else:
+                        # Although buried away a little, this branch here is actually
+                        # the nominal case... single value options e.g. `--foo bar`.
+                        args.append(option_name)
                         for subvalue_tuple in value_data:
                             args.extend(subvalue_tuple)
 

@@ -301,16 +301,22 @@ class ParameterControls(Widget):
 
     @staticmethod
     def make_checkbox_control(
-        default: Any,
+        default: MultiValueParamData,
         label: Text,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
     ) -> Widget:
+        print(f"checkbox default = {default!r}")
+        if default.values:
+            default = default.values[0][0]
+
+        print(default)
         control = Checkbox(
             label,
             button_first=False,
             classes=f"command-form-checkbox {control_id}",
+            value=default,
         )
         yield control
         return control
