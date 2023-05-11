@@ -70,31 +70,29 @@ class CommandBuilder(Screen):
             # If the click app is structured using a single command,
             #  there's no need for us to display the command tree.
             sidebar.display = False
+
         yield sidebar
 
-        scrollable_body = Vertical(
-            Pretty(self.command_schemas),
-            id="home-body-scroll",
-        )
-        scrollable_body.can_focus = False
-
-        body = Vertical(
-            VerticalScroll(
+        with Vertical(id="home-body"):
+            yield VerticalScroll(
                 Static(self.click_app_name or "", id="home-command-description"),
                 id="home-command-description-container",
-            ),
-            scrollable_body,
-            Horizontal(
+            )
+            scrollable_body = VerticalScroll(
+                Static(""),
+                id="home-body-scroll",
+            )
+            scrollable_body.can_focus = False
+            yield scrollable_body
+            yield Horizontal(
                 Static("", id="home-exec-preview-static"),
                 VerticalScroll(
                     Button.success("Close & Run", id="home-exec-button"),
                     id="home-exec-preview-buttons",
                 ),
                 id="home-exec-preview",
-            ),
-            id="home-body",
-        )
-        yield body
+            )
+
         yield Footer()
 
     def action_close_and_run(self) -> None:
@@ -158,7 +156,7 @@ class CommandBuilder(Screen):
 
     async def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)
-        parent = self.query_one("#home-body-scroll", Vertical)
+        parent = self.query_one("#home-body-scroll", VerticalScroll)
         for child in parent.children:
             await child.remove()
 

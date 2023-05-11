@@ -225,7 +225,7 @@ class ParameterControls(Widget):
             if tuple_size <= 0:
                 raise ValueError("Size must be greater than 0.")
             return [
-                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))
@@ -307,11 +307,9 @@ class ParameterControls(Widget):
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
     ) -> Widget:
-        print(f"checkbox default = {default!r}")
         if default.values:
             default = default.values[0][0]
 
-        print(default)
         control = Checkbox(
             label,
             button_first=False,
@@ -365,3 +363,7 @@ class ParameterControls(Widget):
         elif isinstance(name, list):
             names = Text(" / ", style="dim").join([Text(n) for n in name])
             return f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+
+    def focus(self, scroll_visible: bool = True):
+        if self.first_control is not None:
+            self.first_control.focus()

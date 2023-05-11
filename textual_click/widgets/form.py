@@ -85,6 +85,7 @@ class CommandForm(Widget):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.command_schema = command_schema
         self.command_schemas = command_schemas
+        self.first_control: ParameterControls | None = None
 
     def compose(self) -> ComposeResult:
         path_from_root = iter(self.command_schema.path_from_root)
@@ -104,12 +105,18 @@ class CommandForm(Widget):
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
                             for argument in arguments:
-                                yield ParameterControls(argument, id=argument.key)
+                                controls = ParameterControls(argument, id=argument.key)
+                                if self.first_control is None:
+                                    self.first_control = controls
+                                yield controls
 
                         if options:
                             yield Label(f"Options", classes="command-form-heading")
                             for option in options:
-                                yield ParameterControls(option, id=option.key)
+                                controls = ParameterControls(option, id=option.key)
+                                if self.first_control is None:
+                                    self.first_control = controls
+                                yield controls
 
                 command_node = next(path_from_root, None)
 
@@ -128,7 +135,7 @@ class CommandForm(Widget):
     def on_multiple_choice_changed(self) -> None:
         self._form_changed()
 
-    def _form_changed(self) -> UserCommandData:
+    def _form_changed(self) -> None:
         """Take the current state of the form and build a UserCommandData from it,
         then post a FormChanged message"""
 
@@ -195,4 +202,6 @@ class CommandForm(Widget):
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):
-        return self.first_control.focus()
+        print(f"CommandForm first_control = {self.first_control}")
+        if self.first_control is not None:
+            return self.first_control.focus()
