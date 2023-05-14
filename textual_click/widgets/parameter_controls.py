@@ -293,7 +293,6 @@ class ParameterControls(Widget):
         control_id: str,
     ) -> Widget:
         control = Input(
-            placeholder=str(default) if default is not None else "",
             classes=f"command-form-input {control_id}",
         )
         yield control
