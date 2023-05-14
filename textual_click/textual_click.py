@@ -56,7 +56,6 @@ class CommandBuilder(Screen):
 
     def compose(self) -> ComposeResult:
         tree = CommandTree("", self.command_schemas)
-
         sidebar = Vertical(
             Label(self.click_app_name, id="home-commands-label"),
             tree,

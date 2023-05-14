@@ -158,16 +158,21 @@ class UserCommandData:
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
-            sorted_supplied_values = list(sorted(itertools.chain.from_iterable(values)))
-            sorted_default_values = list(
-                sorted(itertools.chain.from_iterable(defaults.values))
-            )
+            default_values = list(itertools.chain.from_iterable(defaults.values))
+            supplied_defaults = [value for value in default_values if
+                                 value != ValueNotSupplied()]
+            supplied_defaults = list(map(str, supplied_defaults))
+            supplied_defaults = sorted(supplied_defaults)
 
-            supplied_values = list(map(str, sorted_supplied_values))
-            supplied_defaults = list(map(str, sorted_default_values))
+            supplied_values = list(itertools.chain.from_iterable(values))
+            supplied_values = [value for value in supplied_values if
+                               value != ValueNotSupplied()]
+            supplied_values = list(map(str, supplied_values))
+            supplied_values = sorted(supplied_values)
+
             values_are_defaults = supplied_values == supplied_defaults
             values_supplied = any(
-                value != ValueNotSupplied() for value in sorted_supplied_values
+                value != ValueNotSupplied() for value in supplied_values
             )
 
             # If the user has supplied any non-default values, include them...
