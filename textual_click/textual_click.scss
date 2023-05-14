@@ -42,31 +42,31 @@
 }
 
 #home-command-description {
+  width: 1fr;
+  height: 1fr;
+}
+
+#home-command-description-container {
+  dock: top;
+  width: 1fr;
+  height: 4;
   padding: 1 2;
   color: $text;
   background: $primary 80%;
 }
 
-#home-command-description-container {
-  dock: top;
-  min-height: 3;
-  height: auto;
-  max-height: 6;
-}
-
 CommandTree {
-  min-width: 12;
-  max-width: 32;
   background: $background-lighten-1;
   scrollbar-gutter: stable;
   scrollbar-size-vertical: 1;
-  width: 100%;
-  padding: 1 0 1 2;
+  width: auto;
   height: 1fr;
+  padding: 1 2;
+  margin-bottom: 1;  /* why is this needed? */
 }
 
 CommandTree :focus {
-  tint: $primary 20%;
+  outline: solid $primary-lighten-2;
 }
 
 CommandTree > .tree--cursor {

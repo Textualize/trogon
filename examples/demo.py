@@ -26,6 +26,7 @@ def cli(ctx, verbose):
     nargs=2,
     type=(str, int),
     multiple=True,
+    default=[("one", 1), ("two", 2) ],
     help="Add extra data as key-value pairs (repeatable)",
 )
 @click.option(

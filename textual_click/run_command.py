@@ -123,7 +123,6 @@ class UserCommandData:
                 # If the user has supplied values, and they're not the default values,
                 # then we want to display them in the command string...
                 if values_supplied and not values_are_defaults:
-                    print(f"WE MADE IT {option.name}")
                     if isinstance(option.name, str):
                         option_name = option.name
                     else:
@@ -138,12 +137,6 @@ class UserCommandData:
 
                     is_flag = option.option_schema.is_flag
                     secondary_opts = option.option_schema.secondary_opts
-                    print(option.option_schema.is_flag)
-                    print(option.option_schema.is_boolean_flag)
-                    print(option.option_schema.flag_value)
-                    print(option.option_schema.opts)
-                    print(option.option_schema.secondary_opts)
-                    print(is_false_bool, is_true_bool, is_bool)
 
                     if is_flag:
                         # If the option is specified like `--thing/--not-thing`,
