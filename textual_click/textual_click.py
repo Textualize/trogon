@@ -73,10 +73,10 @@ class CommandBuilder(Screen):
         yield sidebar
 
         with Vertical(id="home-body"):
-            yield VerticalScroll(
-                Static(self.click_app_name or "", id="home-command-description"),
-                id="home-command-description-container",
-            )
+            with VerticalScroll(id="home-command-description-container") as vs:
+                vs.can_focus = False
+                yield Static(self.click_app_name or "", id="home-command-description")
+
             scrollable_body = VerticalScroll(
                 Static(""),
                 id="home-body-scroll",
