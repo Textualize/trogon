@@ -100,6 +100,16 @@ ControlGroup {
   margin: 0 1;
 }
 
+ControlGroup.single-item {
+  margin: 0;
+  border: none;
+}
+
+ControlGroup.single-item:focus-within {
+  margin: 0;
+  border: none;
+}
+
 ControlGroup:focus-within {
   border: solid $primary-lighten-1;
 }

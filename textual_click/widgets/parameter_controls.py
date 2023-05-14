@@ -105,8 +105,12 @@ class ParameterControls(Widget):
                 # For other widgets, we'll render as normal...
                 # If required, we'll generate widgets containing the defaults
                 for default_value_tuple in default.values:
-                    widget_group = self.make_widget_group()
-                    with ControlGroup():
+                    widget_group = list(self.make_widget_group())
+                    with ControlGroup() as control_group:
+
+                        if len(widget_group) == 1:
+                            control_group.add_class("single-item")
+
                         # Parameter types can be of length 1, but there could still
                         # be multiple defaults. We need to render a widget for each
                         # of those defaults. Extend the widget group such that
@@ -123,8 +127,11 @@ class ParameterControls(Widget):
                 # We always need to display the original group of controls,
                 # regardless of whether there are defaults
                 if multiple or not default.values:
-                    widget_group = self.make_widget_group()
-                    with ControlGroup():
+                    widget_group = list(self.make_widget_group())
+                    with ControlGroup() as control_group:
+                        if len(widget_group) == 1:
+                            control_group.add_class("single-item")
+
                         # No need to apply defaults to this group
                         for control_widget in widget_group:
                             yield control_widget

@@ -181,6 +181,7 @@ class TextualClick(App):
         super().__init__()
         self.cli = cli
         self.post_run_command: list[str] = []
+        self.is_grouped_cli = isinstance(cli, click.Group)
         self.execute_on_exit = False
         self.click_context = click_context
         self.app_name = click_context.find_root().info_name
@@ -213,7 +214,8 @@ class TextualClick(App):
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):
-        self.post_run_command = event.command_data.to_cli_args()
+        include_root_command = not self.is_grouped_cli
+        self.post_run_command = event.command_data.to_cli_args(include_root_command)
 
 
 def tui(name: str = "TUI Mode"):

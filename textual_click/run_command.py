@@ -77,7 +77,7 @@ class UserCommandData:
     parent: Optional["UserCommandData"] = None
     command_schema: Optional["CommandSchema"] = None
 
-    def to_cli_args(self) -> List[str]:
+    def to_cli_args(self, include_root_command: bool = False) -> List[str]:
         """
         Generates a list of strings representing the CLI invocation based on the user input data.
 
@@ -191,6 +191,9 @@ class UserCommandData:
         if self.subcommand:
             args.extend(self.subcommand.to_cli_args())
 
+        if not include_root_command:
+            args = args[1:]
+
         return args
 
     def to_cli_string(self, include_root_command: bool = False) -> Text:
@@ -201,9 +204,7 @@ class UserCommandData:
         Returns:
             A string representing the command invocation.
         """
-        args = self.to_cli_args()
-        if not include_root_command:
-            args = args[1:]
+        args = self.to_cli_args(include_root_command=include_root_command)
 
         text_renderables = []
         for arg in args:
