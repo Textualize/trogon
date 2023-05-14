@@ -86,7 +86,7 @@ class CommandBuilder(Screen):
             yield scrollable_body
             yield Horizontal(
                 Static("", id="home-exec-preview-static"),
-                VerticalScroll(
+                Vertical(
                     Button.success("Close & Run", id="home-exec-button"),
                     id="home-exec-preview-buttons",
                 ),

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from rich.text import TextType
+from textual import on
 from textual.app import ComposeResult
+from textual.binding import BindingType, Binding
 from textual.containers import VerticalScroll
 from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Checkbox
 
+
+class NonFocusableVerticalScroll(VerticalScroll, can_focus=False):
+    pass
 
 class MultipleChoice(Widget):
     DEFAULT_CSS = """
@@ -26,6 +31,11 @@ class MultipleChoice(Widget):
         border: round $primary-lighten-2;
     }
     """
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("down,right", "next_button", "", show=False),
+        Binding("up,left", "previous_button", "", show=False),
+    ]
 
     def __init__(
         self,
@@ -49,12 +59,12 @@ class MultipleChoice(Widget):
             self.selected = selected
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll() as vs:
-            vs.can_focus = False
+        with NonFocusableVerticalScroll() as vs:
             for option in self.options:
                 yield Checkbox(option, value=(option,) in self.defaults)
 
-    def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+    @on(Checkbox.Changed)
+    def checkbox_toggled(self, event: Checkbox.Changed) -> None:
         checkboxes = self.query(Checkbox)
         selected = []
         for checkbox in checkboxes:
@@ -67,3 +77,19 @@ class MultipleChoice(Widget):
         checkboxes = self.query(Checkbox)
         for checkbox in checkboxes:
             checkbox.value = checkbox.label == label
+
+    def action_next_button(self) -> None:
+        focused = self.app.focused
+        checkboxes = list(self.query(Checkbox))
+        if focused is checkboxes[-1]:
+            checkboxes[0].focus()
+        else:
+            self.app.action_focus_next()
+
+    def action_previous_button(self) -> None:
+        focused = self.app.focused
+        checkboxes = list(self.query(Checkbox))
+        if focused is checkboxes[0]:
+            checkboxes[-1].focus()
+        else:
+            self.app.action_focus_previous()
