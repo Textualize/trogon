@@ -146,7 +146,7 @@ class CommandBuilder(Screen):
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
             prefix = Text(f"{self.click_app_name} ")
-            include_root = self.is_grouped_cli
+            include_root = not self.is_grouped_cli
             new_value = command_data.to_cli_string(include_root_command=include_root)
             highlighted_new_value = prefix.append(self.highlighter(new_value))
             self.query_one("#home-exec-preview-static", Static).update(
