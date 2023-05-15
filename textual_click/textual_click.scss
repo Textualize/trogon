@@ -6,18 +6,23 @@
 #home-exec-preview {
   dock: bottom;
   background: $panel-darken-2;
-  min-height: 3;
   height: auto;
-  max-height: 6;
+}
+
+#home-exec-preview-container {
+  min-height: 3;
+  max-height: 8;
+  height: auto;
+  scrollbar-size-vertical: 1;
 }
 
 #home-exec-button {
   height: 1fr;
+  width: auto;
 }
 
 #home-exec-preview-static {
-  dock: left;
-  width: 80%;
+  width: 1fr;
   padding: 1 2;
   height: auto;
 }
@@ -124,6 +129,7 @@ Pretty {
 
 .add-another-button {
   dock: right;
+  margin: 0 2;
 }
 
 .add-another-button-container {

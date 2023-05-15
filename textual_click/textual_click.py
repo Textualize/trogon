@@ -84,7 +84,10 @@ class CommandBuilder(Screen):
             scrollable_body.can_focus = False
             yield scrollable_body
             yield Horizontal(
-                Static("", id="home-exec-preview-static"),
+                VerticalScroll(
+                    Static("", id="home-exec-preview-static"),
+                    id="home-exec-preview-container",
+                ),
                 Vertical(
                     Button.success("Close & Run", id="home-exec-button"),
                     id="home-exec-preview-buttons",
