@@ -84,6 +84,12 @@ class UserCommandData:
         Returns:
             A list of strings that can be passed to subprocess.run to execute the command.
         """
+        cli_args = self._to_cli_args()
+        if not include_root_command:
+            cli_args = cli_args[1:]
+        return cli_args
+
+    def _to_cli_args(self):
         args = [self.name]
 
         multiples = defaultdict(list)
@@ -127,7 +133,6 @@ class UserCommandData:
 
                     is_false_bool = value_data == [(False,)]
                     is_true_bool = value_data == [(True,)]
-                    is_bool = is_false_bool or is_true_bool
 
                     is_flag = option.option_schema.is_flag
                     secondary_opts = option.option_schema.secondary_opts
@@ -183,10 +188,7 @@ class UserCommandData:
                     args.append(argument_value)
 
         if self.subcommand:
-            args.extend(self.subcommand.to_cli_args())
-
-        if not include_root_command:
-            args = args[1:]
+            args.extend(self.subcommand._to_cli_args())
 
         return args
 
