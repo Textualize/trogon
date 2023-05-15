@@ -254,6 +254,9 @@ class TextualClick(App):
 
         command_tree.focus()
 
+    def action_show_command_info(self) -> None:
+        pass  #TODO - implement modal containing command info
+
 
 def tui(name: str = "TUI Mode"):
     def decorator(app: click.Group | click.Command):
