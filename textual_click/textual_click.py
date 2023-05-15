@@ -40,10 +40,13 @@ except ImportError:
 
 
 class CommandBuilder(Screen):
-    COMPONENT_CLASSES = {"version-string"}
+    COMPONENT_CLASSES = {"version-string", "prompt"}
 
     BINDINGS = [
-        Binding(key="ctrl+r", action="close_and_run", description="Close & Run")
+        Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
+        Binding(key="ctrl+t", action="focus_command_tree",
+                description="Focus Command Tree"),
+        Binding(key="ctrl+i", action="show_command_info", description="Command Info"),
     ]
 
     def __init__(
@@ -110,10 +113,10 @@ class CommandBuilder(Screen):
                     Static("", id="home-exec-preview-static"),
                     id="home-exec-preview-container",
                 ),
-                Vertical(
-                    Button.success("Close & Run", id="home-exec-button"),
-                    id="home-exec-preview-buttons",
-                ),
+                # Vertical(
+                #     Button.success("Close & Run", id="home-exec-button"),
+                #     id="home-exec-preview-buttons",
+                # ),
                 id="home-exec-preview",
             )
 
@@ -175,9 +178,9 @@ class CommandBuilder(Screen):
             include_root = not self.is_grouped_cli
             new_value = command_data.to_cli_string(include_root_command=include_root)
             highlighted_new_value = prefix.append(self.highlighter(new_value))
-            self.query_one("#home-exec-preview-static", Static).update(
-                highlighted_new_value
-            )
+            prompt_style = self.get_component_rich_style("prompt")
+            preview_string = Text.assemble(("$ ", prompt_style), highlighted_new_value)
+            self.query_one("#home-exec-preview-static", Static).update(preview_string)
 
     async def _update_form_body(self, node: TreeNode[CommandSchema]) -> None:
         # self.query_one(Pretty).update(node.data)
@@ -242,6 +245,14 @@ class TextualClick(App):
     def update_command_to_run(self, event: CommandForm.Changed):
         include_root_command = not self.is_grouped_cli
         self.post_run_command = event.command_data.to_cli_args(include_root_command)
+
+    def action_focus_command_tree(self) -> None:
+        try:
+            command_tree = self.query_one(CommandTree)
+        except NoMatches:
+            return
+
+        command_tree.focus()
 
 
 def tui(name: str = "TUI Mode"):

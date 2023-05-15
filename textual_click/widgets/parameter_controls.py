@@ -150,7 +150,7 @@ class ParameterControls(Widget):
             # TODO Add handler for this button and probably filter by id
             with Horizontal(classes="add-another-button-container"):
                 yield Button(
-                    "+ another value", variant="primary", classes="add-another-button"
+                    "+ value", variant="primary", classes="add-another-button"
                 )
 
         # Render the dim help text below the form controls

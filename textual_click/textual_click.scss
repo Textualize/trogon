@@ -69,6 +69,12 @@ CommandBuilder .version-string {
   color: $text-muted;
 }
 
+CommandBuilder .prompt {
+  color: $success;
+  background: $background-darken-2;
+  text-style: bold;
+}
+
 CommandTree {
   background: $background-lighten-1;
   scrollbar-gutter: stable;
