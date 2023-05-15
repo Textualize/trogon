@@ -65,6 +65,10 @@
   background: $primary 80%;
 }
 
+CommandBuilder .version-string {
+  color: $text-muted;
+}
+
 CommandTree {
   background: $background-lighten-1;
   scrollbar-gutter: stable;
@@ -89,6 +93,11 @@ CommandTree:focus > .tree--cursor {
 
 CommandTree > .tree--guides {
   color: slategray;
+}
+
+CommandTree .group {
+  color: $accent-lighten-2;
+  text-style: bold;
 }
 
 CommandTree > .tree--guides-selected {
@@ -134,6 +143,9 @@ Pretty {
 .add-another-button {
   dock: right;
   margin: 0 2;
+  padding: 0 1;
+  height: 1;
+  border: none;
 }
 
 .add-another-button-container {

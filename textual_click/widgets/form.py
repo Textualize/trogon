@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Iterable, Any, Sized
 
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
@@ -48,7 +47,11 @@ class CommandForm(Widget):
         margin: 0 0 0 2;
     }
     .command-form-checkbox {
-        padding: 1 0 0 2;
+        margin: 1 0 0 1;
+        padding-left: 1;
+    }
+    .command-form-checkbox:focus {
+      outline-left: wide $accent;
     }
     .command-form-command-group {
         margin: 1 2;
@@ -59,6 +62,9 @@ class CommandForm(Widget):
         border-title-style: bold;
         border-subtitle-color: $text 30%;
         padding-bottom: 1;
+    }
+    .command-form-command-group:focus-within {
+        border: panel $primary 85%;
     }
     .command-form-control-help-text {
         margin: 0 0 0 2;

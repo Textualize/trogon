@@ -15,7 +15,6 @@ from textual.containers import Vertical, Horizontal, VerticalScroll
 from textual.css.query import NoMatches
 from textual.screen import Screen
 from textual.widgets import (
-    Pretty,
     Tree,
     Label,
     Static,
@@ -24,17 +23,25 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 
-from textual_click.widgets.form import CommandForm
 from textual_click.introspect import (
     introspect_click_app,
     CommandSchema,
 )
 from textual_click.run_command import UserCommandData
 from textual_click.widgets.command_tree import CommandTree
+from textual_click.widgets.form import CommandForm
 from textual_click.widgets.multiple_choice import NonFocusableVerticalScroll
+
+try:
+    from importlib import metadata  # type: ignore
+except ImportError:
+    # Python < 3.8
+    import importlib_metadata as metadata  # type: ignore
 
 
 class CommandBuilder(Screen):
+    COMPONENT_CLASSES = {"version-string"}
+
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run")
     ]
@@ -53,12 +60,26 @@ class CommandBuilder(Screen):
         self.is_grouped_cli = isinstance(cli, click.Group)
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
+
+        try:
+            self.version = metadata.version(self.click_app_name)
+        except Exception:
+            self.version = None
+
         self.highlighter = ReprHighlighter()
 
     def compose(self) -> ComposeResult:
-        tree = CommandTree("", self.command_schemas)
+        tree = CommandTree("Commands", self.command_schemas)
+
+        title_parts = [self.click_app_name]
+        if self.version:
+            version_style = self.get_component_rich_style("version-string")
+            title_parts.extend(["\n", (self.version, version_style)])
+
+        title = Text.assemble(*title_parts)
+
         sidebar = Vertical(
-            Label(self.click_app_name, id="home-commands-label"),
+            Label(title, id="home-commands-label"),
             tree,
             id="home-sidebar",
         )
@@ -141,6 +162,7 @@ class CommandBuilder(Screen):
         based on the currently selected node in the command tree."""
         description_box = self.query_one("#home-command-description", Static)
         description_text = node.data.docstring or ""
+        description_text = description_text.lstrip()
         description_text = f"[b]{node.label if self.is_grouped_cli else self.click_app_name}[/]\n{description_text}"
         description_box.update(description_text)
 

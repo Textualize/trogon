@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from rich.style import Style
 from rich.text import TextType, Text
+from textual.geometry import clamp
 from textual.widgets import Tree
 from textual.widgets._tree import TreeNode, TreeDataType
 
@@ -9,6 +10,10 @@ from textual_click.introspect import CommandSchema, CommandName
 
 
 class CommandTree(Tree[CommandSchema]):
+    COMPONENT_CLASSES = {
+        "group"
+    }
+
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)
         self.show_root = False
@@ -37,7 +42,10 @@ class CommandTree(Tree[CommandSchema]):
                 if cmd_data.subcommands:
                     label = Text(cmd_name)
                     if cmd_data.is_group:
-                        label.stylize("dim")
+                        group_style = self.get_component_rich_style("group")
+                        label.stylize(group_style)
+                        label.append(" ")
+                        label.append("group", "dim i")
                     child = node.add(label, allow_expand=False, data=cmd_data)
                     build_tree(cmd_data.subcommands, child)
                 else:

@@ -123,7 +123,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
             arguments=[],
             subcommands={},
             parent=parent,
-            is_group=isinstance(app, click.Group),
+            is_group=isinstance(cmd_obj, click.Group),
         )
 
         for param in cmd_obj.params:
