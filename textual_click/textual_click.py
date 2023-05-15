@@ -41,7 +41,7 @@ except ImportError:
 
 
 class CommandBuilder(Screen):
-    COMPONENT_CLASSES = {"version-string", "prompt"}
+    COMPONENT_CLASSES = {"version-string", "prompt", "command-name-syntax"}
 
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
@@ -75,10 +75,10 @@ class CommandBuilder(Screen):
     def compose(self) -> ComposeResult:
         tree = CommandTree("Commands", self.command_schemas)
 
-        title_parts = [self.click_app_name]
+        title_parts = [Text(self.click_app_name, style="b")]
         if self.version:
             version_style = self.get_component_rich_style("version-string")
-            title_parts.extend(["\n", (self.version, version_style)])
+            title_parts.extend(["\n", (f"v{self.version}", version_style)])
 
         title = Text.assemble(*title_parts)
 
@@ -175,10 +175,11 @@ class CommandBuilder(Screen):
     ) -> None:
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
-            prefix = Text(f"{self.click_app_name} ")
+            command_name_syntax_style = self.get_component_rich_style("command-name-syntax")
+            prefix = Text(f"{self.click_app_name} ", command_name_syntax_style)
             include_root = not self.is_grouped_cli
             new_value = command_data.to_cli_string(include_root_command=include_root)
-            highlighted_new_value = prefix.append(self.highlighter(new_value))
+            highlighted_new_value = Text.assemble(prefix, self.highlighter(new_value))
             prompt_style = self.get_component_rich_style("prompt")
             preview_string = Text.assemble(("$ ", prompt_style), highlighted_new_value)
             self.query_one("#home-exec-preview-static", Static).update(preview_string)

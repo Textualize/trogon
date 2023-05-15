@@ -1,3 +1,7 @@
+* {
+  scrollbar-color: $accent-lighten-2 20%;
+}
+
 #home-body {
   height: 100%;
   width: auto;
@@ -39,8 +43,7 @@
 
 #home-commands-label {
   color: $text;
-  background: $background;
-  text-style: bold;
+  background: $background 50%;
   width: 100%;
   height: 4;
   padding: 1 2;
@@ -62,17 +65,25 @@
   height: 4;
   padding: 1 2;
   color: $text;
-  background: $primary 80%;
+  background: $accent-lighten-2 5%;
 }
 
 CommandBuilder .version-string {
   color: $text-muted;
+  background: $background 50%;
+  text-style: italic;
 }
 
 CommandBuilder .prompt {
   color: $success;
   background: $background-darken-2;
   text-style: bold;
+}
+
+CommandBuilder .command-name-syntax {
+  color: $accent-lighten-2;
+  background: $panel-darken-2;
+  text-style: italic bold;
 }
 
 CommandTree {
@@ -163,18 +174,22 @@ CommandInfo {
   align: center middle;
 }
 
+.command-info-header-text {
+  padding: 1 2 0 2;
+}
+
+$command-info-header-bg: $primary-darken-1;
+
 .command-info-header {
   dock: top;
-  padding: 1 2;
-  background: $primary;
+  background: $command-info-header-bg;
   color: $text;
+  height: auto;
 }
 
 .command-info-container {
   width: 80%;
-  height: 50%;
-  border: thick $primary;
-  border-top: none;
+  height: 60%;
   background: $panel;
 }
 
@@ -183,11 +198,23 @@ CommandInfo {
 }
 
 CommandInfo .title {
-  background: $primary;
+  background: $command-info-header-bg;
   text-style: bold;
 }
 
 CommandInfo .subtitle {
-  background: $primary;
+  background: $command-info-header-bg;
   color: $text-muted;
+}
+
+CommandInfo Tab {
+  width: 1fr;
+}
+
+.command-info-tabs {
+  width: 100%;
+}
+
+Tabs:focus .underline--bar {
+  color: $accent-lighten-1;
 }
