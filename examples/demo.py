@@ -46,7 +46,10 @@ def cli(ctx, verbose):
 )
 @click.pass_context
 def add(ctx, task, priority, tags, extra):
-    """Add a new task to the to-do list."""
+    """Add a new task to the to-do list.
+    Note:
+    Control the output of this using the verbosity option.
+    """
     if ctx.obj["verbose"] >= 2:
         click.echo(f"Adding task: {task}")
         click.echo(f"Priority: {priority}")

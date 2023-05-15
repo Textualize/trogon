@@ -31,6 +31,7 @@ from textual_click.introspect import (
 )
 from textual_click.run_command import UserCommandData
 from textual_click.widgets.command_tree import CommandTree
+from textual_click.widgets.multiple_choice import NonFocusableVerticalScroll
 
 
 class CommandBuilder(Screen):
@@ -73,7 +74,7 @@ class CommandBuilder(Screen):
         yield sidebar
 
         with Vertical(id="home-body"):
-            with VerticalScroll(id="home-command-description-container") as vs:
+            with Horizontal(id="home-command-description-container") as vs:
                 vs.can_focus = False
                 yield Static(self.click_app_name or "", id="home-command-description")
 
@@ -84,7 +85,7 @@ class CommandBuilder(Screen):
             scrollable_body.can_focus = False
             yield scrollable_body
             yield Horizontal(
-                VerticalScroll(
+                NonFocusableVerticalScroll(
                     Static("", id="home-exec-preview-static"),
                     id="home-exec-preview-container",
                 ),
@@ -211,7 +212,7 @@ class TextualClick(App):
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
                     console.print(
-                        f"Running [b cyan]{self.app_name} {shlex.join(self.post_run_command)}[/]"
+                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
                     )
                     os.execvp(self.app_name, [self.app_name, *self.post_run_command])
 

@@ -190,9 +190,11 @@ class ParameterControls(Widget):
     def add_another_widget_group(self, event: Button.Pressed) -> None:
         widget_group = list(self.make_widget_group())
         widget_group[0].focus()
-        widget_group = ControlGroup(*widget_group)
+        control_group = ControlGroup(*widget_group)
+        if len(widget_group) <= 1:
+            control_group.add_class("single-item")
         control_groups_container = self.query_one(ControlGroupsContainer)
-        control_groups_container.mount(widget_group)
+        control_groups_container.mount(control_group)
         event.button.scroll_visible(animate=False)
 
     @staticmethod
@@ -230,8 +232,11 @@ class ParameterControls(Widget):
         def list_to_tuples(
             lst: list[int | float | str], tuple_size: int
         ) -> list[tuple[int | float | str, ...]]:
-            if tuple_size <= 0:
-                raise ValueError("Size must be greater than 0.")
+            if tuple_size == 0:
+                return [tuple()]
+            elif tuple_size == -1:
+                # Unspecified number of arguments as per Click docs.
+                tuple_size = 1
             return [
                 tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
@@ -276,6 +281,7 @@ class ParameterControls(Widget):
             click.File,
             click.IntRange,
             click.FloatRange,
+            click.types.FuncParamType,
         )
 
         is_text_type = argument_type in text_click_types or isinstance(

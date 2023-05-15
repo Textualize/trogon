@@ -202,6 +202,5 @@ class CommandForm(Widget):
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):
-        print(f"CommandForm first_control = {self.first_control}")
         if self.first_control is not None:
             return self.first_control.focus()

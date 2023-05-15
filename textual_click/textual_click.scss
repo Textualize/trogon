@@ -1,6 +1,10 @@
 #home-body {
-  height: 1fr;
+  height: 100%;
   width: auto;
+}
+
+#home-body-scroll {
+  height: 100%;
 }
 
 #home-exec-preview {
@@ -49,7 +53,7 @@
 
 #home-command-description {
   width: 1fr;
-  height: 1fr;
+  height: 2;
 }
 
 #home-command-description-container {
