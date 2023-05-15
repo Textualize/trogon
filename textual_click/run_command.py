@@ -105,12 +105,6 @@ class UserCommandData:
                 flattened_values = sorted(itertools.chain.from_iterable(value_data))
                 flattened_defaults = sorted(itertools.chain.from_iterable(default_data))
 
-                # TODO: We need to improve handling of empty strings to differentiate
-                #  between a value that hasn't been supplied and an actual empty string.
-                #  When we retrieve the value from the input, if the user wants empty str
-                #  (i.e. the user has checked a checkbox saying so), then we should pass
-                #  up the empty string, otherwise we should pass up None.
-
                 # If the user has supplied values (any values are not None), then
                 # we don't display the value.
                 values_supplied = any(
@@ -178,7 +172,7 @@ class UserCommandData:
             # If the user has supplied any non-default values, include them...
             if values_supplied and not values_are_defaults:
                 for value_data in values:
-                    if value_data != ValueNotSupplied():
+                    if not all(value == ValueNotSupplied() for value in value_data):
                         args.append(option_name)
                         args.extend(v for v in value_data)
 
