@@ -79,14 +79,15 @@ class ParameterControls(Widget):
         # If there are N defaults, we render the "group" N times.
         # Each group will contain `nargs` widgets.
 
-        yield Label(label, classes="command-form-label")
-
         # Functionality needed for rendering the form: Get the renderables for the
         # widget set (if single value, the widget set is just of size 1) Fill the
         # widget set with a group of default values Add a button which adds another
         # widget set.
 
         with ControlGroupsContainer():
+            if not argument_type == click.BOOL:
+                yield Label(label, classes="command-form-label")
+
             if isinstance(argument_type, click.Choice) and multiple:
                 # Display a MultipleChoice widget
                 # There's a special case where we have a Choice with multiple=True,
@@ -294,7 +295,7 @@ class ParameterControls(Widget):
     @staticmethod
     def make_text_control(
         default: Any,
-        label: Text,
+        label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
@@ -308,7 +309,7 @@ class ParameterControls(Widget):
     @staticmethod
     def make_checkbox_control(
         default: MultiValueParamData,
-        label: Text,
+        label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
@@ -328,7 +329,7 @@ class ParameterControls(Widget):
     @staticmethod
     def make_choice_control(
         default: MultiValueParamData,
-        label: Text,
+        label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
