@@ -204,6 +204,7 @@ class ParameterControls(Widget):
         """Set the default value of a parameter-handling widget."""
         if isinstance(control_widget, Input):
             control_widget.value = str(default_value)
+            control_widget.placeholder = f"{default_value} (default)"
         elif isinstance(control_widget, RadioSet):
             for item in control_widget.walk_children():
                 if isinstance(item, RadioButton):

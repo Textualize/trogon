@@ -64,7 +64,7 @@ class CommandForm(Widget):
         padding-bottom: 1;
     }
     .command-form-command-group:focus-within {
-        border: panel $primary 85%;
+        border: panel $primary;
     }
     .command-form-control-help-text {
         margin: 0 0 0 2;
