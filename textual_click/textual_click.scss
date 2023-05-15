@@ -158,3 +158,36 @@ Pretty {
   width: 1fr;
   height: auto;
 }
+
+CommandInfo {
+  align: center middle;
+}
+
+.command-info-header {
+  dock: top;
+  padding: 1 2;
+  background: $primary;
+  color: $text;
+}
+
+.command-info-container {
+  width: 80%;
+  height: 50%;
+  border: thick $primary;
+  border-top: none;
+  background: $panel;
+}
+
+.command-info-text {
+  padding: 1 2;
+}
+
+CommandInfo .title {
+  background: $primary;
+  text-style: bold;
+}
+
+CommandInfo .subtitle {
+  background: $primary;
+  color: $text-muted;
+}

@@ -28,6 +28,7 @@ from textual_click.introspect import (
     CommandSchema,
 )
 from textual_click.run_command import UserCommandData
+from textual_click.widgets.command_info import CommandInfo
 from textual_click.widgets.command_tree import CommandTree
 from textual_click.widgets.form import CommandForm
 from textual_click.widgets.multiple_choice import NonFocusableVerticalScroll
@@ -46,7 +47,7 @@ class CommandBuilder(Screen):
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
         Binding(key="ctrl+t", action="focus_command_tree",
                 description="Focus Command Tree"),
-        Binding(key="ctrl+i", action="show_command_info", description="Command Info"),
+        Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
     ]
 
     def __init__(
@@ -255,7 +256,8 @@ class TextualClick(App):
         command_tree.focus()
 
     def action_show_command_info(self) -> None:
-        pass  #TODO - implement modal containing command info
+        command_builder = self.query_one(CommandBuilder)
+        self.push_screen(CommandInfo(command_builder.selected_command_schema))
 
 
 def tui(name: str = "TUI Mode"):
