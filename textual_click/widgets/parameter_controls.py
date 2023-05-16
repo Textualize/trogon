@@ -78,12 +78,6 @@ class ParameterControls(Widget):
 
         # If there are N defaults, we render the "group" N times.
         # Each group will contain `nargs` widgets.
-
-        # Functionality needed for rendering the form: Get the renderables for the
-        # widget set (if single value, the widget set is just of size 1) Fill the
-        # widget set with a group of default values Add a button which adds another
-        # widget set.
-
         with ControlGroupsContainer():
             if not argument_type == click.BOOL:
                 yield Label(label, classes="command-form-label")
@@ -147,7 +141,6 @@ class ParameterControls(Widget):
         # our special case MultiChoice widget, and so there's no need for this
         # button.
         if multiple and not isinstance(argument_type, click.Choice):
-            # TODO Add handler for this button and probably filter by id
             with Horizontal(classes="add-another-button-container"):
                 yield Button(
                     "+ value", variant="primary", classes="add-another-button"
@@ -371,12 +364,21 @@ class ParameterControls(Widget):
         multiple: bool,
     ) -> Text:
         if isinstance(name, str):
-            return Text.from_markup(
+            text = Text.from_markup(
                 f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
             )
-        elif isinstance(name, list):
+        else:
             names = Text(" / ", style="dim").join([Text(n) for n in name])
-            return f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+            text = Text.from_markup(
+                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}")
+
+        if isinstance(type, (click.IntRange, click.FloatRange)):
+            if type.min is not None:
+                text = Text.assemble(text, Text(f"min={type.min} ", "dim"))
+            if type.max is not None:
+                text = Text.assemble(text, Text(f"max={type.max}", "dim"))
+
+        return text
 
     def focus(self, scroll_visible: bool = True):
         if self.first_control is not None:

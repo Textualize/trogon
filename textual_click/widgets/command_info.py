@@ -37,7 +37,7 @@ class CommandMetadata(DataTable):
         schema = self.command_schema
         self.add_rows([
             (Text("Name", style="b"), schema.name),
-            (Text("Parent", style="b"), schema.parent.name),
+            (Text("Parent", style="b"), getattr(schema.parent, "name", "No parent")),
             (Text("Subcommands", style="b"), list(schema.subcommands.keys())),
             (Text("Group", style="b"), schema.is_group),
             (Text("Arguments", style="b"), len(schema.arguments)),
