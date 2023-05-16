@@ -4,9 +4,9 @@ from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import VerticalScroll, Vertical
+from textual.containers import Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Static, Tabs, Tab, ContentSwitcher, Pretty, DataTable
+from textual.widgets import Static, Tabs, Tab, ContentSwitcher, DataTable
 
 from textual_click.introspect import CommandSchema
 from textual_click.widgets.multiple_choice import NonFocusableVerticalScroll

@@ -43,6 +43,7 @@ class OptionSchema:
     is_boolean_flag: bool
     flag_value: Any
     opts: list
+    counting: bool
     secondary_opts: list
     key: str | tuple[str] = field(default_factory=generate_unique_id)
     help: str | None = None
@@ -134,6 +135,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     is_flag=param.is_flag,
                     is_boolean_flag=param.is_bool_flag,
                     flag_value=param.flag_value,
+                    counting=param.count,
                     opts=param.opts,
                     secondary_opts=param.secondary_opts,
                     required=param.required,

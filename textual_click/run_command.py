@@ -126,12 +126,16 @@ class UserCommandData:
                     if isinstance(option.name, str):
                         option_name = option.name
                     else:
-                        # Use the option with the longest name, since
-                        # it's probably the most descriptive (use --verbose over -v)
-                        longest_name = max(option.name, key=len)
-                        option_name = longest_name
 
-                    is_false_bool = value_data == [(False,)]
+                        if option.option_schema.counting:
+                            # For count options, we use the shortest name, e.g. use
+                            # -v instead of --verbose.
+                            option_name = min(option.name, key=len)
+                        else:
+                            # Use the option with the longest name, since
+                            # it's probably the most descriptive (use --verbose over -v)
+                            option_name = max(option.name, key=len)
+
                     is_true_bool = value_data == [(True,)]
 
                     is_flag = option.option_schema.is_flag
@@ -148,11 +152,21 @@ class UserCommandData:
                                 longest_secondary_name = max(secondary_opts, key=len)
                                 args.append(longest_secondary_name)
                     else:
-                        # Although buried away a little, this branch here is actually
-                        # the nominal case... single value options e.g. `--foo bar`.
-                        args.append(option_name)
-                        for subvalue_tuple in value_data:
-                            args.extend(subvalue_tuple)
+                        if not option.option_schema.counting:
+                            # Although buried away a little, this branch here is actually
+                            # the nominal case... single value options e.g. `--foo bar`.
+                            args.append(option_name)
+                            for subvalue_tuple in value_data:
+                                args.extend(subvalue_tuple)
+                        else:
+                            # Get the value of the counting option
+                            count = next(itertools.chain.from_iterable(value_data), 1)
+                            count = int(count)
+                            if option_name.startswith("--"):
+                                args.extend([option_name] * count)
+                            else:
+                                clean_option_name = option_name.lstrip("-")
+                                args.append(f"-{clean_option_name * count}")
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
