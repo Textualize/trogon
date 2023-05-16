@@ -193,8 +193,18 @@ $command-info-header-bg: $primary-darken-1;
   background: $panel;
 }
 
+#command-info-switcher {
+  height: auto;
+}
+
 .command-info-text {
-  padding: 1 2;
+  padding: 2 4;
+  height: auto;
+}
+
+.command-info-metadata {
+  padding: 2 4;
+  height: auto;
 }
 
 CommandInfo .title {

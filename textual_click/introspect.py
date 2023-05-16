@@ -6,7 +6,6 @@ from typing import Any, Callable, Sequence, NewType
 
 import click
 from click import BaseCommand, ParamType
-from textual import log
 
 
 def generate_unique_id():
