@@ -5,8 +5,6 @@ from functools import partial
 from typing import Any, Callable, Iterable, TypeVar, Union, cast
 
 import click
-from rich.console import Console, ConsoleOptions
-from rich.segment import Segment
 from rich.text import Text
 from textual import log, on
 from textual.app import ComposeResult
@@ -102,7 +100,6 @@ class ParameterControls(Widget):
                 for default_value_tuple in default.values:
                     widget_group = list(self.make_widget_group())
                     with ControlGroup() as control_group:
-
                         if len(widget_group) == 1:
                             control_group.add_class("single-item")
 
@@ -142,9 +139,7 @@ class ParameterControls(Widget):
         # button.
         if multiple and not isinstance(argument_type, click.Choice):
             with Horizontal(classes="add-another-button-container"):
-                yield Button(
-                    "+ value", variant="primary", classes="add-another-button"
-                )
+                yield Button("+ value", variant="primary", classes="add-another-button")
 
         # Render the dim help text below the form controls
         if help_text:
@@ -232,7 +227,7 @@ class ParameterControls(Widget):
                 # Unspecified number of arguments as per Click docs.
                 tuple_size = 1
             return [
-                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))
@@ -370,7 +365,8 @@ class ParameterControls(Widget):
         else:
             names = Text(" / ", style="dim").join([Text(n) for n in name])
             text = Text.from_markup(
-                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}")
+                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+            )
 
         if isinstance(type, (click.IntRange, click.FloatRange)):
             if type.min is not None:

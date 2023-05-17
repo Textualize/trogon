@@ -196,9 +196,6 @@ class CommandForm(Widget):
                 parent_command_data.subcommand = command_data
                 parent_command_data = command_data
         except Exception as e:
-            # TODO
-            # print(f"exception {e}")
-            # return
             raise e
 
         # Trim the sentinel

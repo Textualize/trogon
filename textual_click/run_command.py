@@ -87,6 +87,7 @@ class UserCommandData:
         cli_args = self._to_cli_args()
         if not include_root_command:
             cli_args = cli_args[1:]
+
         return cli_args
 
     def _to_cli_args(self):
@@ -126,7 +127,6 @@ class UserCommandData:
                     if isinstance(option.name, str):
                         option_name = option.name
                     else:
-
                         if option.option_schema.counting:
                             # For count options, we use the shortest name, e.g. use
                             # -v instead of --verbose.
@@ -153,8 +153,9 @@ class UserCommandData:
                                 args.append(longest_secondary_name)
                     else:
                         if not option.option_schema.counting:
-                            # Although buried away a little, this branch here is actually
-                            # the nominal case... single value options e.g. `--foo bar`.
+                            # Although buried away a little, this branch here is
+                            # actually the nominal case... single value options e.g.
+                            # `--foo bar`.
                             args.append(option_name)
                             for subvalue_tuple in value_data:
                                 args.extend(subvalue_tuple)
@@ -172,14 +173,16 @@ class UserCommandData:
             # Check if the values given for this option differ from the default
             defaults = multiples_schemas[option_name].default or []
             default_values = list(itertools.chain.from_iterable(defaults.values))
-            supplied_defaults = [value for value in default_values if
-                                 value != ValueNotSupplied()]
+            supplied_defaults = [
+                value for value in default_values if value != ValueNotSupplied()
+            ]
             supplied_defaults = list(map(str, supplied_defaults))
             supplied_defaults = sorted(supplied_defaults)
 
             supplied_values = list(itertools.chain.from_iterable(values))
-            supplied_values = [value for value in supplied_values if
-                               value != ValueNotSupplied()]
+            supplied_values = [
+                value for value in supplied_values if value != ValueNotSupplied()
+            ]
             supplied_values = list(map(str, supplied_values))
             supplied_values = sorted(supplied_values)
 

@@ -10,9 +10,7 @@ from textual_click.introspect import CommandSchema, CommandName
 
 
 class CommandTree(Tree[CommandSchema]):
-    COMPONENT_CLASSES = {
-        "group"
-    }
+    COMPONENT_CLASSES = {"group"}
 
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)

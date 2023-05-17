@@ -35,22 +35,25 @@ class CommandMetadata(DataTable):
     def on_mount(self) -> None:
         self.add_columns("Key", "Value")
         schema = self.command_schema
-        self.add_rows([
-            (Text("Name", style="b"), schema.name),
-            (Text("Parent", style="b"), getattr(schema.parent, "name", "No parent")),
-            (Text("Subcommands", style="b"), list(schema.subcommands.keys())),
-            (Text("Group", style="b"), schema.is_group),
-            (Text("Arguments", style="b"), len(schema.arguments)),
-            (Text("Options", style="b"), len(schema.options)),
-        ])
+        self.add_rows(
+            [
+                (Text("Name", style="b"), schema.name),
+                (
+                    Text("Parent", style="b"),
+                    getattr(schema.parent, "name", "No parent"),
+                ),
+                (Text("Subcommands", style="b"), list(schema.subcommands.keys())),
+                (Text("Group", style="b"), schema.is_group),
+                (Text("Arguments", style="b"), len(schema.arguments)),
+                (Text("Options", style="b"), len(schema.options)),
+            ]
+        )
 
 
 class CommandInfo(ModalScreen):
     COMPONENT_CLASSES = {"title", "subtitle"}
 
-    BINDINGS = [
-        Binding("q,escape", "close_modal", "Close Modal")
-    ]
+    BINDINGS = [Binding("q,escape", "close_modal", "Close Modal")]
 
     def __init__(
         self,
@@ -82,7 +85,7 @@ class CommandInfo(ModalScreen):
                 tabs = Tabs(
                     Tab("Description", id="command-info-text"),
                     Tab("Metadata", id="command-info-metadata"),
-                    classes="command-info-tabs"
+                    classes="command-info-tabs",
                 )
                 tabs.focus()
                 yield tabs
@@ -91,13 +94,17 @@ class CommandInfo(ModalScreen):
             if command_info:
                 command_info = command_info.strip()
 
-            with ContentSwitcher(initial="command-info-text",
-                                 id="command-info-switcher"):
-                yield Static(command_info, id="command-info-text",
-                             classes="command-info-text")
-                yield CommandMetadata(command_schema=self.command_schema,
-                                      id="command-info-metadata",
-                                      classes="command-info-metadata")
+            with ContentSwitcher(
+                initial="command-info-text", id="command-info-switcher"
+            ):
+                yield Static(
+                    command_info, id="command-info-text", classes="command-info-text"
+                )
+                yield CommandMetadata(
+                    command_schema=self.command_schema,
+                    id="command-info-metadata",
+                    classes="command-info-metadata",
+                )
 
     @on(Tabs.TabActivated)
     def switch_content(self, event: Tabs.TabActivated) -> None:

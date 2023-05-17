@@ -15,6 +15,7 @@ from textual.widgets import Checkbox
 class NonFocusableVerticalScroll(VerticalScroll, can_focus=False):
     pass
 
+
 class MultipleChoice(Widget):
     DEFAULT_CSS = """
     MultipleChoice {
@@ -59,12 +60,12 @@ class MultipleChoice(Widget):
             self.selected = selected
 
     def compose(self) -> ComposeResult:
-        with NonFocusableVerticalScroll() as vs:
+        with NonFocusableVerticalScroll():
             for option in self.options:
                 yield Checkbox(option, value=(option,) in self.defaults)
 
     @on(Checkbox.Changed)
-    def checkbox_toggled(self, event: Checkbox.Changed) -> None:
+    def checkbox_toggled(self) -> None:
         checkboxes = self.query(Checkbox)
         selected = []
         for checkbox in checkboxes:

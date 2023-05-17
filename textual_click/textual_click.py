@@ -45,8 +45,9 @@ class CommandBuilder(Screen):
 
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
-        Binding(key="ctrl+t", action="focus_command_tree",
-                description="Focus Command Tree"),
+        Binding(
+            key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
+        ),
         Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
     ]
 
@@ -159,7 +160,6 @@ class CommandBuilder(Screen):
         self._update_execution_string_preview(
             self.selected_command_schema, self.command_data
         )
-        log(event.command_data.to_cli_string())
 
     def _update_command_description(self, node: TreeNode[CommandSchema]) -> None:
         """Update the description of the command at the bottom of the sidebar
@@ -175,10 +175,11 @@ class CommandBuilder(Screen):
     ) -> None:
         """Update the preview box showing the command string to be executed"""
         if self.command_data is not None:
-            command_name_syntax_style = self.get_component_rich_style("command-name-syntax")
+            command_name_syntax_style = self.get_component_rich_style(
+                "command-name-syntax"
+            )
             prefix = Text(f"{self.click_app_name} ", command_name_syntax_style)
-            include_root = not self.is_grouped_cli
-            new_value = command_data.to_cli_string(include_root_command=include_root)
+            new_value = command_data.to_cli_string(include_root_command=False)
             highlighted_new_value = Text.assemble(prefix, self.highlighter(new_value))
             prompt_style = self.get_component_rich_style("prompt")
             preview_string = Text.assemble(("$ ", prompt_style), highlighted_new_value)
@@ -214,16 +215,18 @@ class TextualClick(App):
         self.post_run_command: list[str] = []
         self.is_grouped_cli = isinstance(cli, click.Group)
         self.execute_on_exit = False
-        self.click_context = click_context
-        self.app_name = click_context.find_root().info_name
+        if app_name is None and click_context is not None:
+            self.app_name = click_context.find_root().info_name
+        else:
+            self.app_name = app_name
 
     def on_mount(self):
         self.push_screen(CommandBuilder(self.cli, self.app_name))
 
-    def on_button_pressed(self, event: Button.Pressed):
-        if event.button.id == "home-exec-button":
-            self.execute_on_exit = True
-            self.exit()
+    @on(Button.Pressed, "#home-exec-button")
+    def on_button_pressed(self):
+        self.execute_on_exit = True
+        self.exit()
 
     def run(
         self,
@@ -261,7 +264,7 @@ class TextualClick(App):
         self.push_screen(CommandInfo(command_builder.selected_command_schema))
 
 
-def tui(name: str = "TUI Mode"):
+def tui(name: str | None = None):
     def decorator(app: click.Group | click.Command):
         @click.pass_context
         def wrapped_tui(ctx, *args, **kwargs):
