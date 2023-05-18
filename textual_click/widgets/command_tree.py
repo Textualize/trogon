@@ -15,7 +15,8 @@ class CommandTree(Tree[CommandSchema]):
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)
         self.show_root = False
-        self.guide_depth = 2
+        self.guide_depth = 3
+        self.show_guides = True
         self.cli_metadata = cli_metadata
 
     def render_label(

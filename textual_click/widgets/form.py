@@ -57,7 +57,7 @@ class CommandForm(Widget):
         margin: 1 2;
         height: auto;
         background: $boost;
-        border: panel $primary 60%;
+        border: panel $background;
         border-title-color: $text 80%;
         border-title-style: bold;
         border-subtitle-color: $text 30%;
@@ -107,7 +107,8 @@ class CommandForm(Widget):
                         v.border_title = (
                             f"{'↪ ' if is_inherited else ''}{command_node.name}"
                         )
-                        v.border_subtitle = f"{'(parameters inherited from parent)' if is_inherited else ''}"
+                        if is_inherited:
+                            v.border_title += " [dim not bold](inherited)"
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
                             for argument in arguments:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 from pathlib import Path
+from webbrowser import open as open_url
 
 import click
 from rich.console import Console
@@ -49,6 +50,7 @@ class CommandBuilder(Screen):
             key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
         ),
         Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
+        Binding(key="ctrl+a", action="about", description="About Trogon"),
     ]
 
     def __init__(
@@ -127,6 +129,11 @@ class CommandBuilder(Screen):
     def action_close_and_run(self) -> None:
         self.app.execute_on_exit = True
         self.app.exit()
+
+    def action_about(self) -> None:
+        from .widgets.about import AboutDialog
+
+        self.app.push_screen(AboutDialog())
 
     async def on_mount(self, event: events.Mount) -> None:
         await self._refresh_command_form()
@@ -262,6 +269,14 @@ class TextualClick(App):
     def action_show_command_info(self) -> None:
         command_builder = self.query_one(CommandBuilder)
         self.push_screen(CommandInfo(command_builder.selected_command_schema))
+
+    def action_visit(self, url: str) -> None:
+        """Visit the given URL, via the operating system.
+
+        Args:
+            url: The URL to visit.
+        """
+        open_url(url)
 
 
 def tui(name: str | None = None):

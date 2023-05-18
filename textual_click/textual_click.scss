@@ -56,7 +56,7 @@
 
 #home-command-description {
   width: 1fr;
-  height: 2;
+  height: 2;  
 }
 
 #home-command-description-container {
@@ -89,7 +89,7 @@ CommandBuilder .command-name-syntax {
 CommandTree {
   background: $background-lighten-1;
   scrollbar-gutter: stable;
-  scrollbar-size-vertical: 1;
+  scrollbar-size-vertical: 2;
   width: auto;
   height: 1fr;
   padding: 1 2;
@@ -97,7 +97,7 @@ CommandTree {
 }
 
 CommandTree :focus {
-  outline: solid $primary-lighten-2;
+  outline: tall $secondary;
 }
 
 CommandTree > .tree--cursor {
@@ -158,16 +158,16 @@ Pretty {
 }
 
 .add-another-button {
-  dock: right;
   margin: 0 2;
   padding: 0 1;
   height: 1;
-  border: none;
+  border: none; 
 }
 
 .add-another-button-container {
   width: 1fr;
   height: auto;
+  align: right top;
 }
 
 CommandInfo {
