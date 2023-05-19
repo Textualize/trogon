@@ -4,11 +4,11 @@
 
 #home-body {
   height: 100%;
-  width: auto;
+  width: auto;      
 }
 
 #home-body-scroll {
-  height: 100%;
+  height: 100%;      
 }
 
 #home-exec-preview {
@@ -56,7 +56,7 @@
 
 #home-command-description {
   width: 1fr;
-  height: 2;  
+  height: 2;    
 }
 
 #home-command-description-container {
@@ -67,6 +67,7 @@
   color: $text;
   background: $accent-lighten-2 5%;
 }
+
 
 CommandBuilder .version-string {
   color: $text-muted;
@@ -88,16 +89,17 @@ CommandBuilder .command-name-syntax {
 
 CommandTree {
   background: $background-lighten-1;
-  scrollbar-gutter: stable;
-  scrollbar-size-vertical: 2;
+  scrollbar-gutter: stable;  
   width: auto;
   height: 1fr;
-  padding: 1 2;
+  padding: 0 1;
   margin-bottom: 1;  /* why is this needed? */
+  border: blank;
 }
 
-CommandTree :focus {
-  outline: tall $secondary;
+
+CommandTree:focus {
+  border: tall $secondary;
 }
 
 CommandTree > .tree--cursor {
@@ -132,7 +134,7 @@ ParameterControls {
 ControlGroup {
   height: auto;
   border: solid $panel-lighten-2;
-  margin: 0 1;
+  margin: 0 1; 
 }
 
 ControlGroup.single-item {
@@ -146,11 +148,11 @@ ControlGroup.single-item:focus-within {
 }
 
 ControlGroup:focus-within {
-  border: solid $primary-lighten-2;
+  border: solid $primary;
 }
 
 ControlGroupsContainer {
-  height: auto;
+  height: auto;  
 }
 
 Pretty {
@@ -227,4 +229,16 @@ CommandInfo Tab {
 
 Tabs:focus .underline--bar {
   color: $accent-lighten-1;
+}
+
+Select.command-form-select  {
+  margin: 0 1 0 1;       
+}
+
+Select.command-form-select SelectCurrent {
+  border: tall transparent;
+}
+
+Select.command-form-select:focus SelectCurrent {
+  border: tall $accent;
 }

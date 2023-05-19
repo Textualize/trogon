@@ -1,6 +1,6 @@
 import click
 
-from textual_click import tui
+from trogon import tui
 
 
 @tui()

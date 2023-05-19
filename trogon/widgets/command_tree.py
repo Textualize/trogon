@@ -6,7 +6,7 @@ from textual.geometry import clamp
 from textual.widgets import Tree
 from textual.widgets._tree import TreeNode, TreeDataType
 
-from textual_click.introspect import CommandSchema, CommandName
+from trogon.introspect import CommandSchema, CommandName
 
 
 class CommandTree(Tree[CommandSchema]):
@@ -15,8 +15,8 @@ class CommandTree(Tree[CommandSchema]):
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)
         self.show_root = False
-        self.guide_depth = 3
-        self.show_guides = True
+        self.guide_depth = 2
+        self.show_guides = False
         self.cli_metadata = cli_metadata
 
     def render_label(

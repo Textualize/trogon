@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "textual-click"
+name = "trogon"
 version = "0.1.0"
 description = ""
 authors = ["Darren Burns <darrenb900@gmail.com>"]
 readme = "README.md"
-packages = [{include = "textual_click"}]
+packages = [{include = "trogon"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
