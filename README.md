@@ -1,4 +1,6 @@
-# Textual Click
+# Trogon
+
+**WIP, please wait for full release.**
 
 ## Quickstart
 

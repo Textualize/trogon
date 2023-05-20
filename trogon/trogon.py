@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 from pathlib import Path
+from webbrowser import open as open_url
 
 import click
 from rich.console import Console
@@ -23,15 +24,15 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 
-from textual_click.introspect import (
+from trogon.introspect import (
     introspect_click_app,
     CommandSchema,
 )
-from textual_click.run_command import UserCommandData
-from textual_click.widgets.command_info import CommandInfo
-from textual_click.widgets.command_tree import CommandTree
-from textual_click.widgets.form import CommandForm
-from textual_click.widgets.multiple_choice import NonFocusableVerticalScroll
+from trogon.run_command import UserCommandData
+from trogon.widgets.command_info import CommandInfo
+from trogon.widgets.command_tree import CommandTree
+from trogon.widgets.form import CommandForm
+from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
 
 try:
     from importlib import metadata  # type: ignore
@@ -49,6 +50,7 @@ class CommandBuilder(Screen):
             key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
         ),
         Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
+        Binding(key="f1", action="about", description="About Trogon"),
     ]
 
     def __init__(
@@ -128,6 +130,11 @@ class CommandBuilder(Screen):
         self.app.execute_on_exit = True
         self.app.exit()
 
+    def action_about(self) -> None:
+        from .widgets.about import AboutDialog
+
+        self.app.push_screen(AboutDialog())
+
     async def on_mount(self, event: events.Mount) -> None:
         await self._refresh_command_form()
 
@@ -201,8 +208,8 @@ class CommandBuilder(Screen):
             command_form.focus()
 
 
-class TextualClick(App):
-    CSS_PATH = Path(__file__).parent / "textual_click.scss"
+class Trogon(App):
+    CSS_PATH = Path(__file__).parent / "trogon.scss"
 
     def __init__(
         self,
@@ -263,12 +270,20 @@ class TextualClick(App):
         command_builder = self.query_one(CommandBuilder)
         self.push_screen(CommandInfo(command_builder.selected_command_schema))
 
+    def action_visit(self, url: str) -> None:
+        """Visit the given URL, via the operating system.
+
+        Args:
+            url: The URL to visit.
+        """
+        open_url(url)
+
 
 def tui(name: str | None = None):
     def decorator(app: click.Group | click.Command):
         @click.pass_context
         def wrapped_tui(ctx, *args, **kwargs):
-            TextualClick(app, app_name=name, click_context=ctx).run()
+            Trogon(app, app_name=name, click_context=ctx).run()
 
         if isinstance(app, click.Group):
             app.command(name="tui")(wrapped_tui)

@@ -12,18 +12,18 @@ from textual.containers import Vertical, Horizontal
 from textual.widget import Widget
 from textual.widgets import (
     RadioButton,
-    RadioSet,
     Label,
     Checkbox,
     Input,
+    Select,
     Static,
     Button,
 )
 
-from textual_click.introspect import ArgumentSchema, OptionSchema, MultiValueParamData
-from textual_click.widgets.multiple_choice import MultipleChoice
+from trogon.introspect import ArgumentSchema, OptionSchema, MultiValueParamData
+from trogon.widgets.multiple_choice import MultipleChoice
 
-ControlWidgetType: TypeVar = Union[Input, RadioSet, Checkbox, MultipleChoice]
+ControlWidgetType: TypeVar = Union[Input, Checkbox, MultipleChoice, Select]
 
 
 class ControlGroup(Vertical):
@@ -193,20 +193,18 @@ class ParameterControls(Widget):
         if isinstance(control_widget, Input):
             control_widget.value = str(default_value)
             control_widget.placeholder = f"{default_value} (default)"
-        elif isinstance(control_widget, RadioSet):
-            for item in control_widget.walk_children():
-                if isinstance(item, RadioButton):
-                    label = item.label.plain
-                    item.value = label == default_value
+        elif isinstance(control_widget, Select):
+            control_widget.value = str(default_value)
+            control_widget.prompt = f"{default_value} (default)"
 
     @staticmethod
     def _get_form_control_value(control: ControlWidgetType) -> Any:
         if isinstance(control, MultipleChoice):
             return control.selected
-        elif isinstance(control, RadioSet):
-            if control.pressed_button is not None:
-                return control.pressed_button.label.plain
-            return ValueNotSupplied()
+        elif isinstance(control, Select):
+            if control.value is None:
+                return ValueNotSupplied()
+            return control.value
         elif isinstance(control, Input):
             return (
                 ValueNotSupplied() if control.value == "" else control.value
@@ -314,7 +312,7 @@ class ParameterControls(Widget):
 
         control = Checkbox(
             label,
-            button_first=False,
+            button_first=True,
             classes=f"command-form-checkbox {control_id}",
             value=default,
         )
@@ -343,12 +341,12 @@ class ParameterControls(Widget):
             yield multi_choice
             return multi_choice
         else:
-            radio_set = RadioSet(
-                *[RadioButton(choice) for choice in choices],
-                classes=f"{control_id} command-form-radioset",
+            select = Select(
+                [(choice, choice) for choice in choices],
+                classes=f"{control_id} command-form-select",
             )
-            yield radio_set
-            return radio_set
+            yield select
+            return select
 
     @staticmethod
     def _make_command_form_control_label(

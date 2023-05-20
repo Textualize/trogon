@@ -8,8 +8,8 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Static, Tabs, Tab, ContentSwitcher, DataTable
 
-from textual_click.introspect import CommandSchema
-from textual_click.widgets.multiple_choice import NonFocusableVerticalScroll
+from trogon.introspect import CommandSchema
+from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
 
 
 class CommandMetadata(DataTable):

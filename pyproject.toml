@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "textual-click"
-version = "0.1.0"
+name = "trogon"
+version = "0.2.0"
 description = ""
 authors = ["Darren Burns <darrenb900@gmail.com>"]
 readme = "README.md"
-packages = [{include = "textual_click"}]
+packages = [{include = "trogon"}]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-textual = {extras = ["dev"], version = ">=0.20.1"}
+textual = {extras = ["dev"], version = ">=0.25.0"}
 #textual = {extras = ["dev"], path = "../textual", develop = true}
 click = ">=8.0.0"
 

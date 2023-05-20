@@ -8,14 +8,14 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Label
 
-from textual_click.introspect import (
+from trogon.introspect import (
     CommandSchema,
     CommandName,
     ArgumentSchema,
     OptionSchema,
 )
-from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
-from textual_click.widgets.parameter_controls import ParameterControls
+from trogon.run_command import UserCommandData, UserOptionData, UserArgumentData
+from trogon.widgets.parameter_controls import ParameterControls
 
 
 @dataclasses.dataclass
@@ -36,28 +36,32 @@ class CommandForm(Widget):
     }
     .command-form-input {
         margin: 0 1 0 1;
+        border: tall transparent;
     }
     .command-form-label {
         padding: 1 0 0 2;
     }
-    .command-form-radioset {
-        margin: 0 0 0 2;
-    }
+    
     .command-form-multiple-choice {
         margin: 0 0 0 2;
     }
     .command-form-checkbox {
+        background: $boost;
         margin: 1 0 0 1;
         padding-left: 1;
+        border: tall transparent;
     }
     .command-form-checkbox:focus {
-      outline-left: wide $accent;
+      border: tall $accent;      
+    }
+    .command-form-checkbox:focus > .toggle--label {
+        text-style: none;
     }
     .command-form-command-group {
         margin: 1 2;
         height: auto;
-        background: $boost;
-        border: panel $primary 60%;
+        background: $foreground 3%;
+        border: panel $background;
         border-title-color: $text 80%;
         border-title-style: bold;
         border-subtitle-color: $text 30%;
@@ -107,7 +111,8 @@ class CommandForm(Widget):
                         v.border_title = (
                             f"{'↪ ' if is_inherited else ''}{command_node.name}"
                         )
-                        v.border_subtitle = f"{'(parameters inherited from parent)' if is_inherited else ''}"
+                        if is_inherited:
+                            v.border_title += " [dim not bold](inherited)"
                         if arguments:
                             yield Label(f"Arguments", classes="command-form-heading")
                             for argument in arguments:
@@ -132,7 +137,7 @@ class CommandForm(Widget):
     def on_input_changed(self) -> None:
         self._form_changed()
 
-    def on_radio_set_changed(self) -> None:
+    def on_select_changed(self) -> None:
         self._form_changed()
 
     def on_checkbox_changed(self) -> None:

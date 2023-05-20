@@ -1,12 +1,12 @@
 import pytest
 
-from textual_click.introspect import (
+from trogon.introspect import (
     CommandSchema,
     OptionSchema,
     ArgumentSchema,
     CommandName,
 )
-from textual_click.run_command import UserCommandData, UserOptionData, UserArgumentData
+from trogon.run_command import UserCommandData, UserOptionData, UserArgumentData
 
 
 @pytest.fixture

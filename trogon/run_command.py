@@ -8,14 +8,14 @@ from typing import Any, List, Optional
 
 from rich.text import Text
 
-from textual_click.introspect import (
+from trogon.introspect import (
     CommandSchema,
     CommandName,
     OptionSchema,
     ArgumentSchema,
     MultiValueParamData,
 )
-from textual_click.widgets.parameter_controls import ValueNotSupplied
+from trogon.widgets.parameter_controls import ValueNotSupplied
 
 
 @dataclass
@@ -162,7 +162,11 @@ class UserCommandData:
                         else:
                             # Get the value of the counting option
                             count = next(itertools.chain.from_iterable(value_data), 1)
-                            count = int(count)
+                            try:
+                                count = int(count)
+                            except ValueError:
+                                # TODO: Not sure if this is the right thing to do
+                                count = 1
                             if option_name.startswith("--"):
                                 args.extend([option_name] * count)
                             else:
