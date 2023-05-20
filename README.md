@@ -27,9 +27,8 @@ Trogon works with the popular [Click](https://click.palletsprojects.com/) librar
 
 ## How it works
 
-Trogon inspects your app and extracts a *schema* which describes the options / switches / help etc.
-It then uses that information to build a form with a familiar control for each option.
-Updating the form generates a command line which you can run with <kbd>ctrl+R</kbd>.
+Trogon inspects your (command line) app and extracts a *schema* which describes the options / switches / help etc.
+It then uses that information to build a [Textual](https:/github.com/textualize/textual) UI you can use to edit and run the command line. 
 
 Ultimately we would like to formalize this schema and a protocol to extract or expose it from apps, which would allow Trogon to build TUIs for any CLI app, regardless of how it was built.
 If you are familiar with Swagger, think Swagger for CLIs.
