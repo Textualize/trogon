@@ -7,7 +7,7 @@
 
 # Trogon
 
-Trogon generates friendly terminal user interfaces for command line apps.
+Trogon auto-generates friendly terminal user interfaces for command line apps.
 
 Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but will support other libraries and even other languages in the future.
 
