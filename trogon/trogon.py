@@ -286,11 +286,11 @@ def tui(name: str | None = None):
             Trogon(app, app_name=name, click_context=ctx).run()
 
         if isinstance(app, click.Group):
-            app.command(name="tui")(wrapped_tui)
+            app.command(name="tui", help="Open Textual TUI.")(wrapped_tui)
         else:
             new_group = click.Group()
             new_group.add_command(app)
-            new_group.command(name="tui")(wrapped_tui)
+            new_group.command(name="tui", help="Open Textual TUI.")(wrapped_tui)
             return new_group
 
         return app
