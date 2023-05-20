@@ -1,14 +1,33 @@
 [tool.poetry]
 name = "trogon"
 version = "0.2.0"
-description = ""
+description = "Automatically generate a Textual TUI for your Cick CLI"
 authors = ["Darren Burns <darrenb900@gmail.com>"]
 readme = "README.md"
 packages = [{include = "trogon"}]
+license = "MIT"
+homepage = "https://github.com/Textualize/trogon"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Other Audience",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Documentation",
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-textual = {extras = ["dev"], version = ">=0.26.0"}
+textual = {version = ">=0.26.0"}
 #textual = {extras = ["dev"], path = "../textual", develop = true}
 click = ">=8.0.0"
 
@@ -17,6 +36,7 @@ click = ">=8.0.0"
 mypy = "^1.2.0"
 black = "^23.3.0"
 pytest = "^7.3.1"
+textual = {extras = ["dev"], version = ">=0.26.0"}
 
 [build-system]
 requires = ["poetry-core"]
