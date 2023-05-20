@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/Textualize/textualize-cli/assets/554369/bc0b3552-88d8-4eb8-ad14-943be7221120" width="300" align="center">
+    <img src="https://github.com/Textualize/textualize-cli/assets/554369/bc0b3552-88d8-4eb8-ad14-943be7221120" alt="A pitcture of a trogon (bird) sitting on a laptop" width="300" align="center">
 </p>
     
 [![Discord](https://img.shields.io/discord/1026214085173461072)](https://discord.gg/Enf6Z3qhVr)
@@ -8,8 +8,6 @@
 # Trogon
 
 Trogon auto-generates friendly terminal user interfaces for command line apps.
-
-Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but will support other libraries and even other languages in the future.
 
 
 <details>  
@@ -24,11 +22,14 @@ https://github.com/Textualize/trogon/assets/554369/5ad8de04-d9f9-45af-aa21-7cb59
 </details>
 
 
+Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but will support other libraries and even other languages in the future.
 
-
+## How it works
 
 Trogon inspects the Click app and extracts a *schema* which describes the options / switches / help etc.
-It uses the information in the schema to builds a UI.
+It then uses that information to display a form with a familiar control for each option.
+Updating the form generates a command line which you can run with <kbd>ctrl+R</kbd>.
+
 Ultimately we would like to formalize this schema and a protocol to extract or expose it from apps, which would allow Trogon to build TUIs for any CLI app, regardless of how it was build.
 If you are familiar with Swagger, think Swagger for CLIs.
 
