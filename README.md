@@ -12,7 +12,6 @@ Auto-generate friendly terminal user interfaces for command line apps.
 
 <details>  
   <summary> 🎬 Video demonstration </summary>
-  <hr>
 
 A quick tour of a Trogon app applied to [sqlite-utils](https://github.com/simonw/sqlite-utils).
 
