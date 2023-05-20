@@ -7,7 +7,7 @@
 
 # Trogon
 
-Trogon auto-generates friendly terminal user interfaces for command line apps.
+Auto-generate friendly terminal user interfaces for command line apps.
 
 
 <details>  
