@@ -209,7 +209,7 @@ class CommandBuilder(Screen):
 
 
 class Trogon(App):
-    CSS_PATH = Path(__file__).parent / "textual_click.scss"
+    CSS_PATH = Path(__file__).parent / "trogon.scss"
 
     def __init__(
         self,

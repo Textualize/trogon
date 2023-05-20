@@ -162,7 +162,11 @@ class UserCommandData:
                         else:
                             # Get the value of the counting option
                             count = next(itertools.chain.from_iterable(value_data), 1)
-                            count = int(count)
+                            try:
+                                count = int(count)
+                            except ValueError:
+                                # TODO: Not sure if this is the right thing to do
+                                count = 1
                             if option_name.startswith("--"):
                                 args.extend([option_name] * count)
                             else:

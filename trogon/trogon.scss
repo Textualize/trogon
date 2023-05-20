@@ -99,7 +99,7 @@ CommandTree {
 
 
 CommandTree:focus {
-  border: tall $secondary;
+  border: tall $success;
 }
 
 CommandTree > .tree--cursor {
@@ -177,7 +177,7 @@ CommandInfo {
 }
 
 .command-info-header-text {
-  padding: 1 2 0 2;
+  padding: 1 1 0 2;
 }
 
 $command-info-header-bg: $primary-darken-1;
