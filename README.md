@@ -13,6 +13,8 @@ Auto-generate friendly terminal user interfaces for command line apps.
 <details>  
   <summary> 🎬 Video demonstration </summary>
 
+&nbsp;
+    
 A quick tour of a Trogon app applied to [sqlite-utils](https://github.com/simonw/sqlite-utils).
 
 
@@ -29,7 +31,7 @@ Trogon inspects your app and extracts a *schema* which describes the options / s
 It then uses that information to build a form with a familiar control for each option.
 Updating the form generates a command line which you can run with <kbd>ctrl+R</kbd>.
 
-Ultimately we would like to formalize this schema and a protocol to extract or expose it from apps, which would allow Trogon to build TUIs for any CLI app, regardless of how it was build.
+Ultimately we would like to formalize this schema and a protocol to extract or expose it from apps, which would allow Trogon to build TUIs for any CLI app, regardless of how it was built.
 If you are familiar with Swagger, think Swagger for CLIs.
 
 ## Screenshots
