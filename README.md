@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/Textualize/textualize-cli/assets/554369/bc0b3552-88d8-4eb8-ad14-943be7221120" alt="A pitcture of a trogon (bird) sitting on a laptop" width="300" align="center">
+    <img src="https://github.com/Textualize/textualize-cli/assets/554369/bc0b3552-88d8-4eb8-ad14-943be7221120" alt="A picture of a trogon (bird) sitting on a laptop" width="300" align="center">
 </p>
     
 [![Discord](https://img.shields.io/discord/1026214085173461072)](https://discord.gg/Enf6Z3qhVr)
