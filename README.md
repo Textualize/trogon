@@ -64,13 +64,16 @@ If you are familiar with Swagger, think Swagger for CLIs.
 ## Why?
 
 Command line apps reward repeated use, but they lack in *discoverability*.
-If you don't use a CLI app frequently, or its too large to commit to memory, a Trogon TUI interface can help you (re)discover options and switches.
+If you don't use a CLI app frequently, or there are too many options to commit to memory, a Trogon TUI interface can help you (re)discover options and switches.
 
 ## What does the name mean?
 
 This project started life as a [Textual](https://github.com/Textualize/textual) experiement, which we give give bird's names to.
 A [Trogon](https://www.willmcgugan.com/blog/photography/post/costa-rica-trip-report-2017/#bird) is a very beautiful bird I was lucky enough to photograph in 2017.
 
+## Can I use it?
+
+Sure! It is usable as is. But this is an early release, so pin your dependancies for now.
 
 ## Installing
 
