@@ -76,7 +76,7 @@ See also [Frogmouth](https://github.com/Textualize/frogmouth), a Markdown browse
 
 ## Roadmap
 
-Trogon is usable now, and it is only 2 lines (!) of code to add to an existing project.
+Trogon is usable now. It is only 2 lines (!) of code to add to an existing project.
 
 It is still in an early stage of development, and we have lots of improvements planned for it.
 
