@@ -12,6 +12,16 @@ Trogon generates friendly terminal user interfaces for command line apps.
 Currently Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but in the future may support other libraries and languages other than Python.
 
 
+<details>  
+  <summary> 🎬 Demonstration </summary>
+  <hr>
+
+A quick tour of a Trogon app applied to [sqlite-utils](https://github.com/simonw/sqlite-utils).
+
+
+Uploading Screen Recording 2023-05-20 at 12.24.35.mov…
+
+</details>
 
 
 
@@ -59,7 +69,10 @@ If you don't use a CLI app frequently, or its too large to commit to memory, a T
 ## What does the name mean?
 
 This project started life as a [Textual](https://github.com/Textualize/textual) experiement, which we give give bird's names to.
-A [Trogon](https://www.willmcgugan.com/blog/photography/post/costa-rica-trip-report-2017/#bird) is a very beautiful bird I was lucky enough to photograph.
+A [Trogon](https://www.willmcgugan.com/blog/photography/post/costa-rica-trip-report-2017/#bird) is a very beautiful bird I was lucky enough to photograph in 2017.
+
+## Roadmap
+
 
 
 ## Installing
