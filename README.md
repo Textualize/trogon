@@ -9,7 +9,7 @@
 
 Trogon generates friendly terminal user interfaces for command line apps.
 
-Currently Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but in the future may support other libraries and languages other than Python.
+Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but will support other libraries and even other languages in the future.
 
 
 <details>  
@@ -68,12 +68,16 @@ If you don't use a CLI app frequently, or there are too many options to commit t
 
 ## What does the name mean?
 
-This project started life as a [Textual](https://github.com/Textualize/textual) experiement, which we give give bird's names to.
-A [Trogon](https://www.willmcgugan.com/blog/photography/post/costa-rica-trip-report-2017/#bird) is a very beautiful bird I was lucky enough to photograph in 2017.
+This project started life as a [Textual](https://github.com/Textualize/textual) experiement, which we have been giving give bird's names to.
+A [Trogon](https://www.willmcgugan.com/blog/photography/post/costa-rica-trip-report-2017/#bird) is a beautiful bird I was lucky enough to photograph in 2017.
 
-## Can I use it?
+See also [Frogmouth](https://github.com/Textualize/frogmouth), a Markdown browser for the terminal.
 
-Sure! It is usable as is. But this is an early release, so pin your dependancies for now.
+## Roadmap
+
+Trogon is usable now, and it is only 2 lines (!) of code to add to an existing project.
+
+It is still in an early stage of development, and we have lots of improvements planned for it.
 
 ## Installing
 
@@ -96,3 +100,7 @@ pip install trogon
 3. Your click app will have a new `tui` command available.
 
 See also the `examples` folder for two example apps.
+
+## Follow this project
+
+If this app interests you, you may want to join the Textual [Discord server](https://discord.gg/Enf6Z3qhVr) where you can talk to Textual developers / community.
