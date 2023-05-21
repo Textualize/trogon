@@ -1,5 +1,6 @@
+
 <p align="center">
-    <img src="https://github.com/Textualize/textualize-cli/assets/554369/bc0b3552-88d8-4eb8-ad14-943be7221120" alt="A picture of a trogon (bird) sitting on a laptop" width="300" align="center">
+    <img src="https://github.com/Textualize/trogon/assets/554369/f4751783-c322-4143-a6c1-d8c564d4e38f" alt="A picture of a trogon (bird) sitting on a laptop" width="300" align="center">
 </p>
     
 [![Discord](https://img.shields.io/discord/1026214085173461072)](https://discord.gg/Enf6Z3qhVr)
@@ -17,8 +18,7 @@ Auto-generate friendly terminal user interfaces for command line apps.
     
 A quick tour of a Trogon app applied to [sqlite-utils](https://github.com/simonw/sqlite-utils).
 
-
-https://github.com/Textualize/trogon/assets/554369/5ad8de04-d9f9-45af-aa21-7cb593951eff
+https://github.com/Textualize/trogon/assets/554369/c9e5dabb-5624-45cb-8612-f6ecfde70362
 
 </details>
 
@@ -36,27 +36,26 @@ If you are familiar with Swagger, think Swagger for CLIs.
 
 ## Screenshots
 
-
 <table>
 
 <tr>
 <td>
-<img width="100%" alt="Screenshot 2023-05-20 at 12 07 31" src="https://github.com/Textualize/trogon/assets/554369/7b67b9ae-d3e3-4e51-b13c-088bc99ad736">
+<img width="100%" alt="Screenshot 2023-05-20 at 12 07 31" src="https://github.com/Textualize/trogon/assets/554369/009cf3f2-f0c4-464b-bd74-60e303864443">
 </td>
 
 <td>
-<img width="100%" alt="Screenshot 2023-05-20 at 12 08 21" src="https://github.com/Textualize/trogon/assets/554369/04245bad-4f76-453e-be25-c26d013474db">
+<img width="100%" alt="Screenshot 2023-05-20 at 12 08 21" src="https://github.com/Textualize/trogon/assets/554369/b1039ee6-4ba6-4123-b0dd-aa7b2341672f">
 </td>
 </tr>
 
 <tr>
 
 <td>
-<img width="100%" alt="Screenshot 2023-05-20 at 12 08 53" src="https://github.com/Textualize/trogon/assets/554369/8b12fa2e-7d0c-4d21-bdc0-688408cf3cf6">
+<img width="100%" alt="Screenshot 2023-05-20 at 12 08 53" src="https://github.com/Textualize/trogon/assets/554369/c0a42277-e946-4bef-b0d0-3fa87e4ab55b">
 </td>
 
 <td>
-<img width="100%" alt="Screenshot 2023-05-20 at 12 09 47" src="https://github.com/Textualize/trogon/assets/554369/c99d487a-7651-40e5-9bd5-7653e3be713a">
+<img width="100%" alt="Screenshot 2023-05-20 at 12 09 47" src="https://github.com/Textualize/trogon/assets/554369/55477f6c-e6b8-49b6-85c1-b01bee006c8e">
 </td>
 
 </tr>
