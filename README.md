@@ -90,6 +90,7 @@ pip install trogon
 
 ## Quickstart
 
+### Click
 1. Import `from trogon import tui`
 2. Add the `@tui` decorator above your click app. e.g.
     ```python
@@ -99,6 +100,15 @@ pip install trogon
         ...
     ```
 3. Your click app will have a new `tui` command available.
+
+### Typer
+1. Import `from trogon.typer import init_tui`
+2. Add the `tui` decorator above your typer app. e.g.
+    ```python
+    cli = typer.Typer(...)
+    init_tui(cli)
+    ```
+3. Your typer app will have a new `tui` command available.
 
 See also the `examples` folder for two example apps.
 
