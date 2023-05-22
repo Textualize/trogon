@@ -246,12 +246,10 @@ class Trogon(App):
             super().run(headless=headless, size=size, auto_pilot=auto_pilot)
         finally:
             if self.post_run_command:
-                console = Console()
                 if self.post_run_command and self.execute_on_exit:
-                    console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
-                    )
-                    os.execvp(self.app_name, [self.app_name, *self.post_run_command])
+                    path, *commands = shlex.split(self.app_name)
+                    args = [path, *commands, *self.post_run_command]
+                    os.execvp(path, args)
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):

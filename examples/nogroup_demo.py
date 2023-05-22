@@ -3,7 +3,7 @@ import click
 from trogon import tui
 
 
-@tui()
+@tui(name="python nogroup_demo.py")
 @click.option("--verbose", "-v", count=True, help="Increase verbosity level.")
 @click.option(
     "--priority", "-p", type=int, default=1, help="Set task priority (default: 1)"

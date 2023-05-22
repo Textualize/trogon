@@ -3,7 +3,7 @@ import click
 from trogon import tui
 
 
-@tui()
+@tui(name="python demo.py")
 @click.group()
 @click.option(
     "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
@@ -45,7 +45,7 @@ def cli(ctx, verbose):
     help="Add labels to the task (repeatable)",
 )
 @click.pass_context
-def add(ctx, task, priority, tags, extra):
+def add(ctx, task, priority, tags, extra, category, labels):
     """Add a new task to the to-do list.
     Note:
     Control the output of this using the verbosity option.
