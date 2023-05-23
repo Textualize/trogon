@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "trogon"
 version = "0.2.1"
-description = "Automatically generate a Textual TUI for your Cick CLI"
+description = "Automatically generate a Textual TUI for your Click CLI"
 authors = ["Darren Burns <darrenb900@gmail.com>"]
 readme = "README.md"
 packages = [{include = "trogon"}]
