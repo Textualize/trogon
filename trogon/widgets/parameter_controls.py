@@ -113,7 +113,6 @@ class ParameterControls(Widget):
                         for default_value, control_widget in zip(
                             default_value_tuple, widget_group
                         ):
-                            print(default_value, control_widget)
                             self._apply_default_value(control_widget, default_value)
                             yield control_widget
                             # Keep track of the first control we render, for easy focus
@@ -214,7 +213,6 @@ class ParameterControls(Widget):
                 ValueNotSupplied() if control.value == "" else control.value
             )  # TODO: We should only return "" when user selects a checkbox - needs custom widget.
         elif isinstance(control, Checkbox):
-            print(control.value)
             return control.value
 
     def get_values(self) -> MultiValueParamData:
@@ -314,8 +312,6 @@ class ParameterControls(Widget):
             default = default.values[0][0]
         else:
             default = ValueNotSupplied()
-
-        print(f"Make checkbox control with default = {default}")
 
         control = Checkbox(
             label,
