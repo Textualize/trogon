@@ -32,11 +32,7 @@ class CommandTree(Tree[CommandSchema]):
         ) -> TreeNode:
             data = {key: data[key] for key in sorted(data)}
             for cmd_name, cmd_data in data.items():
-                if (
-                    not cmd_data.subcommands
-                    and not cmd_data.options
-                    and not cmd_data.arguments
-                ):
+                if cmd_name == "tui":
                     continue
                 if cmd_data.subcommands:
                     label = Text(cmd_name)

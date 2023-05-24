@@ -206,7 +206,8 @@ class CommandForm(Widget):
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
         root_command_data.parent = None
-        root_command_data.fill_defaults(self.command_schema)
+
+        # root_command_data.fill_defaults(self.command_schema)
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):

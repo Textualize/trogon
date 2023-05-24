@@ -203,7 +203,10 @@ class UserCommandData:
                         args.append(option_name)
                         args.extend(v for v in value_data)
 
+        known_arguments = {arg.name for arg in self.command_schema.arguments}
         for argument in self.arguments:
+            # if argument.name in known_arguments:
+
             value_data = argument.value
             for argument_value in value_data:
                 if argument_value != ValueNotSupplied():
@@ -264,13 +267,14 @@ class UserCommandData:
 
         # Prefill default argument values
         for arg_schema in command_schema.arguments:
-            if arg_schema.default is not None and not any(
-                arg.name == arg_schema.name for arg in self.arguments
-            ):
+            for value in arg_schema.default.values:
+                # if value is not None and not any(
+                #     arg.name == arg_schema.name for arg in self.arguments
+                # ):
                 self.arguments.append(
                     UserArgumentData(
                         name=arg_schema.name,
-                        value=arg_schema.default.values,
+                        value=value,
                         argument_schema=arg_schema,
                     )
                 )
