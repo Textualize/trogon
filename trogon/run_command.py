@@ -203,11 +203,13 @@ class UserCommandData:
                         args.append(option_name)
                         args.extend(v for v in value_data)
 
+        known_arguments = {arg.name for arg in self.command_schema.arguments}
         for argument in self.arguments:
-            value_data = argument.value
-            for argument_value in value_data:
-                if argument_value != ValueNotSupplied():
-                    args.append(argument_value)
+            if argument.name in known_arguments:
+                value_data = argument.value
+                for argument_value in value_data:
+                    if argument_value != ValueNotSupplied():
+                        args.append(argument_value)
 
         if self.subcommand:
             args.extend(self.subcommand._to_cli_args())
