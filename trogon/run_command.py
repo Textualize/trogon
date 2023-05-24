@@ -171,7 +171,7 @@ class UserCommandData:
                             except ValueError:
                                 # TODO: Not sure if this is the right thing to do
                                 count = 1
-                            count = max(1, min(count, 3))
+                            count = max(1, min(count, 5))
                             if option_name.startswith("--"):
                                 args.extend([option_name] * count)
                             else:
