@@ -286,9 +286,7 @@ class ParameterControls(Widget):
         elif isinstance(argument_type, click.types.Choice):
             return partial(self.make_choice_control, choices=argument_type.choices)
         else:
-            log.error(
-                f"Given type {argument_type}, we couldn't determine which form control to render."
-            )
+            return self.make_text_control
 
     @staticmethod
     def make_text_control(
