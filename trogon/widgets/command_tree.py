@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from rich.style import Style
 from rich.text import TextType, Text
-from textual.geometry import clamp
 from textual.widgets import Tree
 from textual.widgets._tree import TreeNode, TreeDataType
 

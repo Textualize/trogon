@@ -53,7 +53,7 @@ class UserArgumentData:
     """
 
     name: str
-    value: Any
+    value: tuple[Any]
     argument_schema: ArgumentSchema
 
 
@@ -107,7 +107,11 @@ class UserCommandData:
                 value_data: list[tuple[Any]] = MultiValueParamData.process_cli_option(
                     option.value
                 ).values
-                default_data: list[tuple[Any]] = option.option_schema.default.values
+
+                if option.option_schema.default is not None:
+                    default_data: list[tuple[Any]] = option.option_schema.default.values
+                else:
+                    default_data = [tuple()]
 
                 flattened_values = sorted(itertools.chain.from_iterable(value_data))
                 flattened_defaults = sorted(itertools.chain.from_iterable(default_data))
@@ -203,12 +207,9 @@ class UserCommandData:
                         args.append(option_name)
                         args.extend(v for v in value_data)
 
-        known_arguments = {arg.name for arg in self.command_schema.arguments}
         for argument in self.arguments:
-            # if argument.name in known_arguments:
-
-            value_data = argument.value
-            for argument_value in value_data:
+            this_arg_values = argument.value
+            for argument_value in this_arg_values:
                 if argument_value != ValueNotSupplied():
                     args.append(argument_value)
 
@@ -235,59 +236,3 @@ class UserCommandData:
                 else Text("???", style="bold black on red")
             )
         return Text(" ").join(text_renderables)
-
-    def fill_defaults(self, command_schema: CommandSchema) -> None:
-        """
-        Prefills the UserCommandData instance with default values for options and
-        arguments based on the provided CommandSchema.
-
-        Args:
-            command_schema: A CommandSchema instance representing the schema for
-                the command to prefill defaults.
-        """
-        # Prefill default option values
-        for option_schema in command_schema.options:
-            default = option_schema.default
-            if default is not None and not any(
-                opt.name == option_schema.name for opt in self.options
-            ):
-                # There's a separate UserOptionData instance for each instance of an
-                # option passed. So `--path . --path src` would be 2 UserOptionData
-                # objects. If multiple=True, there'll be many instances. If
-                # multiple=False, then we expect that only a single UserOptionData
-                # will be appended here.
-                for value in default.values:
-                    self.options.append(
-                        UserOptionData(
-                            name=option_schema.name,
-                            value=value,
-                            option_schema=option_schema,
-                        )
-                    )
-
-        # Prefill default argument values
-        for arg_schema in command_schema.arguments:
-            for value in arg_schema.default.values:
-                # if value is not None and not any(
-                #     arg.name == arg_schema.name for arg in self.arguments
-                # ):
-                self.arguments.append(
-                    UserArgumentData(
-                        name=arg_schema.name,
-                        value=value,
-                        argument_schema=arg_schema,
-                    )
-                )
-
-        # Prefill defaults for subcommand if present
-        if self.subcommand:
-            subcommand_schema = next(
-                (
-                    cmd
-                    for cmd in command_schema.subcommands.values()
-                    if cmd.name == self.subcommand.name
-                ),
-                None,
-            )
-            if subcommand_schema:
-                self.subcommand.fill_defaults(subcommand_schema)
