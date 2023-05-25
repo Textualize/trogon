@@ -42,6 +42,9 @@ class ValueNotSupplied:
     def __lt__(self, other):
         return False
 
+    def __bool__(self):
+        return False
+
 
 class ParameterControls(Widget):
     def __init__(
@@ -66,6 +69,7 @@ class ParameterControls(Widget):
         help_text = getattr(schema, "help", "") or ""
         multiple = schema.multiple
         is_option = isinstance(schema, OptionSchema)
+        nargs = schema.nargs
 
         label = self._make_command_form_control_label(
             name, argument_type, is_option, schema.required, multiple=multiple
@@ -137,7 +141,7 @@ class ParameterControls(Widget):
         # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
-        if multiple and not isinstance(argument_type, click.Choice):
+        if multiple or nargs == -1 and not isinstance(argument_type, click.Choice):
             with Horizontal(classes="add-another-button-container"):
                 yield Button("+ value", variant="primary", classes="add-another-button")
 
@@ -225,7 +229,7 @@ class ParameterControls(Widget):
                 # Unspecified number of arguments as per Click docs.
                 tuple_size = 1
             return [
-                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))
@@ -281,9 +285,7 @@ class ParameterControls(Widget):
         elif isinstance(argument_type, click.types.Choice):
             return partial(self.make_choice_control, choices=argument_type.choices)
         else:
-            log.error(
-                f"Given type {argument_type}, we couldn't determine which form control to render."
-            )
+            return self.make_text_control
 
     @staticmethod
     def make_text_control(
@@ -309,6 +311,8 @@ class ParameterControls(Widget):
     ) -> Widget:
         if default.values:
             default = default.values[0][0]
+        else:
+            default = ValueNotSupplied()
 
         control = Checkbox(
             label,

@@ -24,6 +24,7 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 
+from trogon.detect_run_string import detect_run_string
 from trogon.introspect import (
     introspect_click_app,
     CommandSchema,
@@ -223,7 +224,7 @@ class Trogon(App):
         self.is_grouped_cli = isinstance(cli, click.Group)
         self.execute_on_exit = False
         if app_name is None and click_context is not None:
-            self.app_name = click_context.find_root().info_name
+            self.app_name = detect_run_string()
         else:
             self.app_name = app_name
 
@@ -251,7 +252,11 @@ class Trogon(App):
                     console.print(
                         f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
                     )
-                    os.execvp(self.app_name, [self.app_name, *self.post_run_command])
+
+                    split_app_name = shlex.split(self.app_name)
+                    program_name = shlex.split(self.app_name)[0]
+                    arguments = [*split_app_name, *self.post_run_command]
+                    os.execvp(program_name, arguments)
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):
