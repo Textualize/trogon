@@ -9,6 +9,7 @@ from rich.text import Text
 from textual import log, on
 from textual.app import ComposeResult
 from textual.containers import Vertical, Horizontal
+from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import (
     RadioButton,
@@ -58,6 +59,45 @@ class ParameterControls(Widget):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.schema = schema
         self.first_control: Widget | None = None
+
+    def apply_filter(self, filter_query: str) -> bool:
+        """Show or hide this ParameterControls depending on whether it matches the filter query or not.
+
+        Args:
+            filter_query: The string to filter on.
+
+        Returns:
+            True if the filter matched (and the widget is visible).
+        """
+        help_text = getattr(self.schema, "help", "")
+        if not filter_query:
+            should_be_visible = True
+            self.display = should_be_visible
+        else:
+            name = self.schema.name
+            if isinstance(name, str):
+                # Argument names are strings, there's only one name
+                name_contains_query = filter_query in name.casefold()
+                should_be_visible = name_contains_query
+            else:
+                # Option names are lists since they can have multiple names (e.g. -v and --verbose)
+                name_contains_query = any(filter_query in name.casefold() for name in self.schema.name)
+                help_contains_query = filter_query in getattr(self.schema, "help", "").casefold()
+                should_be_visible = name_contains_query or help_contains_query
+
+            self.display = should_be_visible
+
+        # Update the highlighting of the help text
+        if help_text:
+            try:
+                help_label = self.query_one(".command-form-control-help-text", Static)
+                new_help_text = Text(help_text)
+                new_help_text.highlight_words(filter_query.split(), "black on yellow", case_sensitive=False)
+                help_label.update(new_help_text)
+            except NoMatches:
+                pass
+
+        return should_be_visible
 
     def compose(self) -> ComposeResult:
         """Takes the schemas for each parameter of the current command, and converts it into a
