@@ -52,6 +52,11 @@ class CommandBuilder(Screen):
         ),
         Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
         Binding(key="f1", action="about", description="About Trogon"),
+        Binding(
+            key="ctrl+s",
+            action="focus('search')",
+            description="Search",
+        ),
     ]
 
     def __init__(

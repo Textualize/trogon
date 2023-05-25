@@ -1,11 +1,27 @@
+from __future__ import annotations
+
 import os
 import shlex
 import sys
 
 
-def detect_run_string(path=None, _main=sys.modules["__main__"]):
-    """This is a slightly modified version of a function from Click.
-    """
+def get_orig_argv() -> list[str]:
+    """Polyfil for orig_argv"""
+    if hasattr(sys, "orig_argv"):
+        return sys.orig_argv
+    import ctypes
+
+    _argv = ctypes.POINTER(ctypes.c_wchar_p)()
+    _argc = ctypes.c_int()
+
+    ctypes.pythonapi.Py_GetArgcArgv(ctypes.byref(_argc), ctypes.byref(_argv))
+
+    argv = _argv[: _argc.value]
+    return argv
+
+
+def detect_run_string(path=None, _main=sys.modules["__main__"]) -> str:
+    """This is a slightly modified version of a function from Click."""
     if not path:
         path = sys.argv[0]
 
@@ -20,8 +36,9 @@ def detect_run_string(path=None, _main=sys.modules["__main__"]):
     ):
         # Executed a file, like "python app.py".
         file_path = shlex.quote(os.path.basename(path))
-        if sys.orig_argv[0] == "python":
-            prefix = f"{sys.orig_argv[0]} "
+        argv = get_orig_argv()
+        if argv[0] == "python":
+            prefix = f"{argv[0]} "
         else:
             prefix = ""
         return f"{prefix}{file_path}"

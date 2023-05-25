@@ -104,13 +104,19 @@ class CommandForm(Widget):
         with VerticalScroll() as vs:
             vs.can_focus = False
 
-            yield Input(placeholder="Filter parameters...", classes="command-form-filter-input")
+            yield Input(
+                placeholder="Search...",
+                classes="command-form-filter-input",
+                id="search",
+            )
 
             while command_node is not None:
                 options = command_node.options
                 arguments = command_node.arguments
                 if options or arguments:
-                    with Vertical(classes="command-form-command-group", id=command_node.key) as v:
+                    with Vertical(
+                        classes="command-form-command-group", id=command_node.key
+                    ) as v:
                         is_inherited = command_node is not self.command_schema
                         v.border_title = (
                             f"{'↪ ' if is_inherited else ''}{command_node.name}"
@@ -168,9 +174,7 @@ class CommandForm(Widget):
             # For each of the options in the schema for this command,
             # lets grab the values the user has supplied for them in the form.
             for option in command.options:
-                parameter_control = self.query_one(
-                    f"#{option.key}", ParameterControls
-                )
+                parameter_control = self.query_one(f"#{option.key}", ParameterControls)
                 value = parameter_control.get_values()
                 for v in value.values:
                     assert isinstance(v, tuple)
@@ -191,9 +195,7 @@ class CommandForm(Widget):
                     argument_datas.append(argument_data)
 
             assert all(isinstance(option.value, tuple) for option in option_datas)
-            assert all(
-                isinstance(argument.value, tuple) for argument in argument_datas
-            )
+            assert all(isinstance(argument.value, tuple) for argument in argument_datas)
             command_data = UserCommandData(
                 name=command.name,
                 options=option_datas,
