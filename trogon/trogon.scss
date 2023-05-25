@@ -4,11 +4,13 @@
 
 #home-body {
   height: 100%;
-  width: auto;      
+  width: 1fr;    
 }
 
 #home-body-scroll {
-  height: 100%;      
+  width: 1fr;
+  height: 1fr;     
+
 }
 
 #home-exec-preview {
@@ -65,9 +67,8 @@
   height: 4;
   padding: 1 2;
   color: $text;
-  background: $accent-lighten-2 5%;
+  background: $accent-lighten-2 5%;  
 }
-
 
 CommandBuilder .version-string {
   color: $text-muted;
@@ -128,13 +129,13 @@ CommandTree > .tree--guides-hover {
 }
 
 ParameterControls {
-  height: auto;
+  height: auto;    
 }
 
 ControlGroup {
   height: auto;
   border: solid $panel-lighten-2;
-  margin: 0 1; 
+  
 }
 
 ControlGroup.single-item {
@@ -160,10 +161,16 @@ Pretty {
 }
 
 .add-another-button {
-  margin: 0 2;
-  padding: 0 1;
-  height: 1;
-  border: none; 
+  margin-right: 1;  
+  background: transparent;
+  color: $success;
+  border: none;
+  background: $boost;
+  height: 1;  
+ }
+
+.add-another-button:hover {
+  background: transparent;
 }
 
 .add-another-button-container {
@@ -190,7 +197,7 @@ $command-info-header-bg: $primary-darken-1;
   dock: top;
   background: $command-info-header-bg;
   color: $text;
-  height: auto;
+  height: auto;  
 }
 
 .command-info-container {
@@ -236,7 +243,7 @@ Tabs:focus .underline--bar {
 }
 
 Select.command-form-select  {
-  margin: 0 1 0 1;       
+  
 }
 
 Select.command-form-select SelectCurrent {
@@ -245,4 +252,17 @@ Select.command-form-select SelectCurrent {
 
 Select.command-form-select:focus SelectCurrent {
   border: tall $accent;
+}
+
+.command-form-multiple-choice {
+  margin-left: 0;
+  border: tall transparent;      
+  background: $boost;
+  padding: 0 1;
+  margin-top: 0;
+}
+
+.command-form-multiple-choice:focus-within {
+  
+  border: tall $accent;        
 }

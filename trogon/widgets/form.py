@@ -29,26 +29,21 @@ class CommandForm(Widget):
     """Form which is constructed from an introspected Click app. Users
     make use of this form in order to construct CLI invocation strings."""
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS = """    
     .command-form-heading {
-        padding: 1 0 0 2;
+        padding: 1 0 0 1;
         text-style: u;
-        color: $text 70%;
+        color: $text;
     }
-    .command-form-input {
-        margin: 0 1 0 1;
+    .command-form-input {        
         border: tall transparent;
     }
     .command-form-label {
-        padding: 1 0 0 2;
-    }
-    
-    .command-form-multiple-choice {
-        margin: 0 0 0 2;
+        padding: 1 0 0 1;
     }
     .command-form-checkbox {
         background: $boost;
-        margin: 1 0 0 1;
+        margin: 1 0 0 0;
         padding-left: 1;
         border: tall transparent;
     }
@@ -59,7 +54,9 @@ class CommandForm(Widget):
         text-style: none;
     }
     .command-form-command-group {
+        
         margin: 1 2;
+        padding: 0 1;
         height: auto;
         background: $foreground 3%;
         border: panel $background;
@@ -71,10 +68,11 @@ class CommandForm(Widget):
     .command-form-command-group:focus-within {
         border: panel $primary;
     }
-    .command-form-control-help-text {
-        margin: 0 0 0 2;
+    .command-form-control-help-text {        
         height: auto;
         color: $text 40%;
+        padding-top: 0;
+        padding-left: 1;
     }
     """
 
