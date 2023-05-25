@@ -81,8 +81,12 @@ class ParameterControls(Widget):
                 should_be_visible = name_contains_query
             else:
                 # Option names are lists since they can have multiple names (e.g. -v and --verbose)
-                name_contains_query = any(filter_query in name.casefold() for name in self.schema.name)
-                help_contains_query = filter_query in getattr(self.schema, "help", "").casefold()
+                name_contains_query = any(
+                    filter_query in name.casefold() for name in self.schema.name
+                )
+                help_contains_query = (
+                    filter_query in getattr(self.schema, "help", "").casefold()
+                )
                 should_be_visible = name_contains_query or help_contains_query
 
             self.display = should_be_visible
@@ -92,7 +96,9 @@ class ParameterControls(Widget):
             try:
                 help_label = self.query_one(".command-form-control-help-text", Static)
                 new_help_text = Text(help_text)
-                new_help_text.highlight_words(filter_query.split(), "black on yellow", case_sensitive=False)
+                new_help_text.highlight_words(
+                    filter_query.split(), "black on yellow", case_sensitive=False
+                )
                 help_label.update(new_help_text)
             except NoMatches:
                 pass
@@ -183,7 +189,7 @@ class ParameterControls(Widget):
         # button.
         if multiple or nargs == -1 and not isinstance(argument_type, click.Choice):
             with Horizontal(classes="add-another-button-container"):
-                yield Button("+ value", variant="primary", classes="add-another-button")
+                yield Button("+ value", variant="success", classes="add-another-button")
 
         # Render the dim help text below the form controls
         if help_text:
@@ -269,7 +275,7 @@ class ParameterControls(Widget):
                 # Unspecified number of arguments as per Click docs.
                 tuple_size = 1
             return [
-                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))

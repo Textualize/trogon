@@ -51,12 +51,8 @@ class CommandBuilder(Screen):
             key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
         ),
         Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
-        Binding(key="f1", action="about", description="About Trogon"),
-        Binding(
-            key="ctrl+s",
-            action="focus('search')",
-            description="Search",
-        ),
+        Binding(key="ctrl+s", action="focus('search')", description="Search"),
+        Binding(key="f1", action="about", description="About"),
     ]
 
     def __init__(
