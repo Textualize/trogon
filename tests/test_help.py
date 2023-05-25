@@ -24,14 +24,14 @@ def custom_help():
 
 def test_default_help():
     result = CliRunner().invoke(default, ["--help"])
-    assert re.search(r"tui\s*Open Textual TUI", result.output) is not None
+    assert re.search(r"tui\s+Open Textual TUI", result.output) is not None
 
 
 def test_custom_command():
     result = CliRunner().invoke(custom_command, ["--help"])
-    assert re.search(r"custom\s*Open Textual TUI", result.output) is not None
+    assert re.search(r"custom\s+Open Textual TUI", result.output) is not None
 
 
 def test_custom_help():
     result = CliRunner().invoke(custom_help, ["--help"])
-    assert re.search(r"tui\s*Custom help", result.output) is not None
+    assert re.search(r"tui\s+Custom help", result.output) is not None
