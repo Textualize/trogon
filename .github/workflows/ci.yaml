@@ -21,7 +21,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v3.5.2
-      - name: Install and configure Poetry
+      - name: Install and configure Poetry  # This could be cached, too...
         uses: snok/install-poetry@v1.3.3
         with:
           version: 1.4.2
