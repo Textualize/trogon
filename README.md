@@ -104,7 +104,7 @@ See also the `examples` folder for two example apps.
 
 ## Custom command name and custom help
 
-By default the command added will be called `tui` and the help text for it will be `Open Textual TUI.`.
+By default the command added will be called `tui` and the help text for it will be `Open Textual TUI.`
 
 You can customize one or both of these using the `help=` and `command=` parameters:
 
