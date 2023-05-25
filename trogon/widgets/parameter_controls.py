@@ -61,6 +61,7 @@ class ParameterControls(Widget):
 
     def apply_filter(self, filter_query: str) -> None:
         """Show or hide this ParameterControls depending on whether it matches the filter query or not."""
+        help_text = getattr(self.schema, "help", "")
         if not filter_query:
             self.display = True
         else:
@@ -71,10 +72,18 @@ class ParameterControls(Widget):
             else:
                 # Option names are lists since they can have multiple names (e.g. -v and --verbose)
                 name_contains_query = any(filter_query in name.casefold() for name in self.schema.name)
+                help_contains_query = filter_query in getattr(self.schema, "help", "").casefold()
+                should_be_visible = name_contains_query or help_contains_query
+                self.display = should_be_visible
 
-            help_contains_query = filter_query in getattr(self.schema, "help", "").casefold()
-            should_be_visible = name_contains_query or help_contains_query
-            self.display = should_be_visible
+        # Update the highlighting of the help text
+        if help_text:
+            help_label = self.query_one(".command-form-control-help-text", Static)
+            new_help_text = Text(help_text)
+            new_help_text.highlight_words(filter_query.split(), "black on yellow",case_sensitive=False)
+            help_label.update(new_help_text)
+
+
 
     def compose(self) -> ComposeResult:
         """Takes the schemas for each parameter of the current command, and converts it into a
