@@ -69,6 +69,7 @@ class ParameterControls(Widget):
         help_text = getattr(schema, "help", "") or ""
         multiple = schema.multiple
         is_option = isinstance(schema, OptionSchema)
+        nargs = schema.nargs
 
         label = self._make_command_form_control_label(
             name, argument_type, is_option, schema.required, multiple=multiple
@@ -140,7 +141,7 @@ class ParameterControls(Widget):
         # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
-        if multiple and not isinstance(argument_type, click.Choice):
+        if multiple or nargs == -1 and not isinstance(argument_type, click.Choice):
             with Horizontal(classes="add-another-button-container"):
                 yield Button("+ value", variant="primary", classes="add-another-button")
 
@@ -228,7 +229,7 @@ class ParameterControls(Widget):
                 # Unspecified number of arguments as per Click docs.
                 tuple_size = 1
             return [
-                tuple(lst[i : i + tuple_size]) for i in range(0, len(lst), tuple_size)
+                tuple(lst[i: i + tuple_size]) for i in range(0, len(lst), tuple_size)
             ]
 
         controls = list(self.query(f".{self.schema.key}"))
