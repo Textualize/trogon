@@ -59,6 +59,23 @@ class ParameterControls(Widget):
         self.schema = schema
         self.first_control: Widget | None = None
 
+    def apply_filter(self, filter_query: str) -> None:
+        """Show or hide this ParameterControls depending on whether it matches the filter query or not."""
+        if not filter_query:
+            self.display = True
+        else:
+            name = self.schema.name
+            if isinstance(name, str):
+                # Argument names are strings, there's only one name
+                name_contains_query = filter_query in name.casefold()
+            else:
+                # Option names are lists since they can have multiple names (e.g. -v and --verbose)
+                name_contains_query = any(filter_query in name.casefold() for name in self.schema.name)
+
+            help_contains_query = filter_query in getattr(self.schema, "help", "").casefold()
+            should_be_visible = name_contains_query or help_contains_query
+            self.display = should_be_visible
+
     def compose(self) -> ComposeResult:
         """Takes the schemas for each parameter of the current command, and converts it into a
         form consisting of Textual widgets."""

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import dataclasses
 
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
 from textual.message import Message
 from textual.widget import Widget
-from textual.widgets import Label
+from textual.widgets import Label, Input
 
 from trogon.introspect import (
     CommandSchema,
@@ -102,6 +103,9 @@ class CommandForm(Widget):
         command_node = next(path_from_root)
         with VerticalScroll() as vs:
             vs.can_focus = False
+
+            yield Input(placeholder="Filter parameters...", classes="command-form-filter-input")
+
             while command_node is not None:
                 options = command_node.options
                 arguments = command_node.arguments
@@ -159,49 +163,46 @@ class CommandForm(Widget):
         )
 
         root_command_data = parent_command_data
-        try:
-            for command in path_from_root:
-                option_datas = []
-                # For each of the options in the schema for this command,
-                # lets grab the values the user has supplied for them in the form.
-                for option in command.options:
-                    parameter_control = self.query_one(
-                        f"#{option.key}", ParameterControls
-                    )
-                    value = parameter_control.get_values()
-                    for v in value.values:
-                        assert isinstance(v, tuple)
-                        option_data = UserOptionData(option.name, v, option)
-                        option_datas.append(option_data)
-
-                # Now do the same for the arguments
-                argument_datas = []
-                for argument in command.arguments:
-                    form_control_widget = self.query_one(
-                        f"#{argument.key}", ParameterControls
-                    )
-                    value = form_control_widget.get_values()
-                    # This should only ever loop once since arguments can be multi-value but not multiple=True.
-                    for v in value.values:
-                        assert isinstance(v, tuple)
-                        argument_data = UserArgumentData(argument.name, v, argument)
-                        argument_datas.append(argument_data)
-
-                assert all(isinstance(option.value, tuple) for option in option_datas)
-                assert all(
-                    isinstance(argument.value, tuple) for argument in argument_datas
+        for command in path_from_root:
+            option_datas = []
+            # For each of the options in the schema for this command,
+            # lets grab the values the user has supplied for them in the form.
+            for option in command.options:
+                parameter_control = self.query_one(
+                    f"#{option.key}", ParameterControls
                 )
-                command_data = UserCommandData(
-                    name=command.name,
-                    options=option_datas,
-                    arguments=argument_datas,
-                    parent=parent_command_data,
-                    command_schema=command,
+                value = parameter_control.get_values()
+                for v in value.values:
+                    assert isinstance(v, tuple)
+                    option_data = UserOptionData(option.name, v, option)
+                    option_datas.append(option_data)
+
+            # Now do the same for the arguments
+            argument_datas = []
+            for argument in command.arguments:
+                form_control_widget = self.query_one(
+                    f"#{argument.key}", ParameterControls
                 )
-                parent_command_data.subcommand = command_data
-                parent_command_data = command_data
-        except Exception as e:
-            raise e
+                value = form_control_widget.get_values()
+                # This should only ever loop once since arguments can be multi-value but not multiple=True.
+                for v in value.values:
+                    assert isinstance(v, tuple)
+                    argument_data = UserArgumentData(argument.name, v, argument)
+                    argument_datas.append(argument_data)
+
+            assert all(isinstance(option.value, tuple) for option in option_datas)
+            assert all(
+                isinstance(argument.value, tuple) for argument in argument_datas
+            )
+            command_data = UserCommandData(
+                name=command.name,
+                options=option_datas,
+                arguments=argument_datas,
+                parent=parent_command_data,
+                command_schema=command,
+            )
+            parent_command_data.subcommand = command_data
+            parent_command_data = command_data
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
@@ -211,3 +212,11 @@ class CommandForm(Widget):
     def focus(self, scroll_visible: bool = True):
         if self.first_control is not None:
             return self.first_control.focus()
+
+    @on(Input.Changed, ".command-form-filter-input")
+    def apply_filter(self, event: Input.Changed) -> None:
+        filter_query = event.value
+        all_controls = self.query(ParameterControls)
+        for control in all_controls:
+            filter_query = filter_query.casefold()
+            control.apply_filter(filter_query)

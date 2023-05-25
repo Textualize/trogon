@@ -180,6 +180,10 @@ CommandInfo {
   padding: 1 1 0 2;
 }
 
+CommandForm .command-form-filter-input {
+  margin: 1 2;
+}
+
 $command-info-header-bg: $primary-darken-1;
 
 .command-info-header {
