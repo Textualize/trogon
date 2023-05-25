@@ -110,7 +110,7 @@ class CommandForm(Widget):
                 options = command_node.options
                 arguments = command_node.arguments
                 if options or arguments:
-                    with Vertical(classes="command-form-command-group") as v:
+                    with Vertical(classes="command-form-command-group", id=command_node.key) as v:
                         is_inherited = command_node is not self.command_schema
                         v.border_title = (
                             f"{'↪ ' if is_inherited else ''}{command_node.name}"
