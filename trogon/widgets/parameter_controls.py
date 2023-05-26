@@ -69,7 +69,7 @@ class ParameterControls(Widget):
         Returns:
             True if the filter matched (and the widget is visible).
         """
-        help_text = getattr(self.schema, "help", "")
+        help_text = getattr(self.schema, "help", "") or ""
         if not filter_query:
             should_be_visible = True
             self.display = should_be_visible
@@ -85,7 +85,7 @@ class ParameterControls(Widget):
                     filter_query in name.casefold() for name in self.schema.name
                 )
                 help_contains_query = (
-                    filter_query in getattr(self.schema, "help", "").casefold()
+                    filter_query in help_text.casefold()
                 )
                 should_be_visible = name_contains_query or help_contains_query
 
