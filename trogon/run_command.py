@@ -15,7 +15,7 @@ from trogon.introspect import (
     ArgumentSchema,
     MultiValueParamData,
 )
-from trogon.widgets.parameter_controls import ValueNotSupplied
+from trogon.widgets.parameter_controls import ValueNotSupplied, HiddenValueInput
 
 
 @dataclass
@@ -231,7 +231,13 @@ class UserCommandData:
         text_renderables = []
         for arg in args:
             text_renderables.append(
-                Text(shlex.quote(str(arg)))
+                Text(
+                    shlex.quote(
+                        arg.display
+                        if isinstance(arg, HiddenValueInput)
+                        else str(arg)
+                    )
+                )
                 if arg != ValueNotSupplied()
                 else Text("???", style="bold black on red")
             )

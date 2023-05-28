@@ -47,6 +47,12 @@ class ValueNotSupplied:
         return False
 
 
+class HiddenValueInput:
+    def __init__(self, value: str) -> None:
+        self.value = value
+        self.display = len(value) * "*"
+
+
 class ParameterControls(Widget):
     def __init__(
         self,
@@ -84,9 +90,7 @@ class ParameterControls(Widget):
                 name_contains_query = any(
                     filter_query in name.casefold() for name in self.schema.name
                 )
-                help_contains_query = (
-                    filter_query in help_text.casefold()
-                )
+                help_contains_query = filter_query in help_text.casefold()
                 should_be_visible = name_contains_query or help_contains_query
 
             self.display = should_be_visible
@@ -115,10 +119,17 @@ class ParameterControls(Widget):
         help_text = getattr(schema, "help", "") or ""
         multiple = schema.multiple
         is_option = isinstance(schema, OptionSchema)
+        hidden = getattr(schema, "hidden", False)
+        hide_input = getattr(schema, "hide_input", False)
         nargs = schema.nargs
 
         label = self._make_command_form_control_label(
-            name, argument_type, is_option, schema.required, multiple=multiple
+            name=name,
+            type=argument_type,
+            is_option=is_option,
+            hidden=hidden,
+            is_required=schema.required,
+            multiple=multiple,
         )
         first_focus_control: Widget | None = (
             None  # The widget that will be focused when the form is focused.
@@ -139,6 +150,7 @@ class ParameterControls(Widget):
                 multiple_choice_widget = control_method(
                     default=default,
                     label=label,
+                    hide_input=hide_input,
                     multiple=multiple,
                     schema=schema,
                     control_id=schema.key,
@@ -204,8 +216,15 @@ class ParameterControls(Widget):
         multiple = schema.multiple
         required = schema.required
         is_option = isinstance(schema, OptionSchema)
+        hidden = getattr(schema, "hidden", False)
+        hide_input = getattr(schema, "hide_input", False)
         label = self._make_command_form_control_label(
-            name, parameter_type, is_option, required, multiple
+            name=name,
+            type=parameter_type,
+            is_option=is_option,
+            hidden=hidden,
+            is_required=required,
+            multiple=multiple,
         )
 
         # Get the types of the parameter. We can map these types on to widgets that will be rendered.
@@ -220,7 +239,12 @@ class ParameterControls(Widget):
         for _type in parameter_types:
             control_method = self.get_control_method(_type)
             control_widgets = control_method(
-                default, label, multiple, schema, schema.key
+                default=default,
+                label=label,
+                multiple=multiple,
+                hide_input=hide_input,
+                schema=schema,
+                control_id=schema.key,
             )
             yield from control_widgets
 
@@ -256,6 +280,8 @@ class ParameterControls(Widget):
                 return ValueNotSupplied()
             return control.value
         elif isinstance(control, Input):
+            if control.password and control.value != "":
+                return HiddenValueInput(control.value)
             return (
                 ValueNotSupplied() if control.value == "" else control.value
             )  # TODO: We should only return "" when user selects a checkbox - needs custom widget.
@@ -339,10 +365,12 @@ class ParameterControls(Widget):
         label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
+        hide_input: bool,
         control_id: str,
     ) -> Widget:
         control = Input(
             classes=f"command-form-input {control_id}",
+            password=hide_input,
         )
         yield control
         return control
@@ -353,6 +381,7 @@ class ParameterControls(Widget):
         label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
+        hide_input: bool,
         control_id: str,
     ) -> Widget:
         if default.values:
@@ -375,6 +404,7 @@ class ParameterControls(Widget):
         label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
+        hide_input: bool,
         control_id: str,
         choices: list[str],
     ) -> Widget:
@@ -403,17 +433,18 @@ class ParameterControls(Widget):
         name: str | list[str],
         type: click.ParamType,
         is_option: bool,
+        hidden: bool,
         is_required: bool,
         multiple: bool,
     ) -> Text:
         if isinstance(name, str):
             text = Text.from_markup(
-                f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+                f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''} {'[dim] (hidden)' if hidden else ''}"
             )
         else:
             names = Text(" / ", style="dim").join([Text(n) for n in name])
             text = Text.from_markup(
-                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+                f"{names}[dim]{' multiple' if multiple else ''}  {type.name}[/] {' [b red]*[/]required' if is_required else ''} {'[dim] (hidden)' if hidden else ''}"
             )
 
         if isinstance(type, (click.IntRange, click.FloatRange)):
