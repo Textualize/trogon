@@ -41,8 +41,8 @@ class OptionSchema:
     required: bool = False
     is_flag: bool = False
     is_boolean_flag: bool = False
-    hidden: bool = (False,)
-    hide_input: bool = (False,)
+    hidden: bool = False
+    hide_input: bool = False
     flag_value: Any = ""
     opts: list = field(default_factory=list)
     counting: bool = False
