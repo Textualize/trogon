@@ -232,11 +232,9 @@ class UserCommandData:
         for arg in args:
             text_renderables.append(
                 Text(
-                    shlex.quote(
-                        arg.display
-                        if isinstance(arg, HiddenValueInput)
-                        else str(arg)
-                    )
+                    str(arg.display)
+                    if isinstance(arg, HiddenValueInput)
+                    else shlex.quote(str(arg))
                 )
                 if arg != ValueNotSupplied()
                 else Text("???", style="bold black on red")

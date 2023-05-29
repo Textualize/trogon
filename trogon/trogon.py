@@ -252,7 +252,7 @@ class Trogon(App):
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
                     console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s.display if isinstance(s, HiddenValueInput) else s) for s in self.post_run_command)}[/]"
+                        f"Running [b cyan]{self.app_name} {' '.join(s.display if isinstance(s, HiddenValueInput) else shlex.quote(s) for s in self.post_run_command)}[/]"
                     )
                     self.post_run_command = [
                         cmd.value if isinstance(cmd, HiddenValueInput) else cmd
