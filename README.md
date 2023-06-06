@@ -102,6 +102,19 @@ pip install trogon
 
 See also the `examples` folder for two example apps.
 
+## Custom command name and custom help
+
+By default the command added will be called `tui` and the help text for it will be `Open Textual TUI.`
+
+You can customize one or both of these using the `help=` and `command=` parameters:
+
+```python
+@tui(command="ui", help="Open terminal UI")
+@click.group(...)
+def cli():
+    ...
+```
+
 ## Follow this project
 
 If this app interests you, you may want to join the Textual [Discord server](https://discord.gg/Enf6Z3qhVr) where you can talk to Textual developers / community.

@@ -59,6 +59,7 @@ class CommandBuilder(Screen):
         self,
         cli: click.BaseCommand,
         click_app_name: str,
+        command_name: str,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -69,6 +70,7 @@ class CommandBuilder(Screen):
         self.is_grouped_cli = isinstance(cli, click.Group)
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
+        self.command_name = command_name
 
         try:
             self.version = metadata.version(self.click_app_name)
@@ -78,7 +80,7 @@ class CommandBuilder(Screen):
         self.highlighter = ReprHighlighter()
 
     def compose(self) -> ComposeResult:
-        tree = CommandTree("Commands", self.command_schemas)
+        tree = CommandTree("Commands", self.command_schemas, self.command_name)
 
         title_parts = [Text(self.click_app_name, style="b")]
         if self.version:
@@ -216,8 +218,9 @@ class Trogon(App):
     def __init__(
         self,
         cli: click.Group,
-        app_name: str = None,
-        click_context: click.Context = None,
+        app_name: str | None = None,
+        command_name: str = "tui",
+        click_context: click.Context | None = None,
     ) -> None:
         super().__init__()
         self.cli = cli
@@ -228,9 +231,10 @@ class Trogon(App):
             self.app_name = detect_run_string()
         else:
             self.app_name = app_name
+        self.command_name = command_name
 
     def on_mount(self):
-        self.push_screen(CommandBuilder(self.cli, self.app_name))
+        self.push_screen(CommandBuilder(self.cli, self.app_name, self.command_name))
 
     @on(Button.Pressed, "#home-exec-button")
     def on_button_pressed(self):
@@ -285,18 +289,18 @@ class Trogon(App):
         open_url(url)
 
 
-def tui(name: str | None = None):
+def tui(name: str | None = None, command: str = "tui", help: str = "Open Textual TUI."):
     def decorator(app: click.Group | click.Command):
         @click.pass_context
         def wrapped_tui(ctx, *args, **kwargs):
-            Trogon(app, app_name=name, click_context=ctx).run()
+            Trogon(app, app_name=name, command_name=command, click_context=ctx).run()
 
         if isinstance(app, click.Group):
-            app.command(name="tui", help="Open Textual TUI.")(wrapped_tui)
+            app.command(name=command, help=help)(wrapped_tui)
         else:
             new_group = click.Group()
             new_group.add_command(app)
-            new_group.command(name="tui", help="Open Textual TUI.")(wrapped_tui)
+            new_group.command(name=command, help=help)(wrapped_tui)
             return new_group
 
         return app
