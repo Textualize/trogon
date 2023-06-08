@@ -26,3 +26,7 @@ pip install -r requirements.txt
 ./demo_typer.py tui
 ```
 
+```sh
+./demo_yapx.py --tui
+```
+
