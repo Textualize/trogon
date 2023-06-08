@@ -90,7 +90,7 @@ pip install trogon
 
 ## Quickstart
 
-1. Import `from trogon import tui`
+1. Import `from trogon.click import tui`
 2. Add the `@tui` decorator above your click app. e.g.
     ```python
     @tui()
@@ -100,7 +100,7 @@ pip install trogon
     ```
 3. Your click app will have a new `tui` command available.
 
-See also the `examples` folder for two example apps.
+See also the `examples` folder for example apps.
 
 ## Custom command name and custom help
 

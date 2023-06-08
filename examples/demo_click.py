@@ -1,6 +1,7 @@
-import click
+#!/usr/bin/env python3
 
-from trogon import tui
+import click
+from trogon.click import tui
 
 
 @tui()
@@ -45,7 +46,7 @@ def cli(ctx, verbose):
     help="Add labels to the task (repeatable)",
 )
 @click.pass_context
-def add(ctx, task, priority, tags, extra):
+def add(ctx, task, priority, category, tags, labels):
     """Add a new task to the to-do list.
     Note:
     Control the output of this using the verbosity option.
@@ -54,7 +55,6 @@ def add(ctx, task, priority, tags, extra):
         click.echo(f"Adding task: {task}")
         click.echo(f"Priority: {priority}")
         click.echo(f'Tags: {", ".join(tags)}')
-        click.echo(f"Extra data: {extra}")
     elif ctx.obj["verbose"] >= 1:
         click.echo(f"Adding task: {task}")
     else:
@@ -81,7 +81,7 @@ def remove(ctx, task_id):
 def list_tasks(ctx, all, completed):
     """List tasks from the to-do list."""
     if ctx.obj["verbose"] >= 1:
-        click.echo(f"Listing tasks:")
+        click.echo("Listing tasks:")
     # Implement the task listing functionality here
 
 

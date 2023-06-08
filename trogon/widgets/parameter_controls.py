@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import functools
 from functools import partial
-from typing import Any, Callable, Iterable, TypeVar, Union, cast
+from typing import Any, Callable, Iterable, Sequence, Type, TypeVar, Union, cast
 
-import click
 from rich.text import Text
 from textual import log, on
 from textual.app import ComposeResult
@@ -21,7 +20,8 @@ from textual.widgets import (
     Button,
 )
 
-from trogon.introspect import ArgumentSchema, OptionSchema, MultiValueParamData
+
+from trogon.schemas import ArgumentSchema, MultiValueParamData, OptionSchema
 from trogon.widgets.multiple_choice import MultipleChoice
 
 ControlWidgetType: TypeVar = Union[Input, Checkbox, MultipleChoice, Select]
@@ -127,15 +127,15 @@ class ParameterControls(Widget):
         # If there are N defaults, we render the "group" N times.
         # Each group will contain `nargs` widgets.
         with ControlGroupsContainer():
-            if not argument_type == click.BOOL:
+            if argument_type is not bool:
                 yield Label(label, classes="command-form-label")
 
-            if isinstance(argument_type, click.Choice) and multiple:
+            if schema.choices and multiple:
                 # Display a MultipleChoice widget
                 # There's a special case where we have a Choice with multiple=True,
                 # in this case, we can just render a single MultipleChoice widget
                 # instead of multiple radio-sets.
-                control_method = self.get_control_method(argument_type)
+                control_method = self.get_control_method(schema=schema)
                 multiple_choice_widget = control_method(
                     default=default,
                     label=label,
@@ -187,7 +187,7 @@ class ParameterControls(Widget):
         # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
-        if multiple or nargs == -1 and not isinstance(argument_type, click.Choice):
+        if multiple or nargs == -1 and not schema.choices:
             with Horizontal(classes="add-another-button-container"):
                 yield Button("+ value", variant="success", classes="add-another-button")
 
@@ -209,16 +209,12 @@ class ParameterControls(Widget):
         )
 
         # Get the types of the parameter. We can map these types on to widgets that will be rendered.
-        parameter_types = (
-            parameter_type.types
-            if isinstance(parameter_type, click.Tuple)
-            else [parameter_type]
-        )
+        parameter_types = [parameter_type] * schema.nargs if schema.nargs > 1 else [parameter_type]
 
         # For each of the these parameters, render the corresponding widget for it.
         # At this point we don't care about filling in the default values.
         for _type in parameter_types:
-            control_method = self.get_control_method(_type)
+            control_method = self.get_control_method(schema=schema)
             control_widgets = control_method(
                 default, label, multiple, schema, schema.key
             )
@@ -305,33 +301,15 @@ class ParameterControls(Widget):
             return MultiValueParamData.process_cli_option(collected_values)
 
     def get_control_method(
-        self, argument_type: Any
+        self, schema: ArgumentSchema
     ) -> Callable[[Any, Text, bool, OptionSchema | ArgumentSchema, str], Widget]:
-        text_click_types = {
-            click.STRING,
-            click.FLOAT,
-            click.INT,
-            click.UUID,
-        }
-        text_types = (
-            click.Path,
-            click.File,
-            click.IntRange,
-            click.FloatRange,
-            click.types.FuncParamType,
-        )
+        if schema.choices:
+            return partial(self.make_choice_control, choices=schema.choices)
 
-        is_text_type = argument_type in text_click_types or isinstance(
-            argument_type, text_types
-        )
-        if is_text_type:
-            return self.make_text_control
-        elif argument_type == click.BOOL:
+        if schema.type is bool:
             return self.make_checkbox_control
-        elif isinstance(argument_type, click.types.Choice):
-            return partial(self.make_choice_control, choices=argument_type.choices)
-        else:
-            return self.make_text_control
+
+        return self.make_text_control
 
     @staticmethod
     def make_text_control(
@@ -379,7 +357,7 @@ class ParameterControls(Widget):
         choices: list[str],
     ) -> Widget:
         # The MultipleChoice widget is only for single-valued parameters.
-        if isinstance(schema.type, click.Tuple):
+        if schema.nargs != 1:
             multiple = False
 
         if multiple:
@@ -401,26 +379,17 @@ class ParameterControls(Widget):
     @staticmethod
     def _make_command_form_control_label(
         name: str | list[str],
-        type: click.ParamType,
+        type: Type[Any],
         is_option: bool,
         is_required: bool,
         multiple: bool,
     ) -> Text:
-        if isinstance(name, str):
-            text = Text.from_markup(
-                f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
-            )
-        else:
-            names = Text(" / ", style="dim").join([Text(n) for n in name])
-            text = Text.from_markup(
-                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
-            )
+        names: list[str] = [name] if isinstance(name, str) else name
 
-        if isinstance(type, (click.IntRange, click.FloatRange)):
-            if type.min is not None:
-                text = Text.assemble(text, Text(f"min={type.min} ", "dim"))
-            if type.max is not None:
-                text = Text.assemble(text, Text(f"max={type.max}", "dim"))
+        names = Text(" / ", style="dim").join([Text(n) for n in names])
+        text = Text.from_markup(
+            f"{names}[dim]{' multiple' if multiple else ''} <{type.__name__}>[/] {' [b red]*[/]required' if is_required else ''}"
+        )
 
         return text
 

@@ -1,6 +1,7 @@
-import click
+#!/usr/bin/env python3
 
-from trogon import tui
+import click
+from trogon.click import tui
 
 
 @tui()
@@ -15,6 +16,7 @@ from trogon import tui
     nargs=2,
     type=(str, int),
     multiple=True,
+    default=[("one", 1), ("two", 2)],
     help="Add extra data as key-value pairs (repeatable)",
 )
 @click.option(

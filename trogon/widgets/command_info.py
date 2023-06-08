@@ -8,7 +8,7 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Static, Tabs, Tab, ContentSwitcher, DataTable
 
-from trogon.introspect import CommandSchema
+from trogon.schemas import CommandSchema
 from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
 
 
@@ -43,7 +43,7 @@ class CommandMetadata(DataTable):
                     getattr(schema.parent, "name", "No parent"),
                 ),
                 (Text("Subcommands", style="b"), list(schema.subcommands.keys())),
-                (Text("Group", style="b"), schema.is_group),
+                (Text("Group", style="b"), bool(schema.subcommands)),
                 (Text("Arguments", style="b"), len(schema.arguments)),
                 (Text("Options", style="b"), len(schema.options)),
             ]

@@ -1,7 +1,7 @@
 import click
 from click.testing import CliRunner
 import re
-from trogon import tui
+from trogon.click import tui
 
 
 @tui()

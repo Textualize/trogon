@@ -1,3 +1,3 @@
-from trogon.trogon import Trogon, tui
+from trogon.trogon import Trogon
 
-__all__ = ["tui", "Trogon"]
+__all__ = ["Trogon"]

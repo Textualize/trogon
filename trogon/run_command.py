@@ -8,12 +8,12 @@ from typing import Any, List, Optional
 
 from rich.text import Text
 
-from trogon.introspect import (
-    CommandSchema,
-    CommandName,
-    OptionSchema,
+from trogon.schemas import (
     ArgumentSchema,
+    CommandName,
+    CommandSchema,
     MultiValueParamData,
+    OptionSchema,
 )
 from trogon.widgets.parameter_controls import ValueNotSupplied
 
@@ -93,8 +93,14 @@ class UserCommandData:
     def _to_cli_args(self):
         args = [self.name]
 
+        for argument in self.arguments:
+            this_arg_values = argument.value
+            for argument_value in this_arg_values:
+                if argument_value != ValueNotSupplied():
+                    args.append(argument_value)
+
         multiples = defaultdict(list)
-        multiples_schemas = {}
+        multiples_schemas: dict[str, OptionSchema] = {}
 
         for option in self.options:
             if option.option_schema.multiple:
@@ -180,7 +186,8 @@ class UserCommandData:
 
         for option_name, values in multiples.items():
             # Check if the values given for this option differ from the default
-            defaults = multiples_schemas[option_name].default or []
+            schema = multiples_schemas[option_name]
+            defaults = schema.default or []
             default_values = list(itertools.chain.from_iterable(defaults.values))
             supplied_defaults = [
                 value for value in default_values if value != ValueNotSupplied()
@@ -202,16 +209,14 @@ class UserCommandData:
 
             # If the user has supplied any non-default values, include them...
             if values_supplied and not values_are_defaults:
-                for value_data in values:
+                for i, value_data in enumerate(values):
                     if not all(value == ValueNotSupplied() for value in value_data):
-                        args.append(option_name)
+                        # without multi-value (default): -u x -u y -u z
+                        # with multi-value: -u x y z
+                        if i == 0 or not schema.multi_value:
+                            args.append(option_name)
                         args.extend(v for v in value_data)
 
-        for argument in self.arguments:
-            this_arg_values = argument.value
-            for argument_value in this_arg_values:
-                if argument_value != ValueNotSupplied():
-                    args.append(argument_value)
 
         if self.subcommand:
             args.extend(self.subcommand._to_cli_args())

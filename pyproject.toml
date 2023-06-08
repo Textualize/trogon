@@ -29,8 +29,10 @@ classifiers = [
 python = "^3.7"
 textual = {version = ">=0.26.0"}
 #textual = {extras = ["dev"], path = "../textual", develop = true}
-click = ">=8.0.0"
+click = {version = ">=8.0.0", optional = true}
 
+[tool.poetry.extras]
+click = ["click"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
