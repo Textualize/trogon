@@ -23,7 +23,7 @@ https://github.com/Textualize/trogon/assets/554369/c9e5dabb-5624-45cb-8612-f6ecf
 </details>
 
 
-Trogon works with the popular [Click](https://click.palletsprojects.com/) library for Python, but will support other libraries and languages in the future.
+Trogon works with the popular Python libraries [Click](https://click.palletsprojects.com/) and [Typer](https://github.com/tiangolo/typer), and will support other libraries and languages in the future.
 
 ## How it works
 

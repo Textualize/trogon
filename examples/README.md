@@ -22,3 +22,7 @@ pip install -r requirements.txt
 ./demo_click_nogroup.py tui
 ```
 
+```sh
+./demo_typer.py tui
+```
+
