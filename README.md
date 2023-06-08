@@ -23,7 +23,7 @@ https://github.com/Textualize/trogon/assets/554369/c9e5dabb-5624-45cb-8612-f6ecf
 </details>
 
 
-Trogon works with the popular Python libraries [Click](https://click.palletsprojects.com/) and [Typer](https://github.com/tiangolo/typer), and will support other libraries and languages in the future. Trogon is integrated into the Python library [yapx](https://github.com/fresh2dev/yapx), and can even be used in conjunction with plain ol' `sys.argv`. See the `examples/` directory for examples of each.
+Trogon works with the popular Python libraries [Click](https://click.palletsprojects.com/) and [Typer](https://github.com/tiangolo/typer), and will support other libraries and languages in the future. Trogon is integrated into the Python libraries [yapx](https://github.com/fresh2dev/yapx) and [myke](https://github.com/fresh2dev/myke), and can even be used in conjunction with plain ol' `sys.argv`. See the `examples/` directory for examples of each.
 
 ## How it works
 

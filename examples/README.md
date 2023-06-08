@@ -30,3 +30,6 @@ pip install -r requirements.txt
 ./demo_yapx.py --tui
 ```
 
+```sh
+myke --tui --myke-file ./demo_myke.py
+```
