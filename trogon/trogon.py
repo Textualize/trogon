@@ -34,7 +34,6 @@ from trogon.widgets.command_info import CommandInfo
 from trogon.widgets.command_tree import CommandTree
 from trogon.widgets.form import CommandForm
 from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
-from trogon.widgets.parameter_controls import HiddenValueInput
 
 try:
     from importlib import metadata  # type: ignore
@@ -252,12 +251,9 @@ class Trogon(App):
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
                     console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(s.display if isinstance(s, HiddenValueInput) else shlex.quote(s) for s in self.post_run_command)}[/]"
+                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
                     )
-                    self.post_run_command = [
-                        cmd.value if isinstance(cmd, HiddenValueInput) else cmd
-                        for cmd in self.post_run_command
-                    ]
+
                     split_app_name = shlex.split(self.app_name)
                     program_name = shlex.split(self.app_name)[0]
                     arguments = [*split_app_name, *self.post_run_command]

@@ -47,12 +47,6 @@ class ValueNotSupplied:
         return False
 
 
-class HiddenValueInput:
-    def __init__(self, value: str) -> None:
-        self.value = value
-        self.display = len(value) * "*"
-
-
 class ParameterControls(Widget):
     def __init__(
         self,
@@ -120,7 +114,6 @@ class ParameterControls(Widget):
         multiple = schema.multiple
         is_option = isinstance(schema, OptionSchema)
         hidden = getattr(schema, "hidden", False)
-        hide_input = getattr(schema, "hide_input", False)
         nargs = schema.nargs
 
         label = self._make_command_form_control_label(
@@ -150,7 +143,6 @@ class ParameterControls(Widget):
                 multiple_choice_widget = control_method(
                     default=default,
                     label=label,
-                    hide_input=hide_input,
                     multiple=multiple,
                     schema=schema,
                     control_id=schema.key,
@@ -217,7 +209,6 @@ class ParameterControls(Widget):
         required = schema.required
         is_option = isinstance(schema, OptionSchema)
         hidden = getattr(schema, "hidden", False)
-        hide_input = getattr(schema, "hide_input", False)
         label = self._make_command_form_control_label(
             name=name,
             type=parameter_type,
@@ -242,7 +233,6 @@ class ParameterControls(Widget):
                 default=default,
                 label=label,
                 multiple=multiple,
-                hide_input=hide_input,
                 schema=schema,
                 control_id=schema.key,
             )
@@ -280,8 +270,6 @@ class ParameterControls(Widget):
                 return ValueNotSupplied()
             return control.value
         elif isinstance(control, Input):
-            if control.password and control.value != "":
-                return HiddenValueInput(control.value)
             return (
                 ValueNotSupplied() if control.value == "" else control.value
             )  # TODO: We should only return "" when user selects a checkbox - needs custom widget.
@@ -365,13 +353,9 @@ class ParameterControls(Widget):
         label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
-        hide_input: bool,
         control_id: str,
     ) -> Widget:
-        control = Input(
-            classes=f"command-form-input {control_id}",
-            password=hide_input,
-        )
+        control = Input(classes=f"command-form-input {control_id}")
         yield control
         return control
 
@@ -381,7 +365,6 @@ class ParameterControls(Widget):
         label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
-        hide_input: bool,
         control_id: str,
     ) -> Widget:
         if default.values:
@@ -404,7 +387,6 @@ class ParameterControls(Widget):
         label: Text | None,
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
-        hide_input: bool,
         control_id: str,
         choices: list[str],
     ) -> Widget:

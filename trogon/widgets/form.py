@@ -132,6 +132,9 @@ class CommandForm(Widget):
                         if options:
                             yield Label(f"Options", classes="command-form-heading")
                             for option in options:
+                                if option.hide_input:
+                                    continue
+
                                 controls = ParameterControls(option, id=option.key)
                                 if self.first_control is None:
                                     self.first_control = controls
@@ -172,6 +175,8 @@ class CommandForm(Widget):
             # For each of the options in the schema for this command,
             # lets grab the values the user has supplied for them in the form.
             for option in command.options:
+                if option.hide_input:
+                    continue
                 parameter_control = self.query_one(f"#{option.key}", ParameterControls)
                 value = parameter_control.get_values()
                 for v in value.values:
