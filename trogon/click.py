@@ -85,6 +85,8 @@ def introspect_click_app(
                 if param.hidden:
                     continue
                 
+                prompt_required: bool = param.prompt and param.prompt_required
+
                 option_data = OptionSchema(
                     name=param.opts,
                     type=param_type,
@@ -97,6 +99,8 @@ def introspect_click_app(
                     choices=param_choices,
                     multiple=param.multiple,
                     nargs=param.nargs,
+                    read_only=prompt_required,
+                    placeholder="< You will be prompted. >" if prompt_required else "",
                 )
                 cmd_data.options.append(option_data)
 

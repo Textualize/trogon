@@ -87,6 +87,18 @@ def list_tasks(ctx, all, completed):
         click.echo("Listing tasks:")
     # Implement the task listing functionality here
 
+@cli.command()
+@click.option("--user", help="User Name")
+@click.option("--password", prompt=True, prompt_required=True, hide_input=True, help="Required prompt.")
+@click.pass_context
+def auth(
+    ctx,
+    user,
+    password,
+):
+    print('---')
+    print('User:', user)
+    print('Password:', password)
 
 @cli.command(hidden=True)
 @click.option("--user", help="User Name")

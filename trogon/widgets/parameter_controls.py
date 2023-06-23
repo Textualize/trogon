@@ -321,6 +321,8 @@ class ParameterControls(Widget):
     ) -> Widget:
         control = Input(
             classes=f"command-form-input {control_id}",
+            disabled=schema.read_only,
+            placeholder=schema.placeholder,
         )
         yield control
         return control

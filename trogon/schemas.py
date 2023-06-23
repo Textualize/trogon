@@ -43,6 +43,8 @@ class ArgumentSchema:
     multiple: bool = False
     multi_value: bool = False
     nargs: int = 1
+    read_only: bool = False
+    placeholder: str = ""
 
     def __post_init__(self):
         if not isinstance(self.default, MultiValueParamData):
