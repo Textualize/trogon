@@ -125,6 +125,7 @@ class CommandBuilder(Screen):
 
     def action_close_and_run(self) -> None:
         self.app.post_run_command_redacted = self.command_data.to_cli_string()
+        self.app.post_run_command = self.command_data.to_cli_args()
         self.app.execute_on_exit = True
         self.app.exit()
 
@@ -285,12 +286,6 @@ class Trogon(App):
                     env: dict[str, str] = os.environ.copy()
                     env["PATH"] = os.pathsep.join([os.getcwd(), env["PATH"]])
                     os.execvpe(program_name, arguments, env)
-
-    @on(CommandForm.Changed)
-    def update_command_to_run(self, event: CommandForm.Changed):
-        self.post_run_command = event.command_data.to_cli_args(
-            include_root_command=False
-        )
 
     def action_focus_command_tree(self) -> None:
         try:
