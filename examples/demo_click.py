@@ -9,8 +9,11 @@ from trogon.click import tui
 @click.option(
     "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
 )
+@click.option(
+    "--hidden-arg", type=int, default=1, hidden=True, help="Set task priority (default: 1)"
+)
 @click.pass_context
-def cli(ctx, verbose):
+def cli(ctx, verbose, hidden_arg):
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose
 
@@ -84,6 +87,11 @@ def list_tasks(ctx, all, completed):
         click.echo("Listing tasks:")
     # Implement the task listing functionality here
 
+
+@cli.command(hidden=True)
+@click.option("--user", help="User Name")
+def cant_see_me():
+    pass
 
 if __name__ == "__main__":
     cli(obj={})

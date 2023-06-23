@@ -82,6 +82,9 @@ def introspect_click_app(
                 param_choices = param.type.choices
 
             if isinstance(param, (click.Option, click.core.Group)):
+                if param.hidden:
+                    continue
+                
                 option_data = OptionSchema(
                     name=param.opts,
                     type=param_type,
@@ -111,7 +114,7 @@ def introspect_click_app(
 
         if isinstance(cmd_obj, click.core.Group):
             for subcmd_name, subcmd_obj in cmd_obj.commands.items():
-                if subcmd_name not in cmd_ignorelist:
+                if not subcmd_obj.hidden and subcmd_name not in cmd_ignorelist:
                     cmd_data.subcommands[CommandName(subcmd_name)] = process_command(
                         CommandName(subcmd_name),
                         subcmd_obj,
