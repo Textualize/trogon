@@ -17,6 +17,8 @@ from trogon.schemas import (
 )
 from trogon.widgets.parameter_controls import ValueNotSupplied
 
+REDACTED_PLACEHOLDER: str = "<redacted>"
+
 
 @dataclass
 class UserOptionData:
@@ -77,27 +79,29 @@ class UserCommandData:
     parent: Optional["UserCommandData"] = None
     command_schema: Optional["CommandSchema"] = None
 
-    def to_cli_args(self, include_root_command: bool = False) -> List[str]:
+    def to_cli_args(self, include_root_command: bool = False, redact_sensitive: bool = False) -> List[str]:
         """
         Generates a list of strings representing the CLI invocation based on the user input data.
 
         Returns:
             A list of strings that can be passed to subprocess.run to execute the command.
         """
-        cli_args = self._to_cli_args()
+        cli_args = self._to_cli_args(redact_sensitive=redact_sensitive)
         if not include_root_command:
             cli_args = cli_args[1:]
 
         return cli_args
 
-    def _to_cli_args(self):
+    def _to_cli_args(self, redact_sensitive: bool = False):
         args = [self.name]
 
         for argument in self.arguments:
-            this_arg_values = argument.value
-            for argument_value in this_arg_values:
-                if argument_value != ValueNotSupplied():
-                    args.append(argument_value)
+            this_arg_values = [value for value in argument.value if value != ValueNotSupplied()]
+
+            if redact_sensitive and argument.argument_schema.sensitive:
+                args.extend([REDACTED_PLACEHOLDER] * len(this_arg_values))
+            else:
+                args.extend(this_arg_values)
 
         multiples = defaultdict(list)
         multiples_schemas: dict[str, OptionSchema] = {}
@@ -167,8 +171,16 @@ class UserCommandData:
                             # actually the nominal case... single value options e.g.
                             # `--foo bar`.
                             args.append(option_name)
-                            for subvalue_tuple in value_data:
-                                args.extend(subvalue_tuple)
+                            if redact_sensitive and option.option_schema.sensitive:
+                                args.extend(
+                                    [REDACTED_PLACEHOLDER] * sum(len(subvalue_tuple) for subvalue_tuple in value_data)
+                                )
+                            else:
+                                args.extend(
+                                    subvalue
+                                    for subvalue_tuple in value_data
+                                    for subvalue in subvalue_tuple
+                                )
                         else:
                             # Get the value of the counting option
                             count = next(itertools.chain.from_iterable(value_data), 1)
@@ -215,23 +227,29 @@ class UserCommandData:
                         # with multi-value: -u x y z
                         if i == 0 or not schema.multi_value:
                             args.append(option_name)
-                        args.extend(v for v in value_data)
 
+                        if redact_sensitive and schema.sensitive:
+                            args.extend([REDACTED_PLACEHOLDER] * len(value_data))
+                        else:
+                            args.extend(value_data)
 
         if self.subcommand:
-            args.extend(self.subcommand._to_cli_args())
+            args.extend(self.subcommand._to_cli_args(redact_sensitive=redact_sensitive))
 
         return args
 
     def to_cli_string(self, include_root_command: bool = False) -> Text:
         """
-        Generates a string representing the CLI invocation as if typed directly into the
-        command line.
+        Generates a redacted string representing the CLI invocation as if typed
+        directly into the command line.
 
         Returns:
             A string representing the command invocation.
         """
-        args = self.to_cli_args(include_root_command=include_root_command)
+        args = self.to_cli_args(
+            include_root_command=include_root_command,
+            redact_sensitive=True,
+        )
 
         text_renderables = []
         for arg in args:

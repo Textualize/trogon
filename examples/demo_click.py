@@ -90,15 +90,18 @@ def list_tasks(ctx, all, completed):
 @cli.command()
 @click.option("--user", help="User Name")
 @click.option("--password", prompt=True, prompt_required=True, hide_input=True, help="Required prompt.")
+@click.option("--tokens", multiple=True, hide_input=True, help="Sensitive input.")
 @click.pass_context
 def auth(
     ctx,
     user,
     password,
+    tokens,
 ):
     print('---')
     print('User:', user)
     print('Password:', password)
+    print('Tokens:', list(tokens))
 
 @cli.command(hidden=True)
 @click.option("--user", help="User Name")

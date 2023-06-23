@@ -124,6 +124,7 @@ class CommandBuilder(Screen):
         yield Footer()
 
     def action_close_and_run(self) -> None:
+        self.app.post_run_command_redacted = self.command_data.to_cli_string()
         self.app.execute_on_exit = True
         self.app.exit()
 
@@ -183,7 +184,7 @@ class CommandBuilder(Screen):
                 "command-name-syntax"
             )
             prefix = Text(f"{self.app_name} ", command_name_syntax_style)
-            new_value = command_data.to_cli_string(include_root_command=False)
+            new_value = command_data.to_cli_string()
             highlighted_new_value = Text.assemble(prefix, self.highlighter(new_value))
             prompt_style = self.get_component_rich_style("prompt")
             preview_string = Text.assemble(("$ ", prompt_style), highlighted_new_value)
@@ -215,7 +216,10 @@ class Trogon(App):
         app_version: str | None = None,
     ) -> None:
         super().__init__()
+
         self.post_run_command: list[str] = []
+        self.post_run_command_redacted: str = ""
+
         self.command_schemas = command_schemas
         self.is_grouped_cli = any(v.subcommands for v in command_schemas.values())
         self.execute_on_exit = False
@@ -271,7 +275,7 @@ class Trogon(App):
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
                     console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
+                        f"Running [b cyan]{self.app_name} {self.post_run_command_redacted}[/]"
                     )
 
                     split_app_name = shlex.split(self.app_name)

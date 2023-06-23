@@ -84,7 +84,7 @@ def introspect_click_app(
             if isinstance(param, (click.Option, click.core.Group)):
                 if param.hidden:
                     continue
-                
+
                 prompt_required: bool = param.prompt and param.prompt_required
 
                 option_data = OptionSchema(
@@ -99,6 +99,7 @@ def introspect_click_app(
                     choices=param_choices,
                     multiple=param.multiple,
                     nargs=param.nargs,
+                    sensitive=param.hide_input,
                     read_only=prompt_required,
                     placeholder="< You will be prompted. >" if prompt_required else "",
                 )

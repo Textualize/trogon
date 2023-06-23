@@ -43,6 +43,7 @@ class ArgumentSchema:
     multiple: bool = False
     multi_value: bool = False
     nargs: int = 1
+    sensitive: bool = False
     read_only: bool = False
     placeholder: str = ""
 
