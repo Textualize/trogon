@@ -14,9 +14,9 @@ from trogon.click import tui
     "--extra",
     "-e",
     nargs=2,
-    type=(str, int),
+    type=(str, click.Choice(["1", "2", "3"])),
     multiple=True,
-    default=[("one", 1), ("two", 2)],
+    default=[("one", "1"), ("two", "2")],
     help="Add extra data as key-value pairs (repeatable)",
 )
 @click.option(

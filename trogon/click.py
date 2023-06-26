@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Sequence
+from typing import Type
 
 
 from trogon import Trogon
@@ -19,6 +19,7 @@ from trogon.schemas import (
     CommandName,
     CommandSchema,
     OptionSchema,
+    ChoiceSchema,
 )
 from typing import Type, Any
 from uuid import UUID
@@ -37,6 +38,13 @@ CLICK_TO_PY_TYPES: dict[click.ParamType, Type[Any]] = {
     click.Path: Path,
 }
 
+def _convert_click_to_py_type(click_type: Type[Any]) -> Type[Any]:
+    if isinstance(click_type, click.Choice):
+        return ChoiceSchema(choices=click_type.choices)
+
+    return CLICK_TO_PY_TYPES.get(
+        click_type, CLICK_TO_PY_TYPES.get(type(click_type), str)
+    )
 
 def introspect_click_app(
     app: BaseCommand, cmd_ignorelist: list[str] | None = None
@@ -73,13 +81,12 @@ def introspect_click_app(
             subcommands={},
             parent=parent,
         )
+
         for param in cmd_obj.params:
-            param_type: Type[Any] = CLICK_TO_PY_TYPES.get(
-                param.type, CLICK_TO_PY_TYPES.get(type(param.type), str)
-            )
-            param_choices: Sequence[str] | None = None
-            if isinstance(param.type, click.Choice):
-                param_choices = param.type.choices
+
+            click_types: list[Type[Any]] = param.type.types if isinstance(param.type, click.Tuple) else [param.type]
+
+            param_types: list[Type[Any]] = [_convert_click_to_py_type(x) for x in click_types]
 
             if isinstance(param, (click.Option, click.core.Group)):
                 if param.hidden:
@@ -89,14 +96,14 @@ def introspect_click_app(
 
                 option_data = OptionSchema(
                     name=param.opts,
-                    type=param_type,
+                    type=param_types,
                     is_flag=param.is_flag,
                     counting=param.count,
                     secondary_opts=param.secondary_opts,
                     required=param.required,
                     default=param.default,
                     help=param.help,
-                    choices=param_choices,
+                    choices=None,
                     multiple=param.multiple,
                     nargs=param.nargs,
                     sensitive=param.hide_input,
@@ -108,9 +115,9 @@ def introspect_click_app(
             elif isinstance(param, click.Argument):
                 argument_data = ArgumentSchema(
                     name=param.name,
-                    type=param_type,
+                    type=param_types,
                     required=param.required,
-                    choices=param_choices,
+                    choices=None,
                     multiple=param.multiple,
                     default=param.default,
                     nargs=param.nargs,

@@ -21,7 +21,7 @@ from textual.widgets import (
 )
 
 
-from trogon.schemas import ArgumentSchema, MultiValueParamData, OptionSchema
+from trogon.schemas import ArgumentSchema, MultiValueParamData, OptionSchema, ChoiceSchema
 from trogon.widgets.multiple_choice import MultipleChoice
 
 ControlWidgetType: TypeVar = Union[Input, Checkbox, MultipleChoice, Select]
@@ -135,7 +135,9 @@ class ParameterControls(Widget):
                 # There's a special case where we have a Choice with multiple=True,
                 # in this case, we can just render a single MultipleChoice widget
                 # instead of multiple radio-sets.
-                control_method = self.get_control_method(schema=schema)
+                control_method = self.get_control_method(
+                    param_type=ChoiceSchema(choices=schema.choices)
+                )
                 multiple_choice_widget = control_method(
                     default=default,
                     label=label,
@@ -187,7 +189,7 @@ class ParameterControls(Widget):
         # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
-        if multiple or nargs == -1 and not schema.choices:
+        if (multiple or nargs == -1) and not schema.choices:
             with Horizontal(classes="add-another-button-container"):
                 yield Button("+ value", variant="success", classes="add-another-button")
 
@@ -209,12 +211,20 @@ class ParameterControls(Widget):
         )
 
         # Get the types of the parameter. We can map these types on to widgets that will be rendered.
-        parameter_types = [parameter_type] * schema.nargs if schema.nargs > 1 else [parameter_type]
+        parameter_types = [
+            parameter_type[i] if i < len(parameter_type) else parameter_type[-1]
+            for i in range(schema.nargs if schema.nargs > 1 else 1)
+        ]
+        # The above ensures that len(parameter_types) == nargs.
+        # if there are more parameter_types than args, parameter_types is truncated.
+        # if there are fewer parameter_types than args, the *last* parameter type is repeated as much as necessary.
 
         # For each of the these parameters, render the corresponding widget for it.
         # At this point we don't care about filling in the default values.
         for _type in parameter_types:
-            control_method = self.get_control_method(schema=schema)
+            if schema.choices:
+                _type = ChoiceSchema(choices=schema.choices)
+            control_method = self.get_control_method(param_type=_type)
             control_widgets = control_method(
                 default, label, multiple, schema, schema.key
             )
@@ -301,12 +311,12 @@ class ParameterControls(Widget):
             return MultiValueParamData.process_cli_option(collected_values)
 
     def get_control_method(
-        self, schema: ArgumentSchema
+        self, param_type: Type[Any],
     ) -> Callable[[Any, Text, bool, OptionSchema | ArgumentSchema, str], Widget]:
-        if schema.choices:
-            return partial(self.make_choice_control, choices=schema.choices)
+        if isinstance(param_type, ChoiceSchema):
+            return partial(self.make_choice_control, choices=param_type.choices)
 
-        if schema.type is bool:
+        if param_type is bool:
             return self.make_checkbox_control
 
         return self.make_text_control
@@ -382,7 +392,7 @@ class ParameterControls(Widget):
     @staticmethod
     def _make_command_form_control_label(
         name: str | list[str],
-        type: Type[Any],
+        types: list[Type[Any]],
         is_option: bool,
         is_required: bool,
         multiple: bool,
@@ -391,7 +401,7 @@ class ParameterControls(Widget):
 
         names = Text(" / ", style="dim").join([Text(n) for n in names])
         text = Text.from_markup(
-            f"{names}[dim]{' multiple' if multiple else ''} <{type.__name__}>[/] {' [b red]*[/]required' if is_required else ''}"
+            f"{names}[dim]{' multiple' if multiple else ''} <{', '.join(x.__name__ for x in types)}>[/] {' [b red]*[/]required' if is_required else ''}"
         )
 
         return text

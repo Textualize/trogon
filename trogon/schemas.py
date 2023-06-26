@@ -32,9 +32,18 @@ class MultiValueParamData:
 
 
 @dataclass
+class ChoiceSchema:
+    # this is used in place of click.Choice
+    choices: Sequence[str]
+
+    def __post_init__(self):
+        self.__name__ = 'choice'
+
+
+@dataclass
 class ArgumentSchema:
     name: str | list[str]
-    type: Type[Any] | None = None
+    type: Type[Any] | Sequence[Type[Any]] | None = None
     required: bool = False
     help: str | None = None
     key: str | tuple[str] = field(default_factory=generate_unique_id)
@@ -52,13 +61,19 @@ class ArgumentSchema:
             self.default = MultiValueParamData.process_cli_option(self.default)
 
         if not self.type:
-            self.type = str
-
-        if self.multi_value:
-            self.multiple = True
+            self.type = [str]
+        elif isinstance(self.type, Type):
+            self.type = [self.type]
+        elif len(self.type) == 1 and isinstance(self.type[0], ChoiceSchema):
+            # if there is only one type is it is a 'ChoiceSchema':
+            self.choices = self.type[0].choices
+            self.type = [str]
 
         if self.choices:
             self.choices = [str(x) for x in self.choices]
+
+        if self.multi_value:
+            self.multiple = True
 
 
 @dataclass
