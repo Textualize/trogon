@@ -5,6 +5,7 @@ import shlex
 import sys
 from contextlib import suppress
 from pathlib import Path
+from fnmatch import fnmatch
 from webbrowser import open as open_url
 
 from rich.console import Console
@@ -215,11 +216,26 @@ class Trogon(App):
         command_schemas: dict[CommandName, CommandSchema],
         app_name: str | None,
         app_version: str | None = None,
+        command_filter: str | None = None,
     ) -> None:
         super().__init__()
 
         self.post_run_command: list[str] = []
         self.post_run_command_redacted: str = ""
+
+        root_cmd_name: str = list(command_schemas.keys())[0]
+        if command_filter and command_schemas[root_cmd_name].subcommands:
+            matching_schemas: dict[CommandName, CommandSchema] = {
+                k: v
+                for k, v in command_schemas[root_cmd_name].subcommands.items()
+                if fnmatch(k, command_filter)
+            }
+            if len(matching_schemas) == 1 and not any(x in command_filter for x in ('*', '?')):
+                command_schemas = matching_schemas
+                root_cmd_name = list(command_schemas.keys())[0]
+                #  app_name = app_name + " " + root_cmd_name
+            else:
+                command_schemas[root_cmd_name].subcommands = matching_schemas
 
         self.command_schemas = command_schemas
         self.is_grouped_cli = any(v.subcommands for v in command_schemas.values())

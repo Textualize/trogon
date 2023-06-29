@@ -307,7 +307,7 @@ class ParameterControls(Widget):
             # We can safely do this since widgets are added to the DOM in the same order
             # as the types specified in the click Option `type`. We convert a flat list
             # of widget values into a list of tuples, each tuple of length nargs.
-            collected_values = list_to_tuples(collected_values, self.schema.nargs)
+            collected_values = list_to_tuples(collected_values, max(1, self.schema.nargs))
             return MultiValueParamData.process_cli_option(collected_values)
 
     def get_control_method(
@@ -331,7 +331,7 @@ class ParameterControls(Widget):
     ) -> Widget:
         control = Input(
             classes=f"command-form-input {control_id}",
-            password=schema.sensitive,
+            password=schema.secret,
             disabled=schema.read_only,
             placeholder=schema.placeholder,
         )

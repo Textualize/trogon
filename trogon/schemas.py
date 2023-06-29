@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence, NewType, Type
+from functools import partial
 
 
 
@@ -52,7 +53,7 @@ class ArgumentSchema:
     multiple: bool = False
     multi_value: bool = False
     nargs: int = 1
-    sensitive: bool = False
+    secret: bool = False
     read_only: bool = False
     placeholder: str = ""
 
@@ -60,14 +61,31 @@ class ArgumentSchema:
         if not isinstance(self.default, MultiValueParamData):
             self.default = MultiValueParamData.process_cli_option(self.default)
 
+        default_type: list[Type[Any]] = [str]
+
         if not self.type:
-            self.type = [str]
+            self.type = default_type
+        elif isinstance(self.type, partial):
+            # if this is an instance of `functools.partial`,
+            # iterate over the args/kwargs looking for a type.
+            # if not found, default to `str`.
+            for x in self.type.args:
+                if isinstance(x, Type):
+                    self.type = [x]
+                    break
+            else:
+                for k, v in self.type.kwargs.items():
+                    if isinstance(v, Type):
+                        self.type = [v]
+                        break
+                else:
+                    self.type = default_type
         elif isinstance(self.type, Type):
             self.type = [self.type]
         elif len(self.type) == 1 and isinstance(self.type[0], ChoiceSchema):
             # if there is only one type is it is a 'ChoiceSchema':
             self.choices = self.type[0].choices
-            self.type = [str]
+            self.type = default_type
 
         if self.choices:
             self.choices = [str(x) for x in self.choices]

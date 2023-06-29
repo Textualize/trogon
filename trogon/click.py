@@ -106,7 +106,7 @@ def introspect_click_app(
                     choices=None,
                     multiple=param.multiple,
                     nargs=param.nargs,
-                    sensitive=param.hide_input,
+                    secret=param.hide_input,
                     read_only=prompt_required,
                     placeholder="< You will be prompted. >" if prompt_required else "",
                 )

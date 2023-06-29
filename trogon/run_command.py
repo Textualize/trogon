@@ -79,26 +79,26 @@ class UserCommandData:
     parent: Optional["UserCommandData"] = None
     command_schema: Optional["CommandSchema"] = None
 
-    def to_cli_args(self, include_root_command: bool = False, redact_sensitive: bool = False) -> List[str]:
+    def to_cli_args(self, include_root_command: bool = False, redact_secret: bool = False) -> List[str]:
         """
         Generates a list of strings representing the CLI invocation based on the user input data.
 
         Returns:
             A list of strings that can be passed to subprocess.run to execute the command.
         """
-        cli_args = self._to_cli_args(redact_sensitive=redact_sensitive)
+        cli_args = self._to_cli_args(redact_secret=redact_secret)
         if not include_root_command:
             cli_args = cli_args[1:]
 
         return cli_args
 
-    def _to_cli_args(self, redact_sensitive: bool = False):
+    def _to_cli_args(self, redact_secret: bool = False):
         args = [self.name]
 
         for argument in self.arguments:
             this_arg_values = [value for value in argument.value if value != ValueNotSupplied()]
 
-            if redact_sensitive and argument.argument_schema.sensitive:
+            if redact_secret and argument.argument_schema.secret:
                 args.extend([REDACTED_PLACEHOLDER] * len(this_arg_values))
             else:
                 args.extend(this_arg_values)
@@ -171,7 +171,7 @@ class UserCommandData:
                             # actually the nominal case... single value options e.g.
                             # `--foo bar`.
                             args.append(option_name)
-                            if redact_sensitive and option.option_schema.sensitive:
+                            if redact_secret and option.option_schema.secret:
                                 args.extend(
                                     [REDACTED_PLACEHOLDER] * sum(len(subvalue_tuple) for subvalue_tuple in value_data)
                                 )
@@ -228,13 +228,13 @@ class UserCommandData:
                         if i == 0 or not schema.multi_value:
                             args.append(option_name)
 
-                        if redact_sensitive and schema.sensitive:
+                        if redact_secret and schema.secret:
                             args.extend([REDACTED_PLACEHOLDER] * len(value_data))
                         else:
                             args.extend(value_data)
 
         if self.subcommand:
-            args.extend(self.subcommand._to_cli_args(redact_sensitive=redact_sensitive))
+            args.extend(self.subcommand._to_cli_args(redact_secret=redact_secret))
 
         return args
 
@@ -248,7 +248,7 @@ class UserCommandData:
         """
         args = self.to_cli_args(
             include_root_command=include_root_command,
-            redact_sensitive=True,
+            redact_secret=True,
         )
 
         text_renderables = []
