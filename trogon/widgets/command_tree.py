@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from rich.style import Style
 from rich.text import TextType, Text
+from textual.binding import Binding
 from textual.widgets import Tree
 from textual.widgets._tree import TreeNode, TreeDataType
 
@@ -10,6 +11,16 @@ from trogon.schemas import CommandName, CommandSchema
 
 class CommandTree(Tree[CommandSchema]):
     COMPONENT_CLASSES = {"group"}
+
+    BINDINGS = [
+        Binding("enter", "focus_next", "", priority=True, show=False),
+        Binding("j", "cursor_down", "", priority=True, show=False),
+        Binding("k", "cursor_up", "", priority=True, show=False),
+        Binding("g", "scroll_home", "", priority=True, show=False),
+        Binding("G", "scroll_end", "", priority=True, show=False),
+        Binding("u", "page_up", "", priority=True, show=False),
+        Binding("d", "page_down", "", priority=True, show=False),
+    ]
 
     def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
         super().__init__(label)

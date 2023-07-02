@@ -46,11 +46,12 @@ class CommandBuilder(Screen):
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
         Binding(
-            key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
+            key="ctrl+t,escape", action="focus_command_tree", description="Focus Command Tree"
         ),
-        Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
-        Binding(key="ctrl+s", action="focus('search')", description="Search"),
+        Binding(key="ctrl+o,?", action="show_command_info", description="Command Info"),
+        Binding(key="ctrl+s,i,/", action="focus('search')", description="Search"),
         Binding(key="f1", action="about", description="About"),
+        Binding("q", "exit", show=False),
     ]
 
     def __init__(
@@ -128,6 +129,9 @@ class CommandBuilder(Screen):
         self.app.post_run_command_redacted = self.command_data.to_cli_string()
         self.app.post_run_command = self.command_data.to_cli_args()
         self.app.execute_on_exit = True
+        self.app.exit()
+
+    def action_exit(self) -> None:
         self.app.exit()
 
     def action_about(self) -> None:
