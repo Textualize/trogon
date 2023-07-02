@@ -33,6 +33,7 @@ from trogon.widgets.command_info import CommandInfo
 from trogon.widgets.command_tree import CommandTree
 from trogon.widgets.form import CommandForm
 from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
+from subprocess import run
 
 if sys.version_info >= (3, 8):
     from importlib import metadata
@@ -44,7 +45,8 @@ class CommandBuilder(Screen):
     COMPONENT_CLASSES = {"version-string", "prompt", "command-name-syntax"}
 
     BINDINGS = [
-        Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
+        Binding(key="ctrl+r", action="close_and_run", description="Run Command"),
+        Binding(key="ctrl+y", action="copy_command_string", description="Copy Command"),
         Binding(
             key="ctrl+t,escape", action="focus_command_tree", description="Focus Command Tree"
         ),
@@ -130,6 +132,26 @@ class CommandBuilder(Screen):
         self.app.post_run_command = self.command_data.to_cli_args()
         self.app.execute_on_exit = True
         self.app.exit()
+
+    def action_copy_command_string(self) -> None:
+        cmd: list[str] = (
+            ["copy"]
+            if sys.platform == 'win32'
+            else ["pbcopy"]
+            if sys.platform == 'darwin'
+            else ["xclip", "-selection", "clipboard"]
+            # if linux
+        )
+
+        run(
+            cmd,
+            input=self.app_name + " " + " ".join(
+                shlex.quote(str(x))
+                for x in self.command_data.to_cli_args(redact_secret=True)
+            ),
+            text=True,
+            check=False,
+        )
 
     def action_exit(self) -> None:
         self.app.exit()
