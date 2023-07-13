@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import os
 import shlex
+import sys
+from contextlib import suppress
 from pathlib import Path
+from fnmatch import fnmatch
 from webbrowser import open as open_url
 
-import click
 from rich.console import Console
 from rich.highlighter import ReprHighlighter
 from rich.text import Text
@@ -25,64 +27,59 @@ from textual.widgets import (
 from textual.widgets.tree import TreeNode
 
 from trogon.detect_run_string import detect_run_string
-from trogon.introspect import (
-    introspect_click_app,
-    CommandSchema,
-)
+from trogon.schemas import CommandName, CommandSchema
 from trogon.run_command import UserCommandData
 from trogon.widgets.command_info import CommandInfo
 from trogon.widgets.command_tree import CommandTree
 from trogon.widgets.form import CommandForm
 from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
+from subprocess import run
 
-try:
-    from importlib import metadata  # type: ignore
-except ImportError:
-    # Python < 3.8
-    import importlib_metadata as metadata  # type: ignore
+if sys.version_info >= (3, 8):
+    from importlib import metadata
+else:
+    import importlib_metadata as metadata
 
 
 class CommandBuilder(Screen):
     COMPONENT_CLASSES = {"version-string", "prompt", "command-name-syntax"}
 
     BINDINGS = [
-        Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
+        Binding(key="ctrl+r", action="close_and_run", description="Run Command"),
+        Binding(key="ctrl+y", action="copy_command_string", description="Copy Command"),
         Binding(
-            key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
+            key="ctrl+t,escape", action="focus_command_tree", description="Focus Command Tree"
         ),
-        Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
-        Binding(key="ctrl+s", action="focus('search')", description="Search"),
+        Binding(key="ctrl+o,?", action="show_command_info", description="Command Info"),
+        Binding(key="ctrl+s,i,/", action="focus('search')", description="Search"),
         Binding(key="f1", action="about", description="About"),
+        Binding("q", "exit", show=False),
     ]
 
     def __init__(
         self,
-        cli: click.BaseCommand,
-        click_app_name: str,
-        command_name: str,
+        command_schemas: dict[CommandName, CommandSchema],
+        app_name: str,
+        app_version: str | None,
+        is_grouped_cli: bool,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
     ):
         super().__init__(name, id, classes)
         self.command_data = None
-        self.cli = cli
-        self.is_grouped_cli = isinstance(cli, click.Group)
-        self.command_schemas = introspect_click_app(cli)
-        self.click_app_name = click_app_name
-        self.command_name = command_name
+        self.command_schemas = command_schemas
+        self.is_grouped_cli = is_grouped_cli
 
-        try:
-            self.version = metadata.version(self.click_app_name)
-        except Exception:
-            self.version = None
+        self.app_name = app_name
+        self.version = app_version
 
         self.highlighter = ReprHighlighter()
 
     def compose(self) -> ComposeResult:
-        tree = CommandTree("Commands", self.command_schemas, self.command_name)
+        tree = CommandTree("Commands", self.command_schemas)
 
-        title_parts = [Text(self.click_app_name, style="b")]
+        title_parts = [Text(self.app_name, style="b")]
         if self.version:
             version_style = self.get_component_rich_style("version-string")
             title_parts.extend(["\n", (f"v{self.version}", version_style)])
@@ -108,7 +105,7 @@ class CommandBuilder(Screen):
         with Vertical(id="home-body"):
             with Horizontal(id="home-command-description-container") as vs:
                 vs.can_focus = False
-                yield Static(self.click_app_name or "", id="home-command-description")
+                yield Static(self.app_name or "", id="home-command-description")
 
             scrollable_body = VerticalScroll(
                 Static(""),
@@ -131,7 +128,32 @@ class CommandBuilder(Screen):
         yield Footer()
 
     def action_close_and_run(self) -> None:
+        self.app.post_run_command_redacted = self.command_data.to_cli_string()
+        self.app.post_run_command = self.command_data.to_cli_args()
         self.app.execute_on_exit = True
+        self.app.exit()
+
+    def action_copy_command_string(self) -> None:
+        cmd: list[str] = (
+            ["copy"]
+            if sys.platform == 'win32'
+            else ["pbcopy"]
+            if sys.platform == 'darwin'
+            else ["xclip", "-selection", "clipboard"]
+            # if linux
+        )
+
+        run(
+            cmd,
+            input=self.app_name + " " + " ".join(
+                shlex.quote(str(x))
+                for x in self.command_data.to_cli_args(redact_secret=True)
+            ),
+            text=True,
+            check=False,
+        )
+
+    def action_exit(self) -> None:
         self.app.exit()
 
     def action_about(self) -> None:
@@ -178,7 +200,7 @@ class CommandBuilder(Screen):
         description_box = self.query_one("#home-command-description", Static)
         description_text = node.data.docstring or ""
         description_text = description_text.lstrip()
-        description_text = f"[b]{node.label if self.is_grouped_cli else self.click_app_name}[/]\n{description_text}"
+        description_text = f"[b]{node.label if self.is_grouped_cli else self.app_name}[/]\n{description_text}"
         description_box.update(description_text)
 
     def _update_execution_string_preview(
@@ -189,8 +211,8 @@ class CommandBuilder(Screen):
             command_name_syntax_style = self.get_component_rich_style(
                 "command-name-syntax"
             )
-            prefix = Text(f"{self.click_app_name} ", command_name_syntax_style)
-            new_value = command_data.to_cli_string(include_root_command=False)
+            prefix = Text(f"{self.app_name} ", command_name_syntax_style)
+            new_value = command_data.to_cli_string()
             highlighted_new_value = Text.assemble(prefix, self.highlighter(new_value))
             prompt_style = self.get_component_rich_style("prompt")
             preview_string = Text.assemble(("$ ", prompt_style), highlighted_new_value)
@@ -217,24 +239,65 @@ class Trogon(App):
 
     def __init__(
         self,
-        cli: click.Group,
-        app_name: str | None = None,
-        command_name: str = "tui",
-        click_context: click.Context | None = None,
+        command_schemas: dict[CommandName, CommandSchema],
+        app_name: str | None,
+        app_version: str | None = None,
+        command_filter: str | None = None,
     ) -> None:
         super().__init__()
-        self.cli = cli
+
         self.post_run_command: list[str] = []
-        self.is_grouped_cli = isinstance(cli, click.Group)
+        self.post_run_command_redacted: str = ""
+
+        root_cmd_name: str = list(command_schemas.keys())[0]
+        if command_filter and command_schemas[root_cmd_name].subcommands:
+            matching_schemas: dict[CommandName, CommandSchema] = {
+                k: v
+                for k, v in command_schemas[root_cmd_name].subcommands.items()
+                if fnmatch(k, command_filter)
+            }
+            if len(matching_schemas) == 1 and not any(x in command_filter for x in ('*', '?')):
+                command_schemas = matching_schemas
+                root_cmd_name = list(command_schemas.keys())[0]
+                #  app_name = app_name + " " + root_cmd_name
+            else:
+                command_schemas[root_cmd_name].subcommands = matching_schemas
+
+        self.command_schemas = command_schemas
+        self.is_grouped_cli = any(v.subcommands for v in command_schemas.values())
         self.execute_on_exit = False
-        if app_name is None and click_context is not None:
-            self.app_name = detect_run_string()
-        else:
-            self.app_name = app_name
-        self.command_name = command_name
+
+        self.app_name = app_name if app_name else detect_run_string()
+        self.app_version = app_version
+
+        if not self.app_version:
+            with suppress(Exception):
+                self.app_version = metadata.version(self.app_name)
+
+    @classmethod
+    def from_schemas(cls, *args: CommandSchema, **kwargs) -> "Trogon":
+        if not args:
+            raise ValueError("No schemas provided.")
+
+        root_schema = args[0]
+
+        schemas: dict[CommandName, CommandSchema] = {root_schema.name: root_schema}
+
+        for schema in args[1:]:
+            schema.parent = root_schema
+            root_schema.subcommands[schema.name] = schema
+
+        return cls(schemas, **kwargs)
 
     def on_mount(self):
-        self.push_screen(CommandBuilder(self.cli, self.app_name, self.command_name))
+        self.push_screen(
+            CommandBuilder(
+                self.command_schemas,
+                app_name=self.app_name,
+                app_version=self.app_version,
+                is_grouped_cli=self.is_grouped_cli,
+            ),
+        )
 
     @on(Button.Pressed, "#home-exec-button")
     def on_button_pressed(self):
@@ -255,18 +318,16 @@ class Trogon(App):
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
                     console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
+                        f"Running [b cyan]{self.app_name} {self.post_run_command_redacted}[/]"
                     )
 
                     split_app_name = shlex.split(self.app_name)
-                    program_name = shlex.split(self.app_name)[0]
+                    program_name = split_app_name[0]
                     arguments = [*split_app_name, *self.post_run_command]
-                    os.execvp(program_name, arguments)
-
-    @on(CommandForm.Changed)
-    def update_command_to_run(self, event: CommandForm.Changed):
-        include_root_command = not self.is_grouped_cli
-        self.post_run_command = event.command_data.to_cli_args(include_root_command)
+                    # update PATH to include current working dir.
+                    env: dict[str, str] = os.environ.copy()
+                    env["PATH"] = os.pathsep.join([os.getcwd(), env["PATH"]])
+                    os.execvpe(program_name, arguments, env)
 
     def action_focus_command_tree(self) -> None:
         try:
@@ -287,22 +348,3 @@ class Trogon(App):
             url: The URL to visit.
         """
         open_url(url)
-
-
-def tui(name: str | None = None, command: str = "tui", help: str = "Open Textual TUI."):
-    def decorator(app: click.Group | click.Command):
-        @click.pass_context
-        def wrapped_tui(ctx, *args, **kwargs):
-            Trogon(app, app_name=name, command_name=command, click_context=ctx).run()
-
-        if isinstance(app, click.Group):
-            app.command(name=command, help=help)(wrapped_tui)
-        else:
-            new_group = click.Group()
-            new_group.add_command(app)
-            new_group.command(name=command, help=help)(wrapped_tui)
-            return new_group
-
-        return app
-
-    return decorator

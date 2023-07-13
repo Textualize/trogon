@@ -1,6 +1,7 @@
-import click
+#!/usr/bin/env python3
 
-from trogon import tui
+import click
+from trogon.click import tui
 
 
 @tui()
@@ -8,8 +9,11 @@ from trogon import tui
 @click.option(
     "--verbose", "-v", count=True, default=1, help="Increase verbosity level."
 )
+@click.option(
+    "--hidden-arg", type=int, default=1, hidden=True, help="Set task priority (default: 1)"
+)
 @click.pass_context
-def cli(ctx, verbose):
+def cli(ctx, verbose, hidden_arg):
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose
 
@@ -24,9 +28,9 @@ def cli(ctx, verbose):
     "--extra",
     "-e",
     nargs=2,
-    type=(str, int),
+    type=(str, click.Choice(["1", "2", "3"])),
     multiple=True,
-    default=[("one", 1), ("two", 2)],
+    default=[("one", "1"), ("two", "2")],
     help="Add extra data as key-value pairs (repeatable)",
 )
 @click.option(
@@ -45,7 +49,7 @@ def cli(ctx, verbose):
     help="Add labels to the task (repeatable)",
 )
 @click.pass_context
-def add(ctx, task, priority, tags, extra):
+def add(ctx, task, extra, priority, category, tags, labels):
     """Add a new task to the to-do list.
     Note:
     Control the output of this using the verbosity option.
@@ -54,7 +58,6 @@ def add(ctx, task, priority, tags, extra):
         click.echo(f"Adding task: {task}")
         click.echo(f"Priority: {priority}")
         click.echo(f'Tags: {", ".join(tags)}')
-        click.echo(f"Extra data: {extra}")
     elif ctx.obj["verbose"] >= 1:
         click.echo(f"Adding task: {task}")
     else:
@@ -81,9 +84,29 @@ def remove(ctx, task_id):
 def list_tasks(ctx, all, completed):
     """List tasks from the to-do list."""
     if ctx.obj["verbose"] >= 1:
-        click.echo(f"Listing tasks:")
+        click.echo("Listing tasks:")
     # Implement the task listing functionality here
 
+@cli.command()
+@click.option("--user", help="User Name")
+@click.option("--password", prompt=True, prompt_required=True, hide_input=True, help="Required prompt.")
+@click.option("--tokens", multiple=True, hide_input=True, help="Sensitive input.")
+@click.pass_context
+def auth(
+    ctx,
+    user,
+    password,
+    tokens,
+):
+    print('---')
+    print('User:', user)
+    print('Password:', password)
+    print('Tokens:', list(tokens))
+
+@cli.command(hidden=True)
+@click.option("--user", help="User Name")
+def cant_see_me():
+    pass
 
 if __name__ == "__main__":
     cli(obj={})

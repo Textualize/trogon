@@ -9,7 +9,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Label, Input
 
-from trogon.introspect import (
+from trogon.schemas import (
     CommandSchema,
     CommandName,
     ArgumentSchema,
