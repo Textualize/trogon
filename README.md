@@ -23,7 +23,7 @@ https://github.com/Textualize/trogon/assets/554369/c9e5dabb-5624-45cb-8612-f6ecf
 </details>
 
 
-Trogon works with the popular Python libraries [Click](https://click.palletsprojects.com/) and [Typer](https://github.com/tiangolo/typer), and will support other libraries and languages in the future. Trogon is integrated into the Python libraries [yapx](https://github.com/fresh2dev/yapx) and [myke](https://github.com/fresh2dev/myke), and can even be used in conjunction with plain ol' `sys.argv`. See the `examples/` directory for examples of each.
+Trogon works with the popular Python libraries [Argparse](https://docs.python.org/3/library/argparse.html), [Click](https://click.palletsprojects.com/), [Typer](https://github.com/tiangolo/typer), [Yapx](https://www.f2dv.com/code/r/yapx/i/), and [myke](https://www.f2dv.com/code/r/myke/i/), and will support other libraries and languages in the future. You can also manually build your own TUI schema and use it however you like, even in conjunction with `sys.argv`. See the `examples/` directory for examples of each.
 
 ## How it works
 
@@ -90,6 +90,8 @@ pip install trogon
 
 ## Quickstart
 
+### Click
+
 1. Import `from trogon.click import tui`
 2. Add the `@tui` decorator above your click app. e.g.
     ```python
@@ -100,19 +102,47 @@ pip install trogon
     ```
 3. Your click app will have a new `tui` command available.
 
+### Argparse
+
+1. Import `from trogon.argparse import add_tui_argument`
+      or, `from trogon.argparse import add_tui_command`
+2. Add the TUI argument/command to your argparse parser. e.g.
+    ```python
+    parser = argparse.ArgumentParser()
+
+    # add tui argument (my-cli --tui)
+    add_tui_argument(parser)
+    # and/or, add tui command (my-cli tui)
+    add_tui_command(parser)
+    ```
+3. Your argparse parser will have a new parameter `--tui` and/or a new command `tui`.
+
 See also the `examples` folder for example apps.
 
 ## Custom command name and custom help
 
 By default the command added will be called `tui` and the help text for it will be `Open Textual TUI.`
 
-You can customize one or both of these using the `help=` and `command=` parameters:
+You can customize one or both of these using the `help=` and `command=` parameters.
+
+### Click
 
 ```python
 @tui(command="ui", help="Open terminal UI")
 @click.group(...)
 def cli():
     ...
+```
+
+### Argparse
+
+```python
+parser = argparse.ArgumentParser()
+
+# add tui argument (my-cli --tui)
+add_tui_argument(parser, option_strings=["--ui"], help="Open terminal UI")
+# and/or, add tui command (my-cli tui)
+add_tui_command(parser, command="ui", help="Open terminal UI")
 ```
 
 ## Follow this project
