@@ -45,7 +45,7 @@ def cli(ctx, verbose):
     help="Add labels to the task (repeatable)",
 )
 @click.pass_context
-def add(ctx, task, priority, tags, extra):
+def add(ctx, task, priority, tags, extra, category, labels):
     """Add a new task to the to-do list.
     Note:
     Control the output of this using the verbosity option.
@@ -55,6 +55,8 @@ def add(ctx, task, priority, tags, extra):
         click.echo(f"Priority: {priority}")
         click.echo(f'Tags: {", ".join(tags)}')
         click.echo(f"Extra data: {extra}")
+        click.echo(f"Category: {category}")
+        click.echo(f'Labels: {", ".join(labels)}')
     elif ctx.obj["verbose"] >= 1:
         click.echo(f"Adding task: {task}")
     else:
