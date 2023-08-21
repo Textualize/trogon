@@ -84,9 +84,7 @@ class ParameterControls(Widget):
                 name_contains_query = any(
                     filter_query in name.casefold() for name in self.schema.name
                 )
-                help_contains_query = (
-                    filter_query in help_text.casefold()
-                )
+                help_contains_query = filter_query in help_text.casefold()
                 should_be_visible = name_contains_query or help_contains_query
 
             self.display = should_be_visible
@@ -115,10 +113,16 @@ class ParameterControls(Widget):
         help_text = getattr(schema, "help", "") or ""
         multiple = schema.multiple
         is_option = isinstance(schema, OptionSchema)
+        hidden = getattr(schema, "hidden", False)
         nargs = schema.nargs
 
         label = self._make_command_form_control_label(
-            name, argument_type, is_option, schema.required, multiple=multiple
+            name=name,
+            type=argument_type,
+            is_option=is_option,
+            hidden=hidden,
+            is_required=schema.required,
+            multiple=multiple,
         )
         first_focus_control: Widget | None = (
             None  # The widget that will be focused when the form is focused.
@@ -204,8 +208,14 @@ class ParameterControls(Widget):
         multiple = schema.multiple
         required = schema.required
         is_option = isinstance(schema, OptionSchema)
+        hidden = getattr(schema, "hidden", False)
         label = self._make_command_form_control_label(
-            name, parameter_type, is_option, required, multiple
+            name=name,
+            type=parameter_type,
+            is_option=is_option,
+            hidden=hidden,
+            is_required=required,
+            multiple=multiple,
         )
 
         # Get the types of the parameter. We can map these types on to widgets that will be rendered.
@@ -220,7 +230,11 @@ class ParameterControls(Widget):
         for _type in parameter_types:
             control_method = self.get_control_method(_type)
             control_widgets = control_method(
-                default, label, multiple, schema, schema.key
+                default=default,
+                label=label,
+                multiple=multiple,
+                schema=schema,
+                control_id=schema.key,
             )
             yield from control_widgets
 
@@ -341,9 +355,7 @@ class ParameterControls(Widget):
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
     ) -> Widget:
-        control = Input(
-            classes=f"command-form-input {control_id}",
-        )
+        control = Input(classes=f"command-form-input {control_id}")
         yield control
         return control
 
@@ -403,17 +415,18 @@ class ParameterControls(Widget):
         name: str | list[str],
         type: click.ParamType,
         is_option: bool,
+        hidden: bool,
         is_required: bool,
         multiple: bool,
     ) -> Text:
         if isinstance(name, str):
             text = Text.from_markup(
-                f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+                f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''} {'[dim] (hidden)' if hidden else ''}"
             )
         else:
             names = Text(" / ", style="dim").join([Text(n) for n in name])
             text = Text.from_markup(
-                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
+                f"{names}[dim]{' multiple' if multiple else ''}  {type.name}[/] {' [b red]*[/]required' if is_required else ''} {'[dim] (hidden)' if hidden else ''}"
             )
 
         if isinstance(type, (click.IntRange, click.FloatRange)):
