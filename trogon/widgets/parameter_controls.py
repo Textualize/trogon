@@ -6,13 +6,13 @@ from typing import Any, Callable, Iterable, TypeVar, Union, cast
 
 import click
 from rich.text import Text
-from textual import log, on
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, Horizontal
 from textual.css.query import NoMatches
+from textual.validation import Integer, Number, Validator
 from textual.widget import Widget
 from textual.widgets import (
-    RadioButton,
     Label,
     Checkbox,
     Input,
@@ -334,6 +334,20 @@ class ParameterControls(Widget):
             return self.make_text_control
 
     @staticmethod
+    def _make_text_validators(
+        schema: OptionSchema | ArgumentSchema,
+    ) -> Iterable[Validator]:
+        # `IntParamType` goes first as `IntRange` inherits `IntParamType`.
+        if isinstance(schema.type, click.types.IntParamType):
+            yield Integer()
+
+        if isinstance(schema.type, (click.IntRange, click.FloatRange)):
+            yield Number(minimum=schema.type.min, maximum=schema.type.max)
+
+        if isinstance(schema.type, click.types.FloatParamType):
+            yield Number()
+
+    @staticmethod
     def make_text_control(
         default: Any,
         label: Text | None,
@@ -343,6 +357,7 @@ class ParameterControls(Widget):
     ) -> Widget:
         control = Input(
             classes=f"command-form-input {control_id}",
+            validators=ParameterControls._make_text_validators(schema),
         )
         yield control
         return control
