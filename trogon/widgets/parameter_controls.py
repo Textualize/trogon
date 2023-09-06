@@ -336,18 +336,16 @@ class ParameterControls(Widget):
     @staticmethod
     def _make_text_validators(
         schema: OptionSchema | ArgumentSchema,
-    ) -> list[Validator]:
-        validators: list[Validator] = []
-
-        if isinstance(schema.type, type(click.INT)):
-            validators.append(Integer())
+    ) -> Iterable[Validator]:
+        # `IntParamType` goes first as `IntRange` inherits `IntParamType`.
+        if isinstance(schema.type, click.types.IntParamType):
+            yield Integer()
 
         if isinstance(schema.type, (click.IntRange, click.FloatRange)):
-            validators.append(Number(minimum=schema.type.min, maximum=schema.type.max))
-        elif isinstance(schema.type, type(click.FLOAT)):
-            validators.append(Number())
+            yield Number(minimum=schema.type.min, maximum=schema.type.max)
 
-        return validators
+        if isinstance(schema.type, click.types.FloatParamType):
+            yield Number()
 
     @staticmethod
     def make_text_control(
