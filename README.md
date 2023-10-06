@@ -106,7 +106,7 @@ See also the `examples` folder for two example apps.
 
 By default the command added will be called `tui` and the help text for it will be `Open Textual TUI.`
 
-You can customize one or both of these using the `help=` and `command=` parameters:
+You can customize one or both of these using the `command=` and `help=` parameters:
 
 ```python
 @tui(command="ui", help="Open terminal UI")
