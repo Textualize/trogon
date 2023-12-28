@@ -92,7 +92,7 @@ pip install trogon
 
 ### Click
 1. Import `from trogon import tui`
-2. Add the `@tui` decorator above your click app. e.g.
+2. Add the `@tui` decorator above your click app, e.g.
     ```python
     @tui()
     @click.group(...)
@@ -103,7 +103,7 @@ pip install trogon
 
 ### Typer
 1. Import `from trogon.typer import init_tui`
-2. Add the `tui` decorator above your typer app. e.g.
+2. Pass your CLI into the `init_tui` function, e.g.
     ```python
     cli = typer.Typer(...)
     init_tui(cli)
