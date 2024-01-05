@@ -12,6 +12,10 @@ def generate_unique_id():
     return f"id_{str(uuid.uuid4())[:8]}"
 
 
+def is_grouped_command(cmd: BaseCommand):
+    return isinstance(cmd, click.Group) or isinstance(cmd, click.MultiCommand)
+
+
 @dataclass
 class MultiValueParamData:
     values: list[tuple[int | float | str]]
@@ -123,7 +127,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
             arguments=[],
             subcommands={},
             parent=parent,
-            is_group=isinstance(cmd_obj, click.Group),
+            is_group=is_grouped_command(cmd_obj),
         )
 
         for param in cmd_obj.params:

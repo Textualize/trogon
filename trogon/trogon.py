@@ -27,7 +27,7 @@ from textual.widgets.tree import TreeNode
 from trogon.detect_run_string import detect_run_string
 from trogon.introspect import (
     introspect_click_app,
-    CommandSchema,
+    CommandSchema, is_grouped_command,
 )
 from trogon.run_command import UserCommandData
 from trogon.widgets.command_info import CommandInfo
@@ -67,8 +67,7 @@ class CommandBuilder(Screen):
         super().__init__(name, id, classes)
         self.command_data = None
         self.cli = cli
-        self.is_grouped_cli = (isinstance(cli, click.Group) or
-                               isinstance(cli, click.MultiCommand))
+        self.is_grouped_cli = is_grouped_command(cli)
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
         self.command_name = command_name
@@ -226,7 +225,7 @@ class Trogon(App):
         super().__init__()
         self.cli = cli
         self.post_run_command: list[str] = []
-        self.is_grouped_cli = isinstance(cli, click.Group)
+        self.is_grouped_cli = is_grouped_command(cli)
         self.execute_on_exit = False
         if app_name is None and click_context is not None:
             self.app_name = detect_run_string()
