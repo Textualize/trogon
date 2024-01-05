@@ -67,7 +67,8 @@ class CommandBuilder(Screen):
         super().__init__(name, id, classes)
         self.command_data = None
         self.cli = cli
-        self.is_grouped_cli = isinstance(cli, click.Group)
+        self.is_grouped_cli = (isinstance(cli, click.Group) or
+                               isinstance(cli, click.MultiCommand))
         self.command_schemas = introspect_click_app(cli)
         self.click_app_name = click_app_name
         self.command_name = command_name

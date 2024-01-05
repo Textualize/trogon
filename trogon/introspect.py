@@ -165,6 +165,13 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                 cmd_data.subcommands[CommandName(subcmd_name)] = process_command(
                     CommandName(subcmd_name), subcmd_obj, parent=cmd_data
                 )
+        elif isinstance(cmd_obj, click.MultiCommand):
+            for subcmd_name in cmd_obj.list_commands(None):
+                cmd_data.subcommands[CommandName(subcmd_name)] = process_command(
+                    CommandName(subcmd_name),
+                    cmd_obj.get_command(None, subcmd_name),
+                    parent=cmd_data
+                )
 
         return cmd_data
 
