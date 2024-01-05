@@ -27,7 +27,8 @@ from textual.widgets.tree import TreeNode
 from trogon.detect_run_string import detect_run_string
 from trogon.introspect import (
     introspect_click_app,
-    CommandSchema, is_grouped_command,
+    CommandSchema,
+    is_grouped_command,
 )
 from trogon.run_command import UserCommandData
 from trogon.widgets.command_info import CommandInfo
