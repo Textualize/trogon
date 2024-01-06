@@ -187,7 +187,7 @@ class ParameterControls(Widget):
         # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
-        if multiple or nargs == -1 and not isinstance(argument_type, click.Choice):
+        if (multiple or nargs == -1) and not isinstance(argument_type, click.Choice):
             with Horizontal(classes="add-another-button-container"):
                 yield Button("+ value", variant="success", classes="add-another-button")
 
