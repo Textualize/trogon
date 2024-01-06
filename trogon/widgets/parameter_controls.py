@@ -252,7 +252,7 @@ class ParameterControls(Widget):
         if isinstance(control, MultipleChoice):
             return control.selected
         elif isinstance(control, Select):
-            if control.value is None:
+            if control.value is None or control.value is Select.BLANK:
                 return ValueNotSupplied()
             return control.value
         elif isinstance(control, Input):
