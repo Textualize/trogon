@@ -93,6 +93,8 @@ pip install trogon
 1. Import `from trogon import tui`
 2. Add the `@tui` decorator above your click app. e.g.
     ```python
+    from trogon import tui
+    
     @tui()
     @click.group(...)
     def cli():
