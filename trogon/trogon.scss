@@ -4,12 +4,12 @@
 
 #home-body {
   height: 100%;
-  width: 1fr;    
+  width: 1fr;
 }
 
 #home-body-scroll {
   width: 1fr;
-  height: 1fr;     
+  height: 1fr;
 
 }
 
@@ -45,20 +45,20 @@
 
 #home-commands-label {
   color: $text;
-  background: $background 50%;
-  width: 100%;
+  width: auto;
   height: 4;
   padding: 1 2;
 }
 
 #home-sidebar {
+  background: $background 50%;
   dock: left;
   width: auto;
 }
 
 #home-command-description {
   width: 1fr;
-  height: 2;    
+  height: 2;
 }
 
 #home-command-description-container {
@@ -67,7 +67,7 @@
   height: 4;
   padding: 1 2;
   color: $text;
-  background: $accent-lighten-2 5%;  
+  background: $accent-lighten-2 5%;
 }
 
 CommandBuilder .version-string {
@@ -90,7 +90,7 @@ CommandBuilder .command-name-syntax {
 
 CommandTree {
   background: $background-lighten-1;
-  scrollbar-gutter: stable;  
+  scrollbar-gutter: stable;
   width: auto;
   height: 1fr;
   padding: 0 1;
@@ -129,13 +129,13 @@ CommandTree > .tree--guides-hover {
 }
 
 ParameterControls {
-  height: auto;    
+  height: auto;
 }
 
 ControlGroup {
   height: auto;
   border: solid $panel-lighten-2;
-  
+
 }
 
 ControlGroup.single-item {
@@ -153,7 +153,7 @@ ControlGroup:focus-within {
 }
 
 ControlGroupsContainer {
-  height: auto;  
+  height: auto;
 }
 
 Pretty {
@@ -161,12 +161,12 @@ Pretty {
 }
 
 .add-another-button {
-  margin-right: 1;  
+  margin-right: 1;
   background: transparent;
   color: $success;
   border: none;
   background: $boost;
-  height: 1;  
+  height: 1;
  }
 
 .add-another-button:hover {
@@ -197,7 +197,7 @@ $command-info-header-bg: $primary-darken-1;
   dock: top;
   background: $command-info-header-bg;
   color: $text;
-  height: auto;  
+  height: auto;
 }
 
 .command-info-container {
@@ -243,7 +243,7 @@ Tabs:focus .underline--bar {
 }
 
 Select.command-form-select  {
-  
+
 }
 
 Select.command-form-select SelectCurrent {
@@ -256,13 +256,13 @@ Select.command-form-select:focus SelectCurrent {
 
 .command-form-multiple-choice {
   margin-left: 0;
-  border: tall transparent;      
+  border: tall transparent;
   background: $boost;
   padding: 0 1;
   margin-top: 0;
 }
 
 .command-form-multiple-choice:focus-within {
-  
-  border: tall $accent;        
+
+  border: tall $accent;
 }
