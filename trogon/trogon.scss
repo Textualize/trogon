@@ -45,13 +45,13 @@
 
 #home-commands-label {
   color: $text;
-  background: $background 50%;
-  width: 100%;
+  width: auto;
   height: 4;
   padding: 1 2;
 }
 
 #home-sidebar {
+  background: $background 50%;
   dock: left;
   width: auto;
 }
