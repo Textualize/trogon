@@ -410,7 +410,7 @@ class ParameterControls(Widget):
             if isinstance(name, str):
                 yield Text(name)
             else:
-                yield Text(" / ", style="dim").join([Text(n) for n in name])
+                yield Text(" / ").join([Text(n) for n in name])
 
             if multiple:
                 yield Text("multiple", style="dim")
