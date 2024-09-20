@@ -105,12 +105,12 @@ pip install trogon
 
 ### Typer
 1. Import `from trogon.typer import init_tui`
-2. Pass your CLI into the `init_tui` function, e.g.
+2. Pass your Typer CLI app into the `init_tui` function, e.g.
     ```python
     cli = typer.Typer(...)
     init_tui(cli)
     ```
-3. Your typer app will have a new `tui` command available.
+3. Your Typer app will have a new `tui` command available.
 
 See also the `examples` folder for two example apps.
 
