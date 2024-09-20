@@ -48,10 +48,14 @@ class CommandBuilder(Screen):
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
         Binding(
-            key="ctrl+t", action="focus_command_tree", description="Focus Command Tree"
+            key="ctrl+t",
+            action="app.focus_command_tree",
+            description="Focus Command Tree",
         ),
-        Binding(key="ctrl+o", action="show_command_info", description="Command Info"),
-        Binding(key="ctrl+s", action="focus('search')", description="Search"),
+        Binding(
+            key="ctrl+o", action="app.show_command_info", description="Command Info"
+        ),
+        Binding(key="ctrl+s", action="app.focus('search')", description="Search"),
         Binding(key="f1", action="about", description="About"),
     ]
 
