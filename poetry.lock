@@ -340,13 +340,13 @@ jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "textual"
-version = "0.65.1"
+version = "0.73.0"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "textual-0.65.1-py3-none-any.whl", hash = "sha256:12a2a00f9b5675577fffa0f71171be5cdd138c42460b7ee95b3182542ee25aa0"},
-    {file = "textual-0.65.1.tar.gz", hash = "sha256:22b05430aa2c7f90adc38fb7458bdde9395ca90960063432ae1273510e35e682"},
+    {file = "textual-0.73.0-py3-none-any.whl", hash = "sha256:4d93d80d203f7fb7ba51828a546e8777019700d529a1b405ceee313dea2edfc2"},
+    {file = "textual-0.73.0.tar.gz", hash = "sha256:ccd1e873370577f557dfdf2b3411f2a4f68b57d4365f9d83a00d084afb15f5a6"},
 ]
 
 [package.dependencies]
@@ -396,4 +396,4 @@ test = ["coverage", "pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "80dd5d5e5b475771be0bf6a5978de44b04de8bba2bb5d84de5575c16deb29c71"
+content-hash = "0efdc14cf1ccf1090951b9387d9161ea066b0f578f7353aea15d4151f9aaa323"
