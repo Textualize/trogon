@@ -69,7 +69,7 @@ If you don't use a CLI app frequently, or there are too many options to commit t
 
 ## What does the name mean?
 
-This project started life as a [Textual](https://github.com/Textualize/textual) experiment, which we have been giving bird's names to.
+This project started life as a [Textual](https://github.com/Textualize/textual) experiment, which we have been giving birds' names to.
 A [Trogon](https://www.willmcgugan.com/blog/photography/post/costa-rica-trip-report-2017/#bird) is a beautiful bird I was lucky enough to photograph in 2017.
 
 See also [Frogmouth](https://github.com/Textualize/frogmouth), a Markdown browser for the terminal.
