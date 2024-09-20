@@ -9,6 +9,7 @@ from rich.text import Text
 from textual import log, on
 from textual.app import ComposeResult
 from textual.containers import Vertical, Horizontal
+from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import (
     RadioButton,
@@ -42,6 +43,9 @@ class ValueNotSupplied:
     def __lt__(self, other):
         return False
 
+    def __bool__(self):
+        return False
+
 
 class ParameterControls(Widget):
     def __init__(
@@ -56,6 +60,51 @@ class ParameterControls(Widget):
         self.schema = schema
         self.first_control: Widget | None = None
 
+    def apply_filter(self, filter_query: str) -> bool:
+        """Show or hide this ParameterControls depending on whether it matches the filter query or not.
+
+        Args:
+            filter_query: The string to filter on.
+
+        Returns:
+            True if the filter matched (and the widget is visible).
+        """
+        help_text = getattr(self.schema, "help", "") or ""
+        if not filter_query:
+            should_be_visible = True
+            self.display = should_be_visible
+        else:
+            name = self.schema.name
+            if isinstance(name, str):
+                # Argument names are strings, there's only one name
+                name_contains_query = filter_query in name.casefold()
+                should_be_visible = name_contains_query
+            else:
+                # Option names are lists since they can have multiple names (e.g. -v and --verbose)
+                name_contains_query = any(
+                    filter_query in name.casefold() for name in self.schema.name
+                )
+                help_contains_query = (
+                    filter_query in help_text.casefold()
+                )
+                should_be_visible = name_contains_query or help_contains_query
+
+            self.display = should_be_visible
+
+        # Update the highlighting of the help text
+        if help_text:
+            try:
+                help_label = self.query_one(".command-form-control-help-text", Static)
+                new_help_text = Text(help_text)
+                new_help_text.highlight_words(
+                    filter_query.split(), "black on yellow", case_sensitive=False
+                )
+                help_label.update(new_help_text)
+            except NoMatches:
+                pass
+
+        return should_be_visible
+
     def compose(self) -> ComposeResult:
         """Takes the schemas for each parameter of the current command, and converts it into a
         form consisting of Textual widgets."""
@@ -66,6 +115,7 @@ class ParameterControls(Widget):
         help_text = getattr(schema, "help", "") or ""
         multiple = schema.multiple
         is_option = isinstance(schema, OptionSchema)
+        nargs = schema.nargs
 
         label = self._make_command_form_control_label(
             name, argument_type, is_option, schema.required, multiple=multiple
@@ -137,9 +187,9 @@ class ParameterControls(Widget):
         # If it's a multiple, and it's a Choice parameter, then we display
         # our special case MultiChoice widget, and so there's no need for this
         # button.
-        if multiple and not isinstance(argument_type, click.Choice):
+        if (multiple or nargs == -1) and not isinstance(argument_type, click.Choice):
             with Horizontal(classes="add-another-button-container"):
-                yield Button("+ value", variant="primary", classes="add-another-button")
+                yield Button("+ value", variant="success", classes="add-another-button")
 
         # Render the dim help text below the form controls
         if help_text:
@@ -202,7 +252,7 @@ class ParameterControls(Widget):
         if isinstance(control, MultipleChoice):
             return control.selected
         elif isinstance(control, Select):
-            if control.value is None:
+            if control.value is None or control.value is Select.BLANK:
                 return ValueNotSupplied()
             return control.value
         elif isinstance(control, Input):
@@ -281,9 +331,7 @@ class ParameterControls(Widget):
         elif isinstance(argument_type, click.types.Choice):
             return partial(self.make_choice_control, choices=argument_type.choices)
         else:
-            log.error(
-                f"Given type {argument_type}, we couldn't determine which form control to render."
-            )
+            return self.make_text_control
 
     @staticmethod
     def make_text_control(
@@ -309,6 +357,8 @@ class ParameterControls(Widget):
     ) -> Widget:
         if default.values:
             default = default.values[0][0]
+        else:
+            default = ValueNotSupplied()
 
         control = Checkbox(
             label,

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import dataclasses
 
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Vertical
 from textual.message import Message
 from textual.widget import Widget
-from textual.widgets import Label
+from textual.widgets import Label, Input
 
 from trogon.introspect import (
     CommandSchema,
@@ -28,26 +29,21 @@ class CommandForm(Widget):
     """Form which is constructed from an introspected Click app. Users
     make use of this form in order to construct CLI invocation strings."""
 
-    DEFAULT_CSS = """
+    DEFAULT_CSS = """    
     .command-form-heading {
-        padding: 1 0 0 2;
+        padding: 1 0 0 1;
         text-style: u;
-        color: $text 70%;
+        color: $text;
     }
-    .command-form-input {
-        margin: 0 1 0 1;
+    .command-form-input {        
         border: tall transparent;
     }
     .command-form-label {
-        padding: 1 0 0 2;
-    }
-    
-    .command-form-multiple-choice {
-        margin: 0 0 0 2;
+        padding: 1 0 0 1;
     }
     .command-form-checkbox {
         background: $boost;
-        margin: 1 0 0 1;
+        margin: 1 0 0 0;
         padding-left: 1;
         border: tall transparent;
     }
@@ -58,7 +54,9 @@ class CommandForm(Widget):
         text-style: none;
     }
     .command-form-command-group {
+        
         margin: 1 2;
+        padding: 0 1;
         height: auto;
         background: $foreground 3%;
         border: panel $background;
@@ -70,10 +68,11 @@ class CommandForm(Widget):
     .command-form-command-group:focus-within {
         border: panel $primary;
     }
-    .command-form-control-help-text {
-        margin: 0 0 0 2;
+    .command-form-control-help-text {        
         height: auto;
         color: $text 40%;
+        padding-top: 0;
+        padding-left: 1;
     }
     """
 
@@ -102,11 +101,20 @@ class CommandForm(Widget):
         command_node = next(path_from_root)
         with VerticalScroll() as vs:
             vs.can_focus = False
+
+            yield Input(
+                placeholder="Search...",
+                classes="command-form-filter-input",
+                id="search",
+            )
+
             while command_node is not None:
                 options = command_node.options
                 arguments = command_node.arguments
                 if options or arguments:
-                    with Vertical(classes="command-form-command-group") as v:
+                    with Vertical(
+                        classes="command-form-command-group", id=command_node.key
+                    ) as v:
                         is_inherited = command_node is not self.command_schema
                         v.border_title = (
                             f"{'↪ ' if is_inherited else ''}{command_node.name}"
@@ -159,56 +167,56 @@ class CommandForm(Widget):
         )
 
         root_command_data = parent_command_data
-        try:
-            for command in path_from_root:
-                option_datas = []
-                # For each of the options in the schema for this command,
-                # lets grab the values the user has supplied for them in the form.
-                for option in command.options:
-                    parameter_control = self.query_one(
-                        f"#{option.key}", ParameterControls
-                    )
-                    value = parameter_control.get_values()
-                    for v in value.values:
-                        assert isinstance(v, tuple)
-                        option_data = UserOptionData(option.name, v, option)
-                        option_datas.append(option_data)
+        for command in path_from_root:
+            option_datas = []
+            # For each of the options in the schema for this command,
+            # lets grab the values the user has supplied for them in the form.
+            for option in command.options:
+                parameter_control = self.query_one(f"#{option.key}", ParameterControls)
+                value = parameter_control.get_values()
+                for v in value.values:
+                    assert isinstance(v, tuple)
+                    option_data = UserOptionData(option.name, v, option)
+                    option_datas.append(option_data)
 
-                # Now do the same for the arguments
-                argument_datas = []
-                for argument in command.arguments:
-                    form_control_widget = self.query_one(
-                        f"#{argument.key}", ParameterControls
-                    )
-                    value = form_control_widget.get_values()
-                    # This should only ever loop once since arguments can be multi-value but not multiple=True.
-                    for v in value.values:
-                        assert isinstance(v, tuple)
-                        argument_data = UserArgumentData(argument.name, v, argument)
-                        argument_datas.append(argument_data)
+            # Now do the same for the arguments
+            argument_datas = []
+            for argument in command.arguments:
+                form_control_widget = self.query_one(
+                    f"#{argument.key}", ParameterControls
+                )
+                value = form_control_widget.get_values()
+                # This should only ever loop once since arguments can be multi-value but not multiple=True.
+                for v in value.values:
+                    assert isinstance(v, tuple)
+                    argument_data = UserArgumentData(argument.name, v, argument)
+                    argument_datas.append(argument_data)
 
-                assert all(isinstance(option.value, tuple) for option in option_datas)
-                assert all(
-                    isinstance(argument.value, tuple) for argument in argument_datas
-                )
-                command_data = UserCommandData(
-                    name=command.name,
-                    options=option_datas,
-                    arguments=argument_datas,
-                    parent=parent_command_data,
-                    command_schema=command,
-                )
-                parent_command_data.subcommand = command_data
-                parent_command_data = command_data
-        except Exception as e:
-            raise e
+            assert all(isinstance(option.value, tuple) for option in option_datas)
+            assert all(isinstance(argument.value, tuple) for argument in argument_datas)
+            command_data = UserCommandData(
+                name=command.name,
+                options=option_datas,
+                arguments=argument_datas,
+                parent=parent_command_data,
+                command_schema=command,
+            )
+            parent_command_data.subcommand = command_data
+            parent_command_data = command_data
 
         # Trim the sentinel
         root_command_data = root_command_data.subcommand
         root_command_data.parent = None
-        root_command_data.fill_defaults(self.command_schema)
         self.post_message(self.Changed(root_command_data))
 
     def focus(self, scroll_visible: bool = True):
         if self.first_control is not None:
             return self.first_control.focus()
+
+    @on(Input.Changed, ".command-form-filter-input")
+    def apply_filter(self, event: Input.Changed) -> None:
+        filter_query = event.value
+        all_controls = self.query(ParameterControls)
+        for control in all_controls:
+            filter_query = filter_query.casefold()
+            control.apply_filter(filter_query)

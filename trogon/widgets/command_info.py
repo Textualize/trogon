@@ -90,9 +90,11 @@ class CommandInfo(ModalScreen):
                 tabs.focus()
                 yield tabs
 
-            command_info = self.command_schema.docstring
-            if command_info:
-                command_info = command_info.strip()
+            command_info = (
+                self.command_schema.docstring.strip()
+                if self.command_schema.docstring
+                else "No description available"
+            )
 
             with ContentSwitcher(
                 initial="command-info-text", id="command-info-switcher"

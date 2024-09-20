@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from rich.style import Style
 from rich.text import TextType, Text
-from textual.geometry import clamp
 from textual.widgets import Tree
 from textual.widgets._tree import TreeNode, TreeDataType
 
@@ -12,12 +11,13 @@ from trogon.introspect import CommandSchema, CommandName
 class CommandTree(Tree[CommandSchema]):
     COMPONENT_CLASSES = {"group"}
 
-    def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema]):
+    def __init__(self, label: TextType, cli_metadata: dict[CommandName, CommandSchema], command_name: str):
         super().__init__(label)
         self.show_root = False
         self.guide_depth = 2
         self.show_guides = False
         self.cli_metadata = cli_metadata
+        self.command_name = command_name
 
     def render_label(
         self, node: TreeNode[TreeDataType], base_style: Style, style: Style
@@ -32,11 +32,7 @@ class CommandTree(Tree[CommandSchema]):
         ) -> TreeNode:
             data = {key: data[key] for key in sorted(data)}
             for cmd_name, cmd_data in data.items():
-                if (
-                    not cmd_data.subcommands
-                    and not cmd_data.options
-                    and not cmd_data.arguments
-                ):
+                if cmd_name == self.command_name:
                     continue
                 if cmd_data.subcommands:
                     label = Text(cmd_name)

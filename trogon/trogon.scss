@@ -4,11 +4,13 @@
 
 #home-body {
   height: 100%;
-  width: auto;      
+  width: 1fr;
 }
 
 #home-body-scroll {
-  height: 100%;      
+  width: 1fr;
+  height: 1fr;
+
 }
 
 #home-exec-preview {
@@ -43,20 +45,20 @@
 
 #home-commands-label {
   color: $text;
-  background: $background 50%;
-  width: 100%;
+  width: auto;
   height: 4;
   padding: 1 2;
 }
 
 #home-sidebar {
+  background: $background 50%;
   dock: left;
   width: auto;
 }
 
 #home-command-description {
   width: 1fr;
-  height: 2;    
+  height: 2;
 }
 
 #home-command-description-container {
@@ -67,7 +69,6 @@
   color: $text;
   background: $accent-lighten-2 5%;
 }
-
 
 CommandBuilder .version-string {
   color: $text-muted;
@@ -89,7 +90,7 @@ CommandBuilder .command-name-syntax {
 
 CommandTree {
   background: $background-lighten-1;
-  scrollbar-gutter: stable;  
+  scrollbar-gutter: stable;
   width: auto;
   height: 1fr;
   padding: 0 1;
@@ -134,7 +135,7 @@ ParameterControls {
 ControlGroup {
   height: auto;
   border: solid $panel-lighten-2;
-  margin: 0 1; 
+
 }
 
 ControlGroup.single-item {
@@ -152,7 +153,7 @@ ControlGroup:focus-within {
 }
 
 ControlGroupsContainer {
-  height: auto;  
+  height: auto;
 }
 
 Pretty {
@@ -160,10 +161,16 @@ Pretty {
 }
 
 .add-another-button {
-  margin: 0 2;
-  padding: 0 1;
+  margin-right: 1;
+  background: transparent;
+  color: $success;
+  border: none;
+  background: $boost;
   height: 1;
-  border: none; 
+ }
+
+.add-another-button:hover {
+  background: transparent;
 }
 
 .add-another-button-container {
@@ -178,6 +185,10 @@ CommandInfo {
 
 .command-info-header-text {
   padding: 1 1 0 2;
+}
+
+CommandForm .command-form-filter-input {
+  margin: 1 2;
 }
 
 $command-info-header-bg: $primary-darken-1;
@@ -232,7 +243,7 @@ Tabs:focus .underline--bar {
 }
 
 Select.command-form-select  {
-  margin: 0 1 0 1;       
+
 }
 
 Select.command-form-select SelectCurrent {
@@ -240,5 +251,18 @@ Select.command-form-select SelectCurrent {
 }
 
 Select.command-form-select:focus SelectCurrent {
+  border: tall $accent;
+}
+
+.command-form-multiple-choice {
+  margin-left: 0;
+  border: tall transparent;
+  background: $boost;
+  padding: 0 1;
+  margin-top: 0;
+}
+
+.command-form-multiple-choice:focus-within {
+
   border: tall $accent;
 }

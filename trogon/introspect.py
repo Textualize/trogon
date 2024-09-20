@@ -37,14 +37,14 @@ class MultiValueParamData:
 class OptionSchema:
     name: list[str]
     type: ParamType
-    default: MultiValueParamData
-    required: bool
-    is_flag: bool
-    is_boolean_flag: bool
-    flag_value: Any
-    opts: list
-    counting: bool
-    secondary_opts: list
+    default: MultiValueParamData | None = None
+    required: bool = False
+    is_flag: bool = False
+    is_boolean_flag: bool = False
+    flag_value: Any = ""
+    opts: list = field(default_factory=list)
+    counting: bool = False
+    secondary_opts: list = field(default_factory=list)
     key: str | tuple[str] = field(default_factory=generate_unique_id)
     help: str | None = None
     choices: Sequence[str] | None = None
@@ -60,7 +60,7 @@ class OptionSchema:
 class ArgumentSchema:
     name: str
     type: str
-    required: bool
+    required: bool = False
     key: str = field(default_factory=generate_unique_id)
     default: MultiValueParamData | None = None
     choices: Sequence[str] | None = None
