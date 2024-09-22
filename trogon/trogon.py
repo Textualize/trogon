@@ -47,6 +47,7 @@ class CommandBuilder(Screen):
 
     BINDINGS = [
         Binding(key="ctrl+r", action="close_and_run", description="Close & Run"),
+        Binding("q,escape", "close_no_run", "Close Without Running"),
         Binding(
             key="ctrl+t",
             action="app.focus_command_tree",
@@ -136,6 +137,9 @@ class CommandBuilder(Screen):
 
     def action_close_and_run(self) -> None:
         self.app.execute_on_exit = True
+        self.app.exit()
+
+    def action_close_no_run(self) -> None:
         self.app.exit()
 
     def action_about(self) -> None:
