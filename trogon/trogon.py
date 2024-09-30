@@ -180,7 +180,7 @@ class CommandBuilder(Screen):
         """Update the description of the command at the bottom of the sidebar
         based on the currently selected node in the command tree."""
         description_box = self.query_one("#home-command-description", Static)
-        description_text = node.data.docstring or ""
+        description_text = "" if node.data is None else node.data.docstring or ""
         description_text = description_text.lstrip()
         description_text = f"[b]{node.label if self.is_grouped_cli else self.click_app_name}[/]\n{description_text}"
         description_box.update(description_text)
@@ -208,12 +208,13 @@ class CommandBuilder(Screen):
 
         # Process the metadata for this command and mount corresponding widgets
         command_schema = node.data
-        command_form = CommandForm(
-            command_schema=command_schema, command_schemas=self.command_schemas
-        )
-        await parent.mount(command_form)
-        if not self.is_grouped_cli:
-            command_form.focus()
+        if command_schema is not None:
+            command_form = CommandForm(
+                command_schema=command_schema, command_schemas=self.command_schemas
+            )
+            await parent.mount(command_form)
+            if not self.is_grouped_cli:
+                command_form.focus()
 
 
 class Trogon(App):

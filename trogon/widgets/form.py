@@ -98,7 +98,7 @@ class CommandForm(Widget):
 
     def compose(self) -> ComposeResult:
         path_from_root = iter(reversed(self.command_schema.path_from_root))
-        command_node = next(path_from_root)
+        command_node = next(path_from_root, None)
         with VerticalScroll() as vs:
             vs.can_focus = False
 
