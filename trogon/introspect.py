@@ -41,6 +41,8 @@ class OptionSchema:
     required: bool = False
     is_flag: bool = False
     is_boolean_flag: bool = False
+    hidden: bool = False
+    hide_input: bool = False
     flag_value: Any = ""
     opts: list = field(default_factory=list)
     counting: bool = False
@@ -134,6 +136,8 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
                     type=param.type,
                     is_flag=param.is_flag,
                     is_boolean_flag=param.is_bool_flag,
+                    hidden=param.hidden,
+                    hide_input=param.hide_input,
                     flag_value=param.flag_value,
                     counting=param.count,
                     opts=param.opts,
