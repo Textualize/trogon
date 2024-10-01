@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 from pathlib import Path
+from typing import Any
 from webbrowser import open as open_url
 
 import click
@@ -202,12 +203,12 @@ class CommandBuilder(Screen[None]):
             command_form.focus()
 
 
-class Trogon(App):
+class Trogon(App[None]):
     CSS_PATH = Path(__file__).parent / "trogon.scss"
 
     def __init__(
         self,
-        cli: click.Group,
+        cli: click.Group | click.Command,
         app_name: str | None = None,
         command_name: str = "tui",
         click_context: click.Context | None = None,
@@ -220,11 +221,11 @@ class Trogon(App):
         if app_name is None and click_context is not None:
             self.app_name = detect_run_string()
         else:
-            self.app_name = app_name
+            self.app_name = app_name or "cli"
         self.command_name = command_name
 
-    def on_mount(self):
-        self.push_screen(CommandBuilder(self.cli, self.app_name, self.command_name))
+    def get_default_screen(self) -> CommandBuilder:
+        return CommandBuilder(self.cli, self.app_name, self.command_name)
 
     @on(Button.Pressed, "#home-exec-button")
     def on_button_pressed(self):
@@ -233,13 +234,20 @@ class Trogon(App):
 
     def run(
         self,
-        *,
+        *args: Any,
         headless: bool = False,
         size: tuple[int, int] | None = None,
         auto_pilot: AutopilotCallbackType | None = None,
+        **kwargs: Any,
     ) -> None:
         try:
-            super().run(headless=headless, size=size, auto_pilot=auto_pilot)
+            super().run(
+                *args,
+                headless=headless,
+                size=size,
+                auto_pilot=auto_pilot,
+                **kwargs,
+            )
         finally:
             if self.post_run_command:
                 console = Console()
