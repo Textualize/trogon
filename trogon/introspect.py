@@ -83,7 +83,7 @@ class CommandSchema:
     @property
     def path_from_root(self) -> list["CommandSchema"]:
         node = self
-        path = [self]
+        path: list[CommandSchema] = [self]
         while True:
             node = node.parent
             if node is None:
