@@ -91,7 +91,7 @@ class UserCommandData:
         return cli_args
 
     def _to_cli_args(self) -> list[str]:
-        args = [self.name]
+        args: list[str] = [self.name]
 
         multiples: dict[str, list[tuple[str]]] = defaultdict(list)
         multiples_schemas: dict[str, OptionSchema] = {}
@@ -228,7 +228,7 @@ class UserCommandData:
         """
         args = self.to_cli_args(include_root_command=include_root_command)
 
-        text_renderables = []
+        text_renderables: list[Text] = []
         for arg in args:
             text_renderables.append(
                 Text(shlex.quote(str(arg)))

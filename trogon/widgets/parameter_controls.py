@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import functools
 from functools import partial
-from typing import Any, Callable, Iterable, TypeVar, Union, cast
+from typing import Any, Callable, Iterable, Union, cast
 
 import click
 from rich.text import Text
-from textual import log, on
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, Horizontal
 from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import (
-    RadioButton,
     Label,
     Checkbox,
     Input,
@@ -24,7 +23,7 @@ from textual.widgets import (
 from trogon.introspect import ArgumentSchema, OptionSchema, MultiValueParamData
 from trogon.widgets.multiple_choice import MultipleChoice
 
-ControlWidgetType: TypeVar = Union[Input, Checkbox, MultipleChoice, Select]
+ControlWidgetType = Union[Input, Checkbox, MultipleChoice, Select[object]]
 
 
 class ControlGroup(Vertical):
@@ -84,9 +83,7 @@ class ParameterControls(Widget):
                 name_contains_query = any(
                     filter_query in name.casefold() for name in self.schema.name
                 )
-                help_contains_query = (
-                    filter_query in help_text.casefold()
-                )
+                help_contains_query = filter_query in help_text.casefold()
                 should_be_visible = name_contains_query or help_contains_query
 
             self.display = should_be_visible
