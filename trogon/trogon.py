@@ -151,7 +151,7 @@ class CommandBuilder(Screen[None]):
 
         self.selected_command_schema = selected_command
         self._update_command_description(selected_command)
-        self._update_execution_string_preview(self.selected_command_schema)
+        self._update_execution_string_preview()
         await self._update_form_body(node)
 
     @on(Tree.NodeHighlighted)
@@ -165,7 +165,7 @@ class CommandBuilder(Screen[None]):
     @on(CommandForm.Changed)
     def update_command_data(self, event: CommandForm.Changed) -> None:
         self.command_data = event.command_data
-        self._update_execution_string_preview(self.selected_command_schema)
+        self._update_execution_string_preview()
 
     def _update_command_description(self, command: CommandSchema) -> None:
         """Update the description of the command at the bottom of the sidebar
@@ -176,7 +176,7 @@ class CommandBuilder(Screen[None]):
         description_text = f"[b]{command.name}[/]\n{description_text}"
         description_box.update(description_text)
 
-    def _update_execution_string_preview(self, command_schema: CommandSchema) -> None:
+    def _update_execution_string_preview(self) -> None:
         """Update the preview box showing the command string to be executed"""
         command_name_syntax_style = self.get_component_rich_style("command-name-syntax")
         prefix = Text(f"{self.click_app_name} ", command_name_syntax_style)
