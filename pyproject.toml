@@ -41,7 +41,7 @@ typer = ["typer"]
 mypy = "^1.2.0"
 black = "^23.3.0"
 pytest = "^7.3.1"
-textual = ">=0.61.0"
+textual-dev = ">=1.0"
 
 [build-system]
 requires = ["poetry-core"]
