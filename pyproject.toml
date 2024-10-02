@@ -42,6 +42,7 @@ mypy = "^1.2.0"
 black = "^23.3.0"
 pytest = ">=8.0.0"
 textual-dev = ">=1.0"
+pytest-textual-snapshot = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
