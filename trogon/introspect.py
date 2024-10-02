@@ -42,9 +42,9 @@ class OptionSchema:
     is_flag: bool = False
     is_boolean_flag: bool = False
     flag_value: Any = ""
-    opts: list = field(default_factory=list)
+    opts: list[str] = field(default_factory=list)
     counting: bool = False
-    secondary_opts: list = field(default_factory=list)
+    secondary_opts: list[str] = field(default_factory=list)
     key: str | tuple[str] = field(default_factory=generate_unique_id)
     help: str | None = None
     choices: Sequence[str] | None = None
@@ -83,7 +83,7 @@ class CommandSchema:
     @property
     def path_from_root(self) -> list["CommandSchema"]:
         node = self
-        path = [self]
+        path: list[CommandSchema] = [self]
         while True:
             node = node.parent
             if node is None:

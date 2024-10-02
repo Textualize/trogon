@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import functools
 from functools import partial
-from typing import Any, Callable, Iterable, TypeVar, Union, cast
+from typing import Any, Callable, Iterable, Union, cast
 
 import click
 from rich.text import Text
-from textual import log, on
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, Horizontal
 from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import (
-    RadioButton,
     Label,
     Checkbox,
     Input,
@@ -24,7 +23,7 @@ from textual.widgets import (
 from trogon.introspect import ArgumentSchema, OptionSchema, MultiValueParamData
 from trogon.widgets.multiple_choice import MultipleChoice
 
-ControlWidgetType: TypeVar = Union[Input, Checkbox, MultipleChoice, Select]
+ControlWidgetType = Union[Input, Checkbox, MultipleChoice, Select[str]]
 
 
 class ControlGroup(Vertical):
@@ -84,9 +83,7 @@ class ParameterControls(Widget):
                 name_contains_query = any(
                     filter_query in name.casefold() for name in self.schema.name
                 )
-                help_contains_query = (
-                    filter_query in help_text.casefold()
-                )
+                help_contains_query = filter_query in help_text.casefold()
                 should_be_visible = name_contains_query or help_contains_query
 
             self.display = should_be_visible
@@ -195,7 +192,7 @@ class ParameterControls(Widget):
         if help_text:
             yield Static(help_text, classes="command-form-control-help-text")
 
-    def make_widget_group(self) -> Iterable[Widget]:
+    def make_widget_group(self) -> Iterable[ControlWidgetType]:
         """For this option, yield a single set of widgets required to receive user input for it."""
         schema = self.schema
         default = schema.default
@@ -306,7 +303,9 @@ class ParameterControls(Widget):
 
     def get_control_method(
         self, argument_type: Any
-    ) -> Callable[[Any, Text, bool, OptionSchema | ArgumentSchema, str], Widget]:
+    ) -> Callable[
+        [Any, Text, bool, OptionSchema | ArgumentSchema, str], ControlWidgetType
+    ]:
         text_click_types = {
             click.STRING,
             click.FLOAT,
@@ -340,7 +339,7 @@ class ParameterControls(Widget):
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
-    ) -> Widget:
+    ) -> Iterable[ControlWidgetType]:
         control = Input(
             classes=f"command-form-input {control_id}",
         )
@@ -354,7 +353,7 @@ class ParameterControls(Widget):
         multiple: bool,
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
-    ) -> Widget:
+    ) -> Iterable[ControlWidgetType]:
         if default.values:
             default = default.values[0][0]
         else:
@@ -377,7 +376,7 @@ class ParameterControls(Widget):
         schema: OptionSchema | ArgumentSchema,
         control_id: str,
         choices: list[str],
-    ) -> Widget:
+    ) -> Iterable[ControlWidgetType]:
         # The MultipleChoice widget is only for single-valued parameters.
         if isinstance(schema.type, click.Tuple):
             multiple = False
@@ -391,7 +390,7 @@ class ParameterControls(Widget):
             yield multi_choice
             return multi_choice
         else:
-            select = Select(
+            select = Select[str](
                 [(choice, choice) for choice in choices],
                 classes=f"{control_id} command-form-select",
             )

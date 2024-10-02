@@ -45,7 +45,7 @@ def cli(ctx, verbose):
     help="Add labels to the task (repeatable)",
 )
 @click.pass_context
-def add(ctx, task, priority, tags, extra):
+def add(ctx, task, priority, tags, extra, category, labels):
     """Add a new task to the to-do list.
     Note:
     Control the output of this using the verbosity option.

@@ -27,7 +27,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8.1"
 textual = ">=0.61.0"
 click = ">=8.0.0"
 
@@ -40,8 +40,8 @@ typer = ["typer"]
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
 black = "^23.3.0"
-pytest = "^7.3.1"
-textual = ">=0.61.0"
+pytest = ">=8.0.0"
+textual-dev = ">=1.0"
 
 [build-system]
 requires = ["poetry-core"]
