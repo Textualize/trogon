@@ -44,7 +44,7 @@ class CommandForm(Widget):
     .command-form-checkbox {
         background: $boost;
         margin: 1 0 0 0;
-        padding-left: 1;
+        padding: 0 1 0 1;
         border: tall transparent;
     }
     .command-form-checkbox:focus {
