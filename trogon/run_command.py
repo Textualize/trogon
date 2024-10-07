@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import shlex
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, List, Optional
 
 from rich.text import Text
@@ -71,13 +71,13 @@ class UserCommandData:
     """
 
     name: CommandName
-    options: List[UserOptionData]
-    arguments: List[UserArgumentData]
-    subcommand: Optional["UserCommandData"] = None
-    parent: Optional["UserCommandData"] = None
-    command_schema: Optional["CommandSchema"] = None
+    options: list[UserOptionData] = field(default_factory=list)
+    arguments: list[UserArgumentData] = field(default_factory=list)
+    subcommand: UserCommandData | None = None
+    parent: UserCommandData | None = None
+    command_schema: CommandSchema | None = None
 
-    def to_cli_args(self, include_root_command: bool = False) -> List[str]:
+    def to_cli_args(self, include_root_command: bool = False) -> list[str]:
         """
         Generates a list of strings representing the CLI invocation based on the user input data.
 
@@ -90,11 +90,11 @@ class UserCommandData:
 
         return cli_args
 
-    def _to_cli_args(self):
-        args = [self.name]
+    def _to_cli_args(self) -> list[str]:
+        args: list[str] = [self.name]
 
-        multiples = defaultdict(list)
-        multiples_schemas = {}
+        multiples: dict[str, list[tuple[str]]] = defaultdict(list)
+        multiples_schemas: dict[str, OptionSchema] = {}
 
         for option in self.options:
             if option.option_schema.multiple:
@@ -228,7 +228,7 @@ class UserCommandData:
         """
         args = self.to_cli_args(include_root_command=include_root_command)
 
-        text_renderables = []
+        text_renderables: list[Text] = []
         for arg in args:
             text_renderables.append(
                 Text(shlex.quote(str(arg)))

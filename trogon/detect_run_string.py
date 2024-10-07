@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 import sys
+from types import ModuleType
 
 
 def get_orig_argv() -> list[str]:
@@ -20,10 +21,9 @@ def get_orig_argv() -> list[str]:
     return argv
 
 
-def detect_run_string(path=None, _main=sys.modules["__main__"]) -> str:
+def detect_run_string(_main: ModuleType = sys.modules["__main__"]) -> str:
     """This is a slightly modified version of a function from Click."""
-    if not path:
-        path = sys.argv[0]
+    path = sys.argv[0]
 
     # The value of __package__ indicates how Python was called. It may
     # not exist if a setuptools script is installed as an egg. It may be
