@@ -39,7 +39,7 @@ typer = ["typer"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.2.0"
-black = "^23.3.0"
+black = "^24.3.0"
 pytest = ">=8.0.0"
 textual-dev = ">=1.0"
 
