@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shlex
+import sys
 from pathlib import Path
 from typing import Any
 from webbrowser import open as open_url
@@ -256,10 +257,9 @@ class Trogon(App[None]):
                         f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
                     )
 
-                    split_app_name = shlex.split(self.app_name)
                     program_name = shlex.split(self.app_name)[0]
-                    arguments = [*split_app_name, *self.post_run_command]
-                    os.execvp(program_name, arguments)
+                    arguments = [sys.executable, program_name, *self.post_run_command]
+                    os.execvp(sys.executable, arguments)
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):
