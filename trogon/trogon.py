@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shlex
+from importlib import metadata  # type: ignore
 from pathlib import Path
 from typing import Any
 from webbrowser import open as open_url
@@ -36,12 +37,6 @@ from trogon.widgets.command_info import CommandInfo
 from trogon.widgets.command_tree import CommandTree
 from trogon.widgets.form import CommandForm
 from trogon.widgets.multiple_choice import NonFocusableVerticalScroll
-
-try:
-    from importlib import metadata  # type: ignore
-except ImportError:
-    # Python < 3.8
-    import importlib_metadata as metadata  # type: ignore
 
 
 class CommandBuilder(Screen[None]):
