@@ -203,7 +203,7 @@ class ClickCommandSchema(CommandSchema):
     @property
     def docstring(self) -> str | None:
         if self._docstring is None:
-            self._docstring = self.cmd_obj.get_help(self.cmd_ctx)
+            self._docstring = self.cmd_obj.get_short_help_str()
         return self._docstring
 
     @property
