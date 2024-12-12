@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import cached_property
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -138,79 +139,79 @@ class ClickCommandSchema(CommandSchema):
         self._subcommands = None
         self._docstring = None
 
-    @property
+    @cached_property
     def options(self) -> list[OptionSchema]:
-        if self._options is None:
-            self._options = list[OptionSchema]()
-            for param in self.cmd_obj.get_params(self.cmd_ctx):
-                default = MultiValueParamData.process_cli_option(param.default)
-                if isinstance(param, (click.Option, click.core.Group)):
-                    option_data = OptionSchema(
-                        name=param.opts,
-                        type=param.type,
-                        is_flag=param.is_flag,
-                        is_boolean_flag=param.is_bool_flag,
-                        flag_value=param.flag_value,
-                        counting=param.count,
-                        opts=param.opts,
-                        secondary_opts=param.secondary_opts,
-                        required=param.required,
-                        default=default,
-                        help=param.help,
-                        multiple=param.multiple,
-                        nargs=param.nargs,
-                    )
-                    if isinstance(param.type, click.Choice):
-                        option_data.choices = param.type.choices
-                    self._options.append(option_data)
-        return self._options
+        options = list[OptionSchema]()
+        help_option_names = set(self.cmd_obj.get_help_option_names(self.cmd_ctx))
+        for param in self.cmd_obj.get_params(self.cmd_ctx):
+            if not isinstance(param, (click.Option, click.core.Group)):
+                continue
+            is_help_param = len(help_option_names & set(param.opts)) > 0
+            if is_help_param:
+                continue
+            default = MultiValueParamData.process_cli_option(param.default)
+            option_data = OptionSchema(
+                name=param.opts,
+                type=param.type,
+                is_flag=param.is_flag,
+                is_boolean_flag=param.is_bool_flag,
+                flag_value=param.flag_value,
+                counting=param.count,
+                opts=param.opts,
+                secondary_opts=param.secondary_opts,
+                required=param.required,
+                default=default,
+                help=param.help,
+                multiple=param.multiple,
+                nargs=param.nargs,
+            )
+            if isinstance(param.type, click.Choice):
+                option_data.choices = param.type.choices
+            options.append(option_data)
+        return options
 
-    @property
+    @cached_property
     def arguments(self) -> list[ArgumentSchema]:
-        if self._arguments is None:
-            self._arguments = list[ArgumentSchema]()
-            for param in self.cmd_obj.get_params(self.cmd_ctx):
-                default = MultiValueParamData.process_cli_option(param.default)
-                if isinstance(param, click.Argument):
-                    argument_data = ArgumentSchema(
-                        name=param.name,
-                        type=param.type,
-                        required=param.required,
-                        multiple=param.multiple,
-                        default=default,
-                        nargs=param.nargs,
-                    )
-                    if isinstance(param.type, click.Choice):
-                        argument_data.choices = param.type.choices
-                    self._arguments.append(argument_data)
-        return self._arguments
+        arguments = list[ArgumentSchema]()
+        for param in self.cmd_obj.get_params(self.cmd_ctx):
+            default = MultiValueParamData.process_cli_option(param.default)
+            if isinstance(param, click.Argument):
+                argument_data = ArgumentSchema(
+                    name=param.name,
+                    type=param.type,
+                    required=param.required,
+                    multiple=param.multiple,
+                    default=default,
+                    nargs=param.nargs,
+                )
+                if isinstance(param.type, click.Choice):
+                    argument_data.choices = param.type.choices
+                arguments.append(argument_data)
+        return arguments
     
-    @property
+    @cached_property
     def subcommands(self) -> dict["CommandName", "CommandSchema"]:
-        if self._subcommands is None:
-            self._subcommands = dict["CommandName", "CommandSchema"]()
-            if isinstance(self.cmd_obj, click.core.Group):
-                self.cmd_obj.to_info_dict(self.cmd_ctx)
-                for subcmd_name, subcmd_obj in self.cmd_obj.commands.items():
-                    self._subcommands[CommandName(subcmd_name)] = ClickCommandSchema(
-                        cmd_obj=subcmd_obj,
-                        cmd_ctx=self.cmd_ctx,
-                        cmd_name=subcmd_name,
-                        parent=self,
-                    )
-        return self._subcommands
+        subcommands = dict["CommandName", "CommandSchema"]()
+        if isinstance(self.cmd_obj, click.core.Group):
+            self.cmd_obj.to_info_dict(self.cmd_ctx)
+            for subcmd_name, subcmd_obj in self.cmd_obj.commands.items():
+                subcommands[CommandName(subcmd_name)] = ClickCommandSchema(
+                    cmd_obj=subcmd_obj,
+                    cmd_ctx=self.cmd_ctx,
+                    cmd_name=subcmd_name,
+                    parent=self,
+                )
+        return subcommands
 
-    @property
+    @cached_property
     def docstring(self) -> str | None:
-        if self._docstring is None:
-            self._docstring = self.cmd_obj.get_short_help_str()
-        return self._docstring
+        return self.cmd_obj.get_short_help_str()
 
-    @property
+    @cached_property
     def function(self) -> Callable[..., Any | None]:
         return self.cmd_obj.callback
     
-    @property
+    @cached_property
     def is_group(self) -> bool:
         return isinstance(self.cmd_obj, click.Group)
 
