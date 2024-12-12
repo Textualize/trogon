@@ -298,8 +298,9 @@ def tui(
     
     def decorator(app: click.Group | click.Command):
         @click.pass_context
-        def wrapped_tui(ctx, *args, **kwargs):
-            Trogon(app, app_name=name, command_name=command, click_context=ctx).run()
+        def wrapped_tui(ctx: click.Context, *args, **kwargs):
+            if ctx.invoked_subcommand is None:
+                Trogon(app, app_name=name, command_name=command, click_context=ctx).run()
 
         if isinstance(app, click.Group):
             group = app
