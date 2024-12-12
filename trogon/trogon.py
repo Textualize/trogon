@@ -61,6 +61,7 @@ class CommandBuilder(Screen[None]):
         cli: click.BaseCommand,
         click_app_name: str,
         command_name: str,
+        click_context: click.Context,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -69,7 +70,7 @@ class CommandBuilder(Screen[None]):
         self.command_data: UserCommandData = UserCommandData(CommandName("_default"))
         self.cli = cli
         self.is_grouped_cli = isinstance(cli, click.Group)
-        self.command_schemas = introspect_click_app(cli)
+        self.command_schemas = introspect_click_app(cli, click_context)
         self.click_app_name = click_app_name
         self.command_name = command_name
 
@@ -213,6 +214,7 @@ class Trogon(App[None]):
         self.post_run_command: list[str] = []
         self.is_grouped_cli = isinstance(cli, click.Group)
         self.execute_on_exit = False
+        self.click_context = click_context
         if app_name is None and click_context is not None:
             self.app_name = detect_run_string()
         else:
@@ -220,7 +222,12 @@ class Trogon(App[None]):
         self.command_name = command_name
 
     def get_default_screen(self) -> CommandBuilder:
-        return CommandBuilder(self.cli, self.app_name, self.command_name)
+        return CommandBuilder(
+            self.cli,
+            self.app_name,
+            self.command_name,
+            self.click_context,
+        )
 
     @on(Button.Pressed, "#home-exec-button")
     def on_button_pressed(self):
@@ -282,20 +289,30 @@ class Trogon(App[None]):
         open_url(url)
 
 
-def tui(name: str | None = None, command: str = "tui", help: str = "Open Textual TUI."):
+def tui(
+    name: str | None = None,
+    command: str = "tui",
+    run_if_no_command: bool = False,
+    help: str = "Open Textual TUI."
+):
+    
     def decorator(app: click.Group | click.Command):
         @click.pass_context
         def wrapped_tui(ctx, *args, **kwargs):
             Trogon(app, app_name=name, command_name=command, click_context=ctx).run()
 
         if isinstance(app, click.Group):
-            app.command(name=command, help=help)(wrapped_tui)
+            group = app
         else:
-            new_group = click.Group()
-            new_group.add_command(app)
-            new_group.command(name=command, help=help)(wrapped_tui)
-            return new_group
+            group = click.Group()
+            group.add_command(app)
 
-        return app
+        if run_if_no_command:
+            group.invoke_without_command = True
+            group.no_args_is_help = False
+            group.callback = wrapped_tui
+        else:
+            group.command(name=command, help=help)(wrapped_tui)
+        return group
 
     return decorator
