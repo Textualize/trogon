@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
-import shlex
 import sys
 from types import ModuleType
+
+import oslex
 
 
 def get_orig_argv() -> list[str]:
@@ -35,7 +36,7 @@ def detect_run_string(_main: ModuleType = sys.modules["__main__"]) -> str:
         and os.path.exists(f"{path}.exe")
     ):
         # Executed a file, like "python app.py".
-        file_path = shlex.quote(os.path.basename(path))
+        file_path = oslex.quote(os.path.basename(path))
         argv = get_orig_argv()
         if argv[0] == "python":
             prefix = f"{argv[0]} "

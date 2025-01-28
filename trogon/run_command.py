@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import itertools
-import shlex
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
 
+import oslex
 from rich.text import Text
 
 from trogon.introspect import (
@@ -231,7 +231,7 @@ class UserCommandData:
         text_renderables: list[Text] = []
         for arg in args:
             text_renderables.append(
-                Text(shlex.quote(str(arg)))
+                Text(oslex.quote(str(arg)))
                 if arg != ValueNotSupplied()
                 else Text("???", style="bold black on red")
             )
