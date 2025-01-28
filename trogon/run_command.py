@@ -84,7 +84,7 @@ class UserCommandData:
         Returns:
             A list of strings that can be passed to subprocess.run to execute the command.
         """
-        cli_args = self._to_cli_args()
+        cli_args = list(str(arg) for arg in self._to_cli_args())
         if not include_root_command:
             cli_args = cli_args[1:]
 
