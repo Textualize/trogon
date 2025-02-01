@@ -28,7 +28,7 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 
-from trogon.detect_run_string import detect_run_string
+from trogon.detect_run_string import detect_run_string, exact_run_commands
 from trogon.introspect import (
     introspect_click_app,
     CommandSchema,
@@ -249,17 +249,16 @@ class Trogon(App[None]):
             if self.post_run_command:
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
+                    run_commands = exact_run_commands()
+                    program_path = run_commands[0]
+                    full_commands = [*run_commands, *self.post_run_command]
                     console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(oslex.quote(s) for s in self.post_run_command)}[/]"
+                        f"Running [b cyan]{' '.join(oslex.quote(s) for s in full_commands)}[/]"
                     )
-
-                    split_app_name = oslex.split(self.app_name)
-                    program_name = oslex.split(self.app_name)[0]
-                    arguments = [*split_app_name, *self.post_run_command]
                     if sys.platform == "win32":
-                        sys.exit(subprocess.call(arguments, shell=True))
+                        sys.exit(subprocess.call(full_commands, shell=True))
                     else:
-                        os.execvp(program_name, arguments)
+                        os.execv(program_path, full_commands)
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):
