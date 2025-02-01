@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import subprocess
+import sys
 from importlib import metadata  # type: ignore
 from pathlib import Path
 from typing import Any
@@ -254,7 +256,10 @@ class Trogon(App[None]):
                     split_app_name = oslex.split(self.app_name)
                     program_name = oslex.split(self.app_name)[0]
                     arguments = [*split_app_name, *self.post_run_command]
-                    os.execvp(program_name, arguments)
+                    if sys.platform == "win32":
+                        sys.exit(subprocess.call(arguments, shell=True))
+                    else:
+                        os.execvp(program_name, arguments)
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):
