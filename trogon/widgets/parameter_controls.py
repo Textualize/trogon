@@ -405,23 +405,27 @@ class ParameterControls(Widget):
         is_required: bool,
         multiple: bool,
     ) -> Text:
-        if isinstance(name, str):
-            text = Text.from_markup(
-                f"{name}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
-            )
-        else:
-            names = Text(" / ", style="dim").join([Text(n) for n in name])
-            text = Text.from_markup(
-                f"{names}[dim]{' multiple' if multiple else ''} {type.name}[/] {' [b red]*[/]required' if is_required else ''}"
-            )
+        def yield_segments() -> Iterable[Text]:
+            if isinstance(name, str):
+                yield Text(name)
+            else:
+                yield Text(" / ").join([Text(n) for n in name])
 
-        if isinstance(type, (click.IntRange, click.FloatRange)):
-            if type.min is not None:
-                text = Text.assemble(text, Text(f"min={type.min} ", "dim"))
-            if type.max is not None:
-                text = Text.assemble(text, Text(f"max={type.max}", "dim"))
+            if multiple:
+                yield Text("multiple", style="dim")
 
-        return text
+            yield Text(type.name, style="dim")
+
+            if is_required:
+                yield Text.assemble(Text("*", style="b red"), "required")
+
+            if isinstance(type, (click.IntRange, click.FloatRange)):
+                if type.min is not None:
+                    yield Text(f"min={type.min}", style="dim")
+                if type.max is not None:
+                    yield Text(f"max={type.max}", style="dim")
+
+        return Text(" ").join(yield_segments())
 
     def focus(self, scroll_visible: bool = True):
         if self.first_control is not None:
