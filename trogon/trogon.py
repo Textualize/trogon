@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import os
-import shlex
+import subprocess
+import sys
 from importlib import metadata  # type: ignore
 from pathlib import Path
 from typing import Any
 from webbrowser import open as open_url
 
 import click
+import oslex
 from rich.console import Console
 from rich.highlighter import ReprHighlighter
 from rich.text import Text
@@ -26,7 +28,7 @@ from textual.widgets import (
 )
 from textual.widgets.tree import TreeNode
 
-from trogon.detect_run_string import detect_run_string
+from trogon.detect_run_string import detect_run_string, exact_run_commands
 from trogon.introspect import (
     introspect_click_app,
     CommandSchema,
@@ -247,14 +249,16 @@ class Trogon(App[None]):
             if self.post_run_command:
                 console = Console()
                 if self.post_run_command and self.execute_on_exit:
+                    run_commands = exact_run_commands()
+                    program_path = run_commands[0]
+                    full_commands = [*run_commands, *self.post_run_command]
                     console.print(
-                        f"Running [b cyan]{self.app_name} {' '.join(shlex.quote(s) for s in self.post_run_command)}[/]"
+                        f"Running [b cyan]{' '.join(oslex.quote(s) for s in full_commands)}[/]"
                     )
-
-                    split_app_name = shlex.split(self.app_name)
-                    program_name = shlex.split(self.app_name)[0]
-                    arguments = [*split_app_name, *self.post_run_command]
-                    os.execvp(program_name, arguments)
+                    if sys.platform == "win32":
+                        sys.exit(subprocess.call(full_commands, shell=True))
+                    else:
+                        os.execv(program_path, full_commands)
 
     @on(CommandForm.Changed)
     def update_command_to_run(self, event: CommandForm.Changed):
