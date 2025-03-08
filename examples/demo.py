@@ -55,6 +55,8 @@ def add(ctx, task, priority, tags, extra, category, labels):
         click.echo(f"Priority: {priority}")
         click.echo(f'Tags: {", ".join(tags)}')
         click.echo(f"Extra data: {extra}")
+        click.echo(f"Category: {category}")
+        click.echo(f'Labels: {", ".join(labels)}')
     elif ctx.obj["verbose"] >= 1:
         click.echo(f"Adding task: {task}")
     else:
