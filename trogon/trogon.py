@@ -4,7 +4,7 @@ import os
 import shlex
 from importlib import metadata  # type: ignore
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Optional
 from webbrowser import open as open_url
 
 import click
@@ -207,6 +207,7 @@ class Trogon(App[None]):
         app_name: str | None = None,
         command_name: str = "tui",
         click_context: click.Context | None = None,
+        on_mount_callback: Optional[Callable[[App], None]] = None
     ) -> None:
         super().__init__()
         self.cli = cli
@@ -218,6 +219,7 @@ class Trogon(App[None]):
         else:
             self.app_name = app_name or "cli"
         self.command_name = command_name
+        self.on_mount_callback = on_mount_callback
 
     def get_default_screen(self) -> CommandBuilder:
         return CommandBuilder(self.cli, self.app_name, self.command_name)
@@ -226,6 +228,10 @@ class Trogon(App[None]):
     def on_button_pressed(self):
         self.execute_on_exit = True
         self.exit()
+
+    def on_mount(self) -> None:
+        if self.on_mount_callback is not None:
+            self.on_mount_callback(self)
 
     def run(
         self,
@@ -282,11 +288,11 @@ class Trogon(App[None]):
         open_url(url)
 
 
-def tui(name: str | None = None, command: str = "tui", help: str = "Open Textual TUI."):
+def tui(name: str | None = None, command: str = "tui", help: str = "Open Textual TUI.", on_mount: Optional[Callable[[App], None]] = None):
     def decorator(app: click.Group | click.Command):
         @click.pass_context
         def wrapped_tui(ctx, *args, **kwargs):
-            Trogon(app, app_name=name, command_name=command, click_context=ctx).run()
+            Trogon(app, app_name=name, command_name=command, click_context=ctx, on_mount_callback=on_mount).run()
 
         if isinstance(app, click.Group):
             app.command(name=command, help=help)(wrapped_tui)
