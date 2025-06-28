@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
-import shlex
 import sys
 from types import ModuleType
+
+import oslex
 
 
 def get_orig_argv() -> list[str]:
@@ -22,7 +23,11 @@ def get_orig_argv() -> list[str]:
 
 
 def detect_run_string(_main: ModuleType = sys.modules["__main__"]) -> str:
-    """This is a slightly modified version of a function from Click."""
+    """Determine the command used to run the program, for use in preview text only.
+
+    This doesn't try to be too precise.
+    This is a slightly modified version of a function from Click.
+    """
     path = sys.argv[0]
 
     # The value of __package__ indicates how Python was called. It may
@@ -35,7 +40,7 @@ def detect_run_string(_main: ModuleType = sys.modules["__main__"]) -> str:
         and os.path.exists(f"{path}.exe")
     ):
         # Executed a file, like "python app.py".
-        file_path = shlex.quote(os.path.basename(path))
+        file_path = oslex.quote(os.path.basename(path))
         argv = get_orig_argv()
         if argv[0] == "python":
             prefix = f"{argv[0]} "
@@ -54,3 +59,11 @@ def detect_run_string(_main: ModuleType = sys.modules["__main__"]) -> str:
         py_module = f"{py_module}.{name}"
 
     return f"python -m {py_module.lstrip('.')}"
+
+
+def exact_run_commands() -> list[str]:
+    """Get the calling command to re-execute it as it was called originally."""
+    num_of_script_args = len(sys.argv) - 1
+    # sys.orig_argv is nearly perfect, just contain a wrong interpreter in case of a venv
+    calling_command_args = get_orig_argv()[1:-num_of_script_args]
+    return [sys.executable, *calling_command_args]
