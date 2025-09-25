@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence, NewType
 
 import click
-from click import BaseCommand, ParamType
+from click import Command, ParamType
 
 
 def generate_unique_id():
@@ -92,7 +92,7 @@ class CommandSchema:
         return list(reversed(path))
 
 
-def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
+def introspect_click_app(app: Command) -> dict[CommandName, CommandSchema]:
     """
     Introspect a Click application and build a data structure containing
     information about all commands, options, arguments, and subcommands,
@@ -104,7 +104,7 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
     command function references.
 
     Args:
-        app (click.BaseCommand): The Click application's top-level group or command instance.
+        app (click.Command): The Click application's top-level group or command instance.
 
     Returns:
         Dict[str, CommandData]: A nested dictionary containing the Click application's
