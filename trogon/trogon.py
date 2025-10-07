@@ -270,8 +270,8 @@ class Trogon(App[None]):
         command_tree.focus()
 
     def action_show_command_info(self) -> None:
-        command_builder = self.query_one(CommandBuilder)
-        self.push_screen(CommandInfo(command_builder.selected_command_schema))
+        command_form = self.query_one(CommandForm)
+        self.push_screen(CommandInfo(command_form.command_schema))
 
     def action_visit(self, url: str) -> None:
         """Visit the given URL, via the operating system.
