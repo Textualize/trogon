@@ -124,7 +124,7 @@ class ParameterControls(Widget):
         # If there are N defaults, we render the "group" N times.
         # Each group will contain `nargs` widgets.
         with ControlGroupsContainer():
-            if not argument_type == click.BOOL:
+            if not isinstance(argument_type, click.types.BoolParamType):
                 yield Label(label, classes="command-form-label")
 
             if isinstance(argument_type, click.Choice) and multiple:
@@ -325,7 +325,7 @@ class ParameterControls(Widget):
         )
         if is_text_type:
             return self.make_text_control
-        elif argument_type == click.BOOL:
+        elif isinstance(argument_type, click.types.BoolParamType):
             return self.make_checkbox_control
         elif isinstance(argument_type, click.types.Choice):
             return partial(self.make_choice_control, choices=argument_type.choices)
