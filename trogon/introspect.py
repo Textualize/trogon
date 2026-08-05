@@ -7,6 +7,14 @@ from typing import Any, Callable, Sequence, NewType
 import click
 from click import BaseCommand, ParamType
 
+try:
+    # Click 8.3+ uses a dedicated sentinel to distinguish "no default was
+    # supplied" from a default value of `None`. Older versions of Click
+    # don't have this sentinel, and just use `None` for both cases.
+    from click.core import UNSET as CLICK_UNSET
+except ImportError:
+    CLICK_UNSET = None
+
 
 def generate_unique_id():
     return f"id_{str(uuid.uuid4())[:8]}"
@@ -18,7 +26,7 @@ class MultiValueParamData:
 
     @staticmethod
     def process_cli_option(value) -> "MultiValueParamData":
-        if value is None:
+        if value is None or value is CLICK_UNSET:
             value = MultiValueParamData([])
         elif isinstance(value, tuple):
             value = MultiValueParamData([value])
