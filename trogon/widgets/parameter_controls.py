@@ -19,6 +19,7 @@ from textual.widgets import (
     Static,
     Button,
 )
+from textual_autocomplete import PathAutoComplete
 
 from trogon.introspect import ArgumentSchema, OptionSchema, MultiValueParamData
 from trogon.widgets.multiple_choice import MultipleChoice
@@ -163,6 +164,10 @@ class ParameterControls(Widget):
                             if first_focus_control is None:
                                 first_focus_control = control_widget
 
+                        yield from self._make_path_autocompletes(
+                            widget_group, argument_type
+                        )
+
                 # We always need to display the original group of controls,
                 # regardless of whether there are defaults
                 if multiple or not default.values:
@@ -176,6 +181,10 @@ class ParameterControls(Widget):
                             yield control_widget
                             if first_focus_control is None:
                                 first_focus_control = control_widget
+
+                        yield from self._make_path_autocompletes(
+                            widget_group, argument_type
+                        )
 
         # Take note of the first form control, so we can easily focus it
         if self.first_control is None:
@@ -220,6 +229,20 @@ class ParameterControls(Widget):
                 default, label, multiple, schema, schema.key
             )
             yield from control_widgets
+
+    @staticmethod
+    def _make_path_autocompletes(
+        widget_group: list[ControlWidgetType], parameter_type: click.ParamType
+    ) -> Iterable[PathAutoComplete]:
+        """Pair each Input backed by a click.Path type with a PathAutoComplete."""
+        parameter_types = (
+            parameter_type.types
+            if isinstance(parameter_type, click.Tuple)
+            else [parameter_type]
+        )
+        for control_widget, _type in zip(widget_group, parameter_types):
+            if isinstance(_type, click.Path) and isinstance(control_widget, Input):
+                yield PathAutoComplete(target=control_widget)
 
     @on(Button.Pressed, ".add-another-button")
     def add_another_widget_group(self, event: Button.Pressed) -> None:
