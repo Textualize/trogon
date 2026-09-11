@@ -172,17 +172,12 @@ def introspect_click_app(app: BaseCommand) -> dict[CommandName, CommandSchema]:
 
     # Special case for the root group
     if isinstance(app, click.Group):
-        root_cmd_name = CommandName("root")
+        name = getattr(app, "name", None) or "root"
+        root_cmd_name = CommandName(name)
         data[root_cmd_name] = process_command(root_cmd_name, app)
-        app = data[root_cmd_name]
-
-    if isinstance(app, click.Group):
-        for cmd_name, cmd_obj in app.commands.items():
-            data[CommandName(cmd_name)] = process_command(
-                CommandName(cmd_name), cmd_obj
-            )
     elif isinstance(app, click.Command):
-        cmd_name = CommandName(app.name)
+        name = getattr(app, "name", None) or "root"
+        cmd_name = CommandName(name)
         data[cmd_name] = process_command(cmd_name, app)
 
     return data
