@@ -18,7 +18,8 @@ class MultiValueParamData:
 
     @staticmethod
     def process_cli_option(value) -> "MultiValueParamData":
-        if value is None:
+        # Click 8.3 uses UNSET for omitted defaults; older versions use None.
+        if value is None or value is getattr(click.core, "UNSET", None):
             value = MultiValueParamData([])
         elif isinstance(value, tuple):
             value = MultiValueParamData([value])
