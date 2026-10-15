@@ -113,8 +113,10 @@ class UserCommandData:
                 else:
                     default_data = [tuple()]
 
-                flattened_values = sorted(itertools.chain.from_iterable(value_data))
-                flattened_defaults = sorted(itertools.chain.from_iterable(default_data))
+                # Tuple positions are significant, and their types need not be
+                # comparable (for example, a click.Tuple of int and str).
+                flattened_values = list(itertools.chain.from_iterable(value_data))
+                flattened_defaults = list(itertools.chain.from_iterable(default_data))
 
                 # If the user has supplied values (any values are not None), then
                 # we don't display the value.
