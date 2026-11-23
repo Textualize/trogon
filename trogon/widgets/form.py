@@ -211,7 +211,7 @@ class CommandForm(Widget):
 
     def focus(self, scroll_visible: bool = True):
         if self.first_control is not None:
-            return self.first_control.focus()
+            return self.first_control.focus(scroll_visible=scroll_visible)
 
     @on(Input.Changed, ".command-form-filter-input")
     def apply_filter(self, event: Input.Changed) -> None:

@@ -425,4 +425,4 @@ class ParameterControls(Widget):
 
     def focus(self, scroll_visible: bool = True):
         if self.first_control is not None:
-            self.first_control.focus()
+            self.first_control.focus(scroll_visible=scroll_visible)
